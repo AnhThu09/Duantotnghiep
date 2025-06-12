@@ -31,7 +31,7 @@ const NavBar = () => {
                 <Link className="nav-link" to="/contact">Blog làm đẹp</Link>
               </li>
                <li className="nav-item mx-2">
-                <Link className="nav-link" to="/contact">Liên hệ</Link>
+                <Link className="nav-link" to="/categories">Liên hệ</Link>
               </li>
             </ul>
         </div>

@@ -5,5 +5,5 @@ export const db = mysql.createConnection({
   user: "root",
   password: "", // hoặc đúng mật khẩu MySQL của chị
   database: "datn2025",
-   port: 3308 
+   port: 3306
 });
