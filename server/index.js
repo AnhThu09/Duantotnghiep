@@ -1,6 +1,8 @@
 import express from "express";
 import categoryRoutes from "./routes/categoryRoutes.js";
 import { db } from "./config/connectBD.js";
+import cors from 'cors';
+
 const __dirname = import.meta.dirname;
 
 const app = express();
@@ -17,13 +19,10 @@ db.connect((err) => {
 
 app.set("view engine", "ejs");
 app.set("views", "./views");
+app.use(express.json()); 
+app.use(cors());
 
-app.use("/api", categoryRoutes);
-// app.use("/", getBrandById);
-// app.use("/users", userRouter);
-// app.use("/api/products", productRouter);
-// app.use("/api", bookRoutes);
-// app.use("/api", reviewRoutes);
+app.use("/api/categories", categoryRoutes);
 
 app.listen(3000, () => {
   console.log("ExpressJS server started!!!");
