@@ -19,6 +19,7 @@ import LogoutIcon from '@mui/icons-material/Logout';
 import { Link as RouterLink } from 'react-router-dom';
 
 import Header from './Header'; // Import component Header đã tách riêng
+import { LocalOffer } from '@mui/icons-material';
 
 const drawerWidth = 240; // Chiều rộng cố định của Sidebar
 
@@ -39,6 +40,7 @@ export default function Layout({ children }: LayoutProps) {
     { text: 'Quản lý Danh mục', icon: <CategoryIcon />, path: '/categories' },
     { text: 'Quản lý Sản phẩm', icon: <ShoppingBagIcon />, path: '/products' },
     { text: 'Quản lý Người dùng', icon: <PeopleIcon />, path: '/users' },
+    { text: 'Quản lý Thương hiệu', icon: <LocalOffer />, path: '/brands' },
     { text: 'Cài đặt', icon: <SettingsIcon />, path: '/settings' },
   ];
 

@@ -1,12 +1,17 @@
-import express from "express";
-import { db } from "../connectBD.js"; // đường dẫn tới file kết nối db
-import { verifyToken } from "../middlewares/authenticate.js"; // middleware xác thực token (nếu có)
+import express from 'express';
+import {
+  createBrand,
+  deleteBrand,
+  getAllBrands,
+  updateBrand
+} from '../controllers/brandController.js';
 
-const RouterBrands = express.Router();
+const brandRouter = express.Router();
 
-// Lấy danh sách thương hiệu
 
-RouterBrands.get("/", getAllBrands.index);
-RouterBrands.get("/:id", ProductsController.show);
+brandRouter.get('/', getAllBrands);
+brandRouter.post('/add', createBrand);
+brandRouter.put('/update/:id', updateBrand);
+brandRouter.delete('/delete/:id', deleteBrand);
 
-export default router;
+export default brandRouter;

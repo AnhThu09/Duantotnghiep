@@ -6,7 +6,7 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import MuiAlert from '@mui/material/Alert'; // Giữ nguyên MuiAlert từ đường dẫn này
+import MuiAlert, { type AlertProps } from '@mui/material/Alert'; // Giữ nguyên MuiAlert từ đường dẫn này
 
 
 // Hàm Alert để dùng với Snackbar - Giữ nguyên
