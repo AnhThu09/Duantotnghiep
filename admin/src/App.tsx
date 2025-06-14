@@ -6,6 +6,9 @@ import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import CategoryManager from '././pages/CategoryManager'; // Chú ý đường dẫn
 import BrandManager from './pages/BrandManager';
+import ProductManager from './pages/ProductManager';
+import FavoriteProductsManager from './pages/FavoriteProductsManager';
+
 
 function App() {
   return (
@@ -17,7 +20,8 @@ function App() {
           <Route path="/categories" element={<CategoryManager />} />
           <Route path="/brands" element={<BrandManager />} />
           {/* Bạn có thể thêm các Route khác ở đây cho các trang khác */}
-          {/* <Route path="/products" element={<ProductManager />} /> */}
+          <Route path="/products" element={<ProductManager />} />
+          <Route path="/favorites" element={<FavoriteProductsManager />} />
           {/* <Route path="/users" element={<UserManager />} /> */}
           
         </Routes>
