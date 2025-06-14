@@ -48,7 +48,7 @@ export default function Layout({ children }: LayoutProps) {
   const drawer = (
     <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
       <Typography variant="h6" sx={{ my: 2 }}>
-        Admin Panel
+        Night Owls
       </Typography>
       <Divider />
       <List>

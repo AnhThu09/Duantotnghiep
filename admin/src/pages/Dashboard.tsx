@@ -44,10 +44,10 @@ export default function Dashboard() {
   const theme = useTheme();
 
   const stats = [
-    { title: 'Tổng Người dùng', value: '1,234', icon: <PeopleIcon sx={{ fontSize: 32, color: theme.palette.primary.main }} /> }, // Giảm kích thước icon
-    { title: 'Đơn hàng mới', value: '56', icon: <ShoppingCartIcon sx={{ fontSize: 32, color: theme.palette.success.main }} /> },
-    { title: 'Doanh thu hôm nay', value: '15.000.000 VND', icon: <MonetizationOnIcon sx={{ fontSize: 32, color: theme.palette.warning.main }} /> },
-    { title: 'Sản phẩm tồn kho', value: '250', icon: <StorageIcon sx={{ fontSize: 32, color: theme.palette.info.main }} /> },
+    { title: 'Tổng Người dùng', value: '1,234', icon: <PeopleIcon sx={{ fontSize: 30, color: theme.palette.primary.main }} /> },
+    { title: 'Đơn hàng mới', value: '56', icon: <ShoppingCartIcon sx={{ fontSize: 30, color: theme.palette.success.main }} /> },
+    { title: 'Doanh thu hôm nay', value: '15.000.000 VND', icon: <MonetizationOnIcon sx={{ fontSize: 30, color: theme.palette.warning.main }} /> },
+    { title: 'Sản phẩm tồn kho', value: '250', icon: <StorageIcon sx={{ fontSize: 30, color: theme.palette.info.main }} /> },
   ];
 
   const chartData = {
@@ -59,6 +59,7 @@ export default function Dashboard() {
         borderColor: theme.palette.primary.main,
         backgroundColor: theme.palette.primary.light,
         tension: 0.4,
+        fill: true,
       },
     ],
   };
@@ -78,7 +79,7 @@ export default function Dashboard() {
         text: 'Biểu đồ Doanh thu',
       },
       tooltip: {
-        backgroundColor: 'rgba(0,0,0,0.7)',
+        backgroundColor: 'rgba(0,0,0,0.8)',
         bodyColor: '#fff',
         titleColor: '#fff',
       },
@@ -100,83 +101,79 @@ export default function Dashboard() {
   };
 
   return (
-    <Box sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
+    <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, backgroundColor: theme.palette.background.default }}>
       <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 4, fontWeight: 'bold', color: theme.palette.primary.dark }}>
         Tổng Quan Dashboard
       </Typography>
 
-      <Grid container spacing={3}>
-        {/* Thống kê nhanh */}
+      {/* Dòng các thẻ thống kê nhanh (trên cùng) */}
+      <Grid container spacing={3} sx={{ mb: 3 }}>
         {stats.map((stat, index) => (
           <Grid item xs={12} sm={6} md={3} key={index}>
             <Card
               sx={{
                 display: 'flex',
                 alignItems: 'center',
-                p: 2, // Giảm padding để card gọn hơn
+                p: 2,
                 height: '100%',
-                borderRadius: theme.shape.borderRadius,
-                boxShadow: theme.shadows[1], // Giảm đổ bóng để nhẹ nhàng hơn
-                transition: 'transform 0.3s ease-in-out',
+                transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
                 '&:hover': {
-                  transform: 'translateY(-3px)', // Giảm hiệu ứng nâng
-                  boxShadow: theme.shadows[3], // Tăng đổ bóng khi hover
+                  transform: 'translateY(-2px)',
+                  boxShadow: theme.shadows[4],
                 },
               }}
             >
-              <Box sx={{ mr: 2, display: 'flex', alignItems: 'center' }}>{stat.icon}</Box> {/* Giảm margin-right */}
+              <Box sx={{ mr: 2, display: 'flex', alignItems: 'center' }}>{stat.icon}</Box>
               <Box>
-                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.5 }}> {/* Giảm kích thước subtitle */}
+                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.2 }}>
                   {stat.title}
                 </Typography>
-                <Typography variant="h6" component="div" sx={{ fontWeight: 'bold', color: theme.palette.text.primary }}> {/* Giảm kích thước value */}
+                <Typography variant="h6" component="div" sx={{ fontWeight: 'bold', color: theme.palette.text.primary }}>
                   {stat.value}
                 </Typography>
               </Box>
             </Card>
           </Grid>
         ))}
+      </Grid>
 
-        {/* Biểu đồ Doanh thu và Bảng đơn hàng mới nhất */}
-        {/*
-          Thay vì cố định minHeight, chúng ta sẽ để các thành phần này tự co giãn
-          hoặc sử dụng flexbox để chúng lấp đầy không gian
-        */}
+      {/* Dòng chứa Biểu đồ Doanh thu và Đơn hàng mới nhất */}
+      <Grid container spacing={3}>
+        {/* Biểu đồ Doanh thu */}
         <Grid item xs={12} md={8}>
           <Paper
             sx={{
               p: 3,
               display: 'flex',
               flexDirection: 'column',
-              height: '100%', // Quan trọng: Đảm bảo chiều cao đầy đủ trong Grid item
-              borderRadius: theme.shape.borderRadius,
-              boxShadow: theme.shadows[3],
+              height: '100%',
+              minHeight: { xs: '300px', sm: '350px', md: '400px' },
             }}
           >
             <Typography variant="h6" gutterBottom sx={{ mb: 2, fontWeight: 'medium' }}>
               Biểu đồ Doanh thu 6 tháng gần nhất
             </Typography>
-            <Box sx={{ flexGrow: 3, minHeight: '10', display: 'center', justifyContent: 'center', alignItems: 'center' }}>
+            <Box sx={{ flexGrow: 1, position: 'relative' }}>
               <Line data={chartData} options={chartOptions} />
             </Box>
           </Paper>
         </Grid>
 
+        {/* Bảng đơn hàng mới nhất */}
         <Grid item xs={12} md={4}>
           <Paper
             sx={{
               p: 3,
-              borderRadius: theme.shape.borderRadius,
-              boxShadow: theme.shadows[3],
               display: 'flex',
               flexDirection: 'column',
-              height: '100%', // Quan trọng: Đảm bảo chiều cao đầy đủ trong Grid item
+              height: '100%',
+              minHeight: { xs: '300px', sm: '350px', md: '400px' },
             }}
           >
             <Typography variant="h6" gutterBottom sx={{ mb: 2, fontWeight: 'medium' }}>
               Đơn hàng mới nhất
             </Typography>
-            <List dense sx={{ flexGrow: 1, overflowY: 'auto', mb: 1 }}> {/* Dùng overflowY cho List */}
+            <List dense sx={{ flexGrow: 1, overflowY: 'auto', mb: 1 }}>
               <ListItem disablePadding sx={{ py: 0.5 }}>
                 <ListItemText primary="#DH001 - John Doe" secondary="1.200.000 VND" />
               </ListItem>
@@ -200,7 +197,6 @@ export default function Dashboard() {
               <ListItem disablePadding sx={{ py: 0.5 }}>
                 <ListItemText primary="#DH006 - Emily White" secondary="900.000 VND" />
               </ListItem>
-              {/* Thêm các mục phụ để kiểm tra scrollbar */}
               <Divider component="li" />
               <ListItem disablePadding sx={{ py: 0.5 }}>
                 <ListItemText primary="#DH007 - David Lee" secondary="750.000 VND" />
@@ -213,7 +209,7 @@ export default function Dashboard() {
             <Button
               variant="text"
               color="primary"
-              sx={{ mt: 'auto', alignSelf: 'flex-start' }}
+              sx={{ mt: 2, alignSelf: 'flex-start' }}
             >
               Xem tất cả đơn hàng
             </Button>
