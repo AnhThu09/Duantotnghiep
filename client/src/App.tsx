@@ -1,18 +1,28 @@
-import { useState } from 'react'
-import './App.css'
-import NavBar from './component/Navbar'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+// import Home from './components/Home'
+import Footer from './components/Footer'
+import Header from './components/Header'
+import NavBar from './components/Navbar'
+import Account from './pages/Account'
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
     <>
       <BrowserRouter>
-      <NavBar/>
-      <Routes>
-          {/* <Route path="/about" element={<CategoryManager />} /> */}
-      </Routes>
+        <Header />
+        <NavBar />
+        <Routes>
+          {/* <Route path="/" element={<Home />} /> */}
+          {/* <Route path="/about" element={<About />} /> */}
+          {/* <Route path="/brand" element={<ThuongHieu />} /> */}
+          {/* <Route path="/km" element={<KhuyenMai />} /> */}
+          {/* <Route path="/contact" element={<Blog />} /> */}
+          {/* <Route path="/categories" element={<Contact />} /> */}
+          {/* <Route path="/favorites" element={<Favorites />} /> */}
+          {/* <Route path="/cart" element={<Cart />} /> */}
+          <Route path="/account" element={<Account />} />
+        </Routes>
+        <Footer />
       </BrowserRouter>
     </>
   )
