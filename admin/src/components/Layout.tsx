@@ -44,6 +44,7 @@ export default function Layout({ children }: LayoutProps) {
     { text: 'Sản phẩm Yêu thích', icon: <FavoriteIcon />, path: '/favorites' },
     { text: 'Quản lý Người dùng', icon: <PeopleIcon />, path: '/users' },
     { text: 'Quản lý Thương hiệu', icon: <LocalOffer />, path: '/brands' },
+    { text: 'Quản lý Voucher', icon: <LocalOffer />, path: '/vouchers' },
     { text: 'Cài đặt', icon: <SettingsIcon />, path: '/settings' },
   ];
 

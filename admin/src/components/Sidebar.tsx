@@ -22,6 +22,7 @@ import PeopleIcon from '@mui/icons-material/People';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import { Link as RouterLink } from 'react-router-dom'; // Dùng để liên kết các mục menu với React Router
+import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber' // <-- Icon này đã đúng, chỉ cần để nó cùng với các icon khác
 
 // Chiều rộng cố định của Sidebar trên desktop
 const drawerWidth = 240;
@@ -45,6 +46,7 @@ export default function Layout({ children }: LayoutProps) {
     { text: 'Quản lý Danh mục', icon: <CategoryIcon />, path: '/categories' },
     { text: 'Quản lý Sản phẩm', icon: <ShoppingBagIcon />, path: '/products' },
     { text: 'Quản lý Người dùng', icon: <PeopleIcon />, path: '/users' },
+    { text: 'Quản lý Voucher', icon: <ConfirmationNumberIcon />, path: '/vouchers' }, // <-- THÊM DÒNG NÀY VÀO ĐÂY
     { text: 'Cài đặt', icon: <SettingsIcon />, path: '/settings' },
   ];
 

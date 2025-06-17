@@ -1,86 +1,91 @@
-import { createTheme } from '@mui/material/styles';
+// src/theme.ts
+import { createTheme, responsiveFontSizes } from '@mui/material/styles';
 
-const nightOwlsTheme = createTheme({
+// Định nghĩa theme cho chế độ SÁNG
+let nightOwlsTheme = createTheme({
   palette: {
-    mode: 'light', // Hoặc 'dark' nếu bạn muốn một theme tối hoàn toàn
+    mode: 'light', // Đây là theme mặc định cho chế độ sáng
     primary: {
-      main: '#2C3E50', // Xanh than sâu (Dark Slate Blue)
-      light: '#4A6B8A', // Biến thể nhẹ hơn
-      dark: '#1C2833',  // Biến thể tối hơn
-      contrastText: '#FFFFFF',
+      main: '#556cd6', // Main primary color
     },
     secondary: {
-      main: '#DAA520', // Vàng đồng (Goldenrod) - sang trọng, điểm nhấn
-      light: '#FFD700', // Vàng tươi hơn
-      dark: '#B8860B',  // Vàng sẫm hơn
-      contrastText: '#FFFFFF',
+      main: '#19857b', // Main secondary color
     },
     error: {
-      main: '#F44336',
-    },
-    warning: {
-      main: '#FFC107',
-    },
-    info: {
-      main: '#2196F3',
-    },
-    success: {
-      main: '#4CAF50',
+      main: '#ff1744', // Error color
     },
     background: {
-      default: '#F5F5F5', // Xám nhạt, gần như trắng ngà cho nền tổng thể
-      paper: '#FFFFFF', // Nền cho Card, Paper
+      default: '#f4f6f8', // Light background for pages
+      paper: '#ffffff',   // White background for Paper components
     },
     text: {
-      primary: '#333333',
-      secondary: '#666666',
+      primary: '#212B36', // Dark text for light mode
+      secondary: '#637381',
     },
-    divider: '#E0E0E0',
   },
   typography: {
-    fontFamily: 'Georgia, serif', // Hoặc một font serif/elegant khác như "Playfair Display" (cần import từ Google Fonts)
+    fontFamily: 'Roboto, sans-serif',
+    h1: {
+      fontSize: '3rem',
+      fontWeight: 700,
+    },
     h4: {
       fontWeight: 700,
-      fontSize: '2.1rem',
-      '@media (max-width:600px)': {
-        fontSize: '1.8rem',
-      },
     },
-    h6: {
-      fontWeight: 600,
-      fontSize: '1.25rem',
-    },
-    subtitle2: {
-      fontSize: '0.85rem',
-      color: '#888888',
-    },
+    // Thêm các kiểu chữ khác theo thiết kế của bạn
+  },
+  shape: {
+    borderRadius: 8,
   },
   components: {
-    MuiCard: {
+    MuiAppBar: {
       styleOverrides: {
         root: {
-          borderRadius: 12,
-          boxShadow: '0px 4px 15px rgba(0, 0, 0, 0.05)',
+          backgroundColor: '#f4f6f8', // Màu nền AppBar trong chế độ sáng
+          color: '#333',
+          boxShadow: 'none',
+        },
+      },
+    },
+    MuiDrawer: {
+      styleOverrides: {
+        paper: {
+          backgroundColor: '#ffffff', // Màu nền Drawer trong chế độ sáng
+          color: '#333',
+        },
+      },
+    },
+    MuiListItemButton: {
+      styleOverrides: {
+        root: {
+          '&.Mui-selected': {
+            backgroundColor: '#e0e0e0', // Màu nền khi được chọn trong light mode
+          },
         },
       },
     },
     MuiPaper: {
       styleOverrides: {
         root: {
-          borderRadius: 12,
-          boxShadow: '0px 4px 15px rgba(0, 0, 0, 0.05)',
+          backgroundColor: '#ffffff',
         },
       },
     },
-    MuiButton: {
+    MuiTableCell: {
       styleOverrides: {
-        root: {
-          textTransform: 'none',
-          borderRadius: 8,
+        head: {
+          backgroundColor: '#e0e0e0',
+          color: 'rgba(0, 0, 0, 0.87)',
+        },
+        body: {
+          color: 'rgba(0, 0, 0, 0.87)',
         },
       },
     },
   },
+  // ... thêm bất kỳ tùy chỉnh nào khác của bạn
 });
+
+nightOwlsTheme = responsiveFontSizes(nightOwlsTheme);
 
 export default nightOwlsTheme;

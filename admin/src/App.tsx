@@ -1,29 +1,31 @@
+// src/App.tsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
+
 import Dashboard from './pages/Dashboard';
-import { ThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import CategoryManager from '././pages/CategoryManager'; // Chú ý đường dẫn
+import CategoryManager from './pages/CategoryManager';
 import BrandManager from './pages/BrandManager';
+import VoucherPage from "./components/VoucherPage/VoucherPage"; 
+import UserManager from './pages/UserManager'; 
+import VoucherManager from './pages/VoucherManager'; 
 import ProductManager from './pages/ProductManager';
-import FavoriteProductsManager from './pages/FavoriteProductsManager';
-
-
+// import FavoriteProductsManager from './pages/FavoriteProductsManager';
+import SettingsPage from "./pages/SettingsPage";
 function App() {
   return (
     <Router>
-      <Layout> {/* Layout bao bọc Routes để cung cấp thanh điều hướng và header chung */}
+      <Layout>
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/categories" element={<CategoryManager />} />
           <Route path="/brands" element={<BrandManager />} />
-          {/* Bạn có thể thêm các Route khác ở đây cho các trang khác */}
+          <Route path="/vouchers" element={<VoucherManager />} />
+          <Route path="/users" element={<UserManager />} /> 
+          <Route path="/vouchers/:id" element={<VoucherPage />} />
           <Route path="/products" element={<ProductManager />} />
-          <Route path="/favorites" element={<FavoriteProductsManager />} />
-          {/* <Route path="/users" element={<UserManager />} /> */}
-          
+          {/* <Route path="/favorites" element={<FavoritesPage />} /> */}
+           <Route path="/settings" element={<SettingsPage />} />
         </Routes>
       </Layout>
     </Router>
