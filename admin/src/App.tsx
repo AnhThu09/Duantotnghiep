@@ -1,19 +1,18 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import Layout from './components/Layout';
-import Dashboard from './pages/Dashboard';
-import { ThemeProvider } from '@mui/material/styles';
-import CssBaseline from '@mui/material/CssBaseline';
-import CategoryManager from '././pages/CategoryManager'; // Chú ý đường dẫn
-import BrandManager from './pages/BrandManager';
-import ProductManager from './pages/ProductManager';
-import FavoriteProductsManager from './pages/FavoriteProductsManager';
-
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Layout from "./components/Layout";
+import Dashboard from "./pages/Dashboard";
+import CategoryManager from "././pages/CategoryManager"; // Chú ý đường dẫn
+import BrandManager from "./pages/BrandManager";
+import ProductManager from "./pages/ProductManager";
+import FavoriteProductsManager from "./pages/FavoriteProductsManager";
 
 function App() {
   return (
     <Router>
-      <Layout> {/* Layout bao bọc Routes để cung cấp thanh điều hướng và header chung */}
+      <Layout>
+        {" "}
+        {/* Layout bao bọc Routes để cung cấp thanh điều hướng và header chung */}
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/dashboard" element={<Dashboard />} />
@@ -23,7 +22,6 @@ function App() {
           <Route path="/products" element={<ProductManager />} />
           <Route path="/favorites" element={<FavoriteProductsManager />} />
           {/* <Route path="/users" element={<UserManager />} /> */}
-          
         </Routes>
       </Layout>
     </Router>
