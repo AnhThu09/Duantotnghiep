@@ -4,6 +4,8 @@ import Footer from './components/Footer'
 import Header from './components/Header'
 import NavBar from './components/Navbar'
 import Account from './pages/Account'
+import About from './pages/About'
+import ContactForm from './components/ContactForm'
 
 function App() {
   return (
@@ -13,7 +15,7 @@ function App() {
         <NavBar />
         <Routes>
           {/* <Route path="/" element={<Home />} /> */}
-          {/* <Route path="/about" element={<About />} /> */}
+          <Route path="/about" element={<About />} />
           {/* <Route path="/brand" element={<ThuongHieu />} /> */}
           {/* <Route path="/km" element={<KhuyenMai />} /> */}
           {/* <Route path="/contact" element={<Blog />} /> */}
@@ -23,6 +25,10 @@ function App() {
           <Route path="/account" element={<Account />} />
         </Routes>
         <Footer />
+      <NavBar/>
+      <Routes>
+          <Route path="/contact" element={<ContactForm />} />
+      </Routes>
       </BrowserRouter>
     </>
   )

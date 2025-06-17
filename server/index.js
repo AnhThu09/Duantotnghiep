@@ -3,6 +3,8 @@ import categoryRoutes from "./routes/categoryRoutes.js";
 import { db } from "./config/connectBD.js";
 import cors from 'cors';
 import brandsRouter from "./routes/brands.js";
+import Cartrouter from "./routes/cart.js";
+import ContactRouter from "./routes/contact.js";
 
 const __dirname = import.meta.dirname;
 
@@ -20,11 +22,14 @@ db.connect((err) => {
 
 app.set("view engine", "ejs");
 app.set("views", "./views");
+app.use('/uploads', express.static('uploads'));
 app.use(express.json()); 
 app.use(cors());
 
 app.use("/api/categories", categoryRoutes);
 app.use('/api/brands', brandsRouter);
+app.use('/api/cart', Cartrouter)
+app.use('/api', ContactRouter);
 
 app.listen(3000, () => {
   console.log("ExpressJS server started!!!");

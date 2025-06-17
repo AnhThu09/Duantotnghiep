@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Box,
   Drawer,
@@ -21,7 +21,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import Header from './Header'; // Import component Header đã tách riêng
 import { LocalOffer } from '@mui/icons-material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
-
+import { SignInPage } from '../pages/SignInPage';
 
 const drawerWidth = 240; // Chiều rộng cố định của Sidebar
 
@@ -29,8 +29,36 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
+const useAuth = () => {
+  const [authorized, setAuthorized] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const onSignIn = useCallback(() => {
+    setLoading(true);
+    const token = localStorage.getItem("token");
+    setLoading(false);
+    if (token) {
+      setTimeout(() => {
+        setAuthorized(true);
+      }, 1000);
+    }
+  }, []);
+
+  useEffect(() => {
+    onSignIn();
+  }, [onSignIn]);
+
+  return {
+    authorized,
+    onSignIn,
+    loading,
+    error: false,
+  };
+};
+
 export default function Layout({ children }: LayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false); // State quản lý Sidebar trên di động
+  const { authorized, onSignIn } = useAuth();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -44,7 +72,15 @@ export default function Layout({ children }: LayoutProps) {
     { text: 'Sản phẩm Yêu thích', icon: <FavoriteIcon />, path: '/favorites' },
     { text: 'Quản lý Người dùng', icon: <PeopleIcon />, path: '/users' },
     { text: 'Quản lý Thương hiệu', icon: <LocalOffer />, path: '/brands' },
+<<<<<<< HEAD
     { text: 'Quản lý Voucher', icon: <LocalOffer />, path: '/vouchers' },
+=======
+    { text: 'Quản lý Đơn hàng', icon: <LocalOffer />, path: '/brands' },
+    { text: 'Quản lý Bài viết', icon: <LocalOffer />, path: '/brands' },
+    { text: 'Quản lý Mã giảm giá', icon: <LocalOffer />, path: '/brands' },
+    { text: 'Quản lý Đánh giá sản phẩm', icon: <LocalOffer />, path: '/brands' },
+    { text: 'Quản lý Sản phẩm yêu thích', icon: <LocalOffer />, path: '/brands' },
+>>>>>>> a87fa716c740314f879e638477deb1ca452fc757
     { text: 'Cài đặt', icon: <SettingsIcon />, path: '/settings' },
   ];
 
@@ -79,54 +115,60 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <Box sx={{ display: 'flex' }}>
-      {/* Sử dụng component Header mới */}
-      <Header drawerWidth={drawerWidth} handleDrawerToggle={handleDrawerToggle} />
+      {!authorized ? (
+        <SignInPage onSignIn={onSignIn} />
+      ) : (
+        <>
+          {/* Sử dụng component Header mới */}
+          <Header drawerWidth={drawerWidth} handleDrawerToggle={handleDrawerToggle} />
 
-      {/* Vùng Sidebar Navigation */}
-      <Box
-        component="nav"
-        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
-        aria-label="primary sidebar"
-      >
-        {/* Sidebar cho màn hình di động (temporary) */}
-        <Drawer
-          variant="temporary"
-          open={mobileOpen}
-          onClose={handleDrawerToggle}
-          ModalProps={{ keepMounted: true }}
-          sx={{
-            display: { xs: 'block', sm: 'none' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
-          }}
-        >
-          {drawer}
-        </Drawer>
+          {/* Vùng Sidebar Navigation */}
+          <Box
+            component="nav"
+            sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+            aria-label="primary sidebar"
+          >
+            {/* Sidebar cho màn hình di động (temporary) */}
+            <Drawer
+              variant="temporary"
+              open={mobileOpen}
+              onClose={handleDrawerToggle}
+              ModalProps={{ keepMounted: true }}
+              sx={{
+                display: { xs: 'block', sm: 'none' },
+                '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+              }}
+            >
+              {drawer}
+            </Drawer>
 
-        {/* Sidebar cho màn hình máy tính (permanent) */}
-        <Drawer
-          variant="permanent"
-          sx={{
-            display: { xs: 'none', sm: 'block' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
-          }}
-          open
-        >
-          {drawer}
-        </Drawer>
-      </Box>
+            {/* Sidebar cho màn hình máy tính (permanent) */}
+            <Drawer
+              variant="permanent"
+              sx={{
+                display: { xs: 'none', sm: 'block' },
+                '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+              }}
+              open
+            >
+              {drawer}
+            </Drawer>
+          </Box>
 
-      {/* Khu vực nội dung chính */}
-      <Box
-        component="main"
-        sx={{
-          flexGrow: 1,
-          p: 3,
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          mt: '64px', // Margin top để tránh Header che khuất nội dung
-        }}
-      >
-        {children} {/* Nội dung của các trang con (Dashboard, CategoryManager) sẽ hiển thị ở đây */}
-      </Box>
+          {/* Khu vực nội dung chính */}
+          <Box
+            component="main"
+            sx={{
+              flexGrow: 1,
+              p: 3,
+              width: { sm: `calc(100% - ${drawerWidth}px)` },
+              mt: '64px', // Margin top để tránh Header che khuất nội dung
+            }}
+          >
+            {children} {/* Nội dung của các trang con (Dashboard, CategoryManager) sẽ hiển thị ở đây */}
+          </Box>
+        </>
+      )}
     </Box>
   );
 }
