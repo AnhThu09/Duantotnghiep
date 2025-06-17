@@ -5,6 +5,7 @@ import Header from './components/Header'
 import NavBar from './components/Navbar'
 import Account from './pages/Account'
 import About from './pages/About'
+import ContactForm from './components/ContactForm'
 
 function App() {
   return (
@@ -24,6 +25,10 @@ function App() {
           <Route path="/account" element={<Account />} />
         </Routes>
         <Footer />
+      <NavBar/>
+      <Routes>
+          <Route path="/contact" element={<ContactForm />} />
+      </Routes>
       </BrowserRouter>
     </>
   )

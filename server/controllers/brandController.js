@@ -8,9 +8,14 @@ export const getAllBrands = (req, res) => {
   });
 };
 
-// ✅ Thêm thương hiệu
+
+// ✅ Thêm thương hiệu (upload ảnh)
 export const createBrand = (req, res) => {
-  const { brand_name, logo, description } = req.body;
+  const { brand_name, description } = req.body;
+  const logo = req.file?.filename;
+
+  if (!logo) return res.status(400).json({ error: 'Logo không được để trống' });
+
   const sql = "INSERT INTO brands (brand_name, logo, description) VALUES (?, ?, ?)";
   db.query(sql, [brand_name, logo, description], (err, result) => {
     if (err) return res.status(500).json({ error: err });
@@ -18,17 +23,18 @@ export const createBrand = (req, res) => {
   });
 };
 
-// ✅ Cập nhật thương hiệu
+// ✅ Cập nhật thương hiệu (có thể đổi ảnh)
 export const updateBrand = (req, res) => {
   const { id } = req.params;
-  const { brand_name, logo, description } = req.body;
+  const { brand_name, description } = req.body;
+  const logo = req.file?.filename;
+
   const sql = "UPDATE brands SET brand_name = ?, logo = ?, description = ? WHERE brand_id = ?";
   db.query(sql, [brand_name, logo, description, id], (err) => {
     if (err) return res.status(500).json({ error: err });
     res.json({ message: "Cập nhật thương hiệu thành công" });
   });
 };
-
 // ✅ Xoá thương hiệu
 export const deleteBrand = (req, res) => {
   const { id } = req.params;
@@ -37,3 +43,4 @@ export const deleteBrand = (req, res) => {
     res.json({ message: "Xóa thương hiệu thành công" });
   });
 };
+

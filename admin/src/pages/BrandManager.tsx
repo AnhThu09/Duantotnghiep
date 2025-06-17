@@ -9,10 +9,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import MuiAlert, { type AlertProps } from '@mui/material/Alert';
 
-const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
-  props,
-  ref,
-) {
+const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
@@ -25,7 +22,9 @@ interface Brand {
 
 export default function BrandManager() {
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [formData, setFormData] = useState({ brand_name: '', logo: '', description: '' });
+  const [formData, setFormData] = useState({ brand_name: '', description: '' });
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string>('');
   const [editingId, setEditingId] = useState<number | null>(null);
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -42,7 +41,6 @@ export default function BrandManager() {
       const data = await response.json();
       setBrands(data);
     } catch (error) {
-      console.error("Lỗi khi tải thương hiệu:", error);
       showSnackbar(`Lỗi khi tải thương hiệu: ${error instanceof Error ? error.message : String(error)}`, 'error');
     }
   };
@@ -56,35 +54,46 @@ export default function BrandManager() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
+  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLogoFile(file);
+      setLogoPreview(URL.createObjectURL(file));
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       const method = editingId ? 'PUT' : 'POST';
       const url = editingId ? `${API_BASE_URL}/update/${editingId}` : `${API_BASE_URL}/add`;
+
+      const form = new FormData();
+      form.append('brand_name', formData.brand_name);
+      form.append('description', formData.description);
+      if (logoFile) form.append('logo', logoFile);
+
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: form,
       });
 
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
       showSnackbar(`Thương hiệu đã được ${editingId ? 'cập nhật' : 'thêm mới'} thành công!`, 'success');
-      setFormData({ brand_name: '', logo: '', description: '' });
+      setFormData({ brand_name: '', description: '' });
+      setLogoFile(null);
+      setLogoPreview('');
       setEditingId(null);
       fetchBrands();
     } catch (error) {
-      console.error("Lỗi khi gửi dữ liệu:", error);
-      showSnackbar(`Lỗi khi ${editingId ? 'cập nhật' : 'thêm'} thương hiệu: ${error instanceof Error ? error.message : String(error)}`, 'error');
+      showSnackbar(`Lỗi khi gửi dữ liệu: ${error}`, 'error');
     }
   };
 
   const handleEdit = (brand: Brand) => {
-    setFormData({
-      brand_name: brand.brand_name,
-      logo: brand.logo,
-      description: brand.description,
-    });
+    setFormData({ brand_name: brand.brand_name, description: brand.description });
+    setLogoPreview(brand.logo);
     setEditingId(brand.brand_id);
   };
 
@@ -105,8 +114,7 @@ export default function BrandManager() {
       setDeletingId(null);
       fetchBrands();
     } catch (error) {
-      console.error("Lỗi khi xoá:", error);
-      showSnackbar(`Lỗi khi xóa thương hiệu: ${error instanceof Error ? error.message : String(error)}`, 'error');
+      showSnackbar(`Lỗi khi xóa thương hiệu: ${error}`, 'error');
     }
   };
 
@@ -128,36 +136,36 @@ export default function BrandManager() {
 
   return (
     <Box sx={{ mt: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Quản lý Thương hiệu
-      </Typography>
+      <Typography variant="h4" gutterBottom>Quản lý Thương hiệu</Typography>
 
       <Paper sx={{ p: 3, mb: 4 }}>
-        <Typography variant="h6" gutterBottom>
-          {editingId ? 'Chỉnh sửa Thương hiệu' : 'Thêm Thương hiệu Mới'}
-        </Typography>
+        <Typography variant="h6" gutterBottom>{editingId ? 'Chỉnh sửa' : 'Thêm Thương hiệu'}</Typography>
         <form onSubmit={handleSubmit}>
           <TextField label="Tên Thương hiệu" name="brand_name" value={formData.brand_name} onChange={handleChange} fullWidth margin="normal" required />
-          <TextField label="Logo (URL hoặc tên file)" name="logo" value={formData.logo} onChange={handleChange} fullWidth margin="normal" required />
           <TextField label="Mô tả" name="description" value={formData.description} onChange={handleChange} fullWidth margin="normal" multiline rows={3} />
-          <Button type="submit" variant="contained" color="primary" sx={{ mt: 2, mr: 2 }}>
-            {editingId ? 'Cập nhật' : 'Thêm Mới'}
-          </Button>
+          <Typography variant="subtitle1" gutterBottom>Logo Thương hiệu</Typography>
+          {logoPreview && (
+            <Box mt={2}><img src={logoPreview} alt="Preview" style={{ width: 120 }} /></Box>
+          )}
+
+          <Button variant="contained" component="label">
+            Chọn ảnh
+            <input hidden accept="image/*" type="file" onChange={handleLogoUpload} />
+          </Button> <br />
+          <Button type="submit" variant="contained" sx={{ mt: 2, mr: 2 }}>{editingId ? 'Cập nhật' : 'Thêm mới'}</Button>
           {editingId && (
-            <Button variant="outlined" color="secondary" onClick={() => {
+            <Button variant="outlined" onClick={() => {
               setEditingId(null);
-              setFormData({ brand_name: '', logo: '', description: '' });
-            }} sx={{ mt: 2 }}>
-              Hủy
-            </Button>
+              setFormData({ brand_name: '', description: '' });
+              setLogoFile(null);
+              setLogoPreview('');
+            }} sx={{ mt: 2 }}>Hủy</Button>
           )}
         </form>
       </Paper>
 
       <Paper sx={{ p: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          Danh sách Thương hiệu
-        </Typography>
+        <Typography variant="h6" gutterBottom>Danh sách Thương hiệu</Typography>
         {brands.length > 0 ? (
           <TableContainer>
             <Table>
@@ -175,15 +183,11 @@ export default function BrandManager() {
                   <TableRow key={brand.brand_id}>
                     <TableCell>{brand.brand_id}</TableCell>
                     <TableCell>{brand.brand_name}</TableCell>
-                    <TableCell>{brand.logo}</TableCell>
+                    <TableCell><img src={`http://localhost:3000/uploads/${brand.logo}`} alt="logo" style={{ width: 60 }} /></TableCell>
                     <TableCell>{brand.description}</TableCell>
                     <TableCell align="right">
-                      <IconButton color="primary" onClick={() => handleEdit(brand)}>
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton color="error" onClick={() => handleDeleteConfirm(brand.brand_id)}>
-                        <DeleteIcon />
-                      </IconButton>
+                      <IconButton color="primary" onClick={() => handleEdit(brand)}><EditIcon /></IconButton>
+                      <IconButton color="error" onClick={() => handleDeleteConfirm(brand.brand_id)}><DeleteIcon /></IconButton>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -191,27 +195,21 @@ export default function BrandManager() {
             </Table>
           </TableContainer>
         ) : (
-          <Typography variant="body1" color="text.secondary" sx={{ mt: 2 }}>
-            Chưa có thương hiệu nào được thêm.
-          </Typography>
+          <Typography variant="body1" sx={{ mt: 2 }}>Chưa có thương hiệu nào.</Typography>
         )}
       </Paper>
 
       <Dialog open={openConfirmDialog} onClose={handleCloseConfirmDialog}>
         <DialogTitle>Xác nhận xóa</DialogTitle>
-        <DialogContent>
-          <DialogContentText>Bạn có chắc chắn muốn xóa thương hiệu này?</DialogContentText>
-        </DialogContent>
+        <DialogContent><DialogContentText>Bạn chắc chắn muốn xóa?</DialogContentText></DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseConfirmDialog} color="primary">Hủy</Button>
-          <Button onClick={handleDelete} color="error" autoFocus>Xóa</Button>
+          <Button onClick={handleCloseConfirmDialog}>Hủy</Button>
+          <Button onClick={handleDelete} color="error">Xóa</Button>
         </DialogActions>
       </Dialog>
 
       <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
-        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
-          {snackbarMessage}
-        </Alert>
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity}>{snackbarMessage}</Alert>
       </Snackbar>
     </Box>
   );
