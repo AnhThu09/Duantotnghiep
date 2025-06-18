@@ -8,12 +8,12 @@ import {
 import upload from '../middlewares/upload.js';
 
 
-const brandRouter = express.Router();
+const brandRoutes = express.Router();
 
 
-brandRouter.get('/', getAllBrands);
-brandRouter.post('/add', upload.single('logo'), createBrand);
-brandRouter.put('/update/:id', upload.single('logo'), updateBrand);
-brandRouter.delete('/delete/:id', deleteBrand);
+brandRoutes.get('/', getAllBrands);
+brandRoutes.post('/add', upload.single('logo'), createBrand);
+brandRoutes.put('/update/:id', upload.single('logo'), updateBrand);
+brandRoutes.delete('/delete/:id', deleteBrand);
 
-export default brandRouter;
+export default brandRoutes;

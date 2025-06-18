@@ -3,12 +3,12 @@ import { Link } from 'react-router-dom'
 
 const NavBar = () => {
   return (
-    <div className="container py-2 text-dark font-sans">
-      <div className="d-flex justify-content-between align-items-center mb-5">
+    <div className="py-2 px-5 text-dark font-sans">
+      <div className="d-flex justify-content-between align-items-center">
         <div className="d-flex align-items-center gap-2">
           <Link className="navbar-brand" to="/">
             <img
-              src="https://scontent.fdad1-3.fna.fbcdn.net/v/t39.30808-6/505926607_1412352526772619_8330902436027633308_n.jpg?_nc_cat=104&cb=64d46a15-dccda127&ccb=1-7&_nc_sid=127cfc&_nc_ohc=-l6mgAQz0s8Q7kNvwG9Fh-8&_nc_oc=Adl0dW6whGGjteBwQdW75NR1_6FRSJMgMN62pXteKZHSihIWWhuoDG4uy6pFt1yqsMqLJNbqStgW40oRYt9We8wO&_nc_zt=23&_nc_ht=scontent.fdad1-3.fna&_nc_gid=c-Y_3HgMEIa285k3XxIL0A&oh=00_AfOOd_W8Cr_OiCdJ9ERu12xAJFQcypEyjCQ13W-ld2CiLQ&oe=684E5DAC"
+              src="/img/Night owls.jpg"
               alt="ad"
               width="120"
               height="120"

@@ -3,8 +3,9 @@ import categoryRoutes from "./routes/categoryRoutes.js";
 import { db } from "./config/connectBD.js";
 import cors from 'cors';
 import brandsRouter from "./routes/brands.js";
-import Cartrouter from "./routes/cart.js";
-import ContactRouter from "./routes/contact.js";
+import ContactRoutes from "./routes/contact.js";
+import cartRoutes from "./routes/cart.js";
+import authRoutes from "./routes/auth.js";
 
 const __dirname = import.meta.dirname;
 
@@ -28,8 +29,9 @@ app.use(cors());
 
 app.use("/api/categories", categoryRoutes);
 app.use('/api/brands', brandsRouter);
-app.use('/api/cart', Cartrouter)
-app.use('/api', ContactRouter);
+app.use('/api/cart', cartRoutes)
+app.use('/api', ContactRoutes);
+app.use("/api/auth", authRoutes);
 
 app.listen(3000, () => {
   console.log("ExpressJS server started!!!");

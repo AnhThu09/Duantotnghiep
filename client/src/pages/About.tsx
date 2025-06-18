@@ -38,7 +38,7 @@ export default function ProductList() {
   };
 
   return (
-    <Box sx={{ width: '100%', px: 2, py: 4 }}>
+    <Box sx={{ maxWidth: '1200px', mx: 'auto', px: 2, pt: 0, pb: 4 }}>
       <Typography variant="h4" fontWeight="bold" gutterBottom>
         Tất cả sản phẩm
       </Typography>

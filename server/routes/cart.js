@@ -8,12 +8,12 @@ import {
   clearCart
 } from '../controllers/cartController.js';
 
-const Cartrouter = express.Router();
+const cartRoutes = express.Router();
 
-Cartrouter.get('/:userId', getCartItems);
-Cartrouter.post('/add', addToCart);
-Cartrouter.put('/update/:cartItemId', updateCartItem);
-Cartrouter.delete('/delete/:cartItemId', deleteCartItem);
-Cartrouter.delete('/clear/:userId', clearCart);
+cartRoutes.get('/:userId', getCartItems);
+cartRoutes.post('/add', addToCart);
+cartRoutes.put('/update/:cartItemId', updateCartItem);
+cartRoutes.delete('/delete/:cartItemId', deleteCartItem);
+cartRoutes.delete('/clear/:userId', clearCart);
 
-export default Cartrouter;
+export default cartRoutes;
