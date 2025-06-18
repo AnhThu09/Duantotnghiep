@@ -1,23 +1,23 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
-  Box, Typography, Button, TextField, Paper, Table, TableBody, TableCell,
-  TableContainer, TableHead, TableRow, IconButton, Dialog, DialogActions,
-  DialogContent, DialogContentText, DialogTitle, Snackbar
+  Box, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
+  IconButton, Button, TextField, InputAdornment, useTheme, CircularProgress, Dialog, DialogTitle,
+  DialogContent, DialogActions, Stack, Snackbar,
+  TableSortLabel, TablePagination, DialogContentText, // Thêm DialogContentText từ @mui/material
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import MuiAlert, { type AlertProps } from '@mui/material/Alert'; // Giữ nguyên MuiAlert từ đường dẫn này
+import AddIcon from '@mui/icons-material/Add';
+import SearchIcon from '@mui/icons-material/Search';
+import CloseIcon from '@mui/icons-material/Close';
+import MuiAlert, { type AlertProps } from '@mui/material/Alert';
 
-
-// Hàm Alert để dùng với Snackbar - Giữ nguyên
-const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(
-  props,
-  ref,
-) {
+// Custom Alert component for Snackbar
+const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(props, ref) {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
-// Định nghĩa interface cho Category - Giữ nguyên
+// --- INTERFACES ---
 interface Category {
   category_id: number;
   category_name: string;
@@ -25,25 +25,94 @@ interface Category {
   description: string;
 }
 
-export default function CategoryManager() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [formData, setFormData] = useState({ category_name: '', slug: '', description: '' });
-  const [editingId, setEditingId] = useState<number | null>(null);
+type Order = 'asc' | 'desc';
+type HeadCellId = keyof Category; // Đã đổi Brand thành Category
 
-  // States mới cho Dialog xác nhận xóa
+interface HeadCell {
+  id: HeadCellId;
+  label: string;
+  numeric: boolean;
+  disableSorting?: boolean;
+}
+
+const headCells: HeadCell[] = [
+  { id: 'category_id', numeric: false, label: 'ID' }, // numeric: false để căn trái theo yêu cầu
+  { id: 'category_name', numeric: false, label: 'Tên Danh mục' },
+  { id: 'slug', numeric: false, label: 'Slug' },
+  { id: 'description', numeric: false, label: 'Mô tả', disableSorting: true },
+];
+
+// --- UTILITY FUNCTIONS FOR SORTING ---
+function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
+  if (b[orderBy] < a[orderBy]) {
+    return -1;
+  }
+  if (b[orderBy] > a[orderBy]) {
+    return 1;
+  }
+  return 0;
+}
+
+function getComparator<Key extends keyof Category>( // Đã đổi Brand thành Category
+  order: Order,
+  orderBy: Key,
+): (a: { [key in Key]: number | string }, b: { [key in Key]: number | string }) => number {
+  return order === 'desc'
+    ? (a, b) => descendingComparator(a, b, orderBy)
+    : (a, b) => -descendingComparator(a, b, orderBy);
+}
+
+function stableSort<T>(array: readonly T[], comparator: (a: T, b: T) => number) {
+  const stabilizedThis = array.map((el, index) => [el, index] as [T, number]);
+  stabilizedThis.sort((a, b) => {
+    const order = comparator(a[0], b[0]);
+    if (order !== 0) {
+      return order;
+    }
+    return a[1] - b[1];
+  });
+  return stabilizedThis.map((el) => el[0]);
+}
+
+// --- CATEGORY MANAGER COMPONENT ---
+export default function CategoryManager() { // Đã đổi tên hàm export
+  const theme = useTheme();
+
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // State cho phân trang
+  const [page, setPage] = useState<number>(0);
+  const [rowsPerPage, setRowsPerPage] = useState<number>(10); 
+
+  // State cho sắp xếp
+  const [order, setOrder] = useState<Order>('asc');
+  const [orderBy, setOrderBy] = useState<HeadCellId>('category_id');
+
+  // State cho tìm kiếm
+  const [searchTerm, setSearchTerm] = useState<string>('');
+
+  // State cho Modal Add/Edit
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null); // Null khi thêm mới, Category object khi chỉnh sửa
+  const [modalFormData, setModalFormData] = useState<Partial<Category>>({}); // Dữ liệu form trong modal
+
+  // State cho Dialog xác nhận xóa
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
-  // States mới cho Snackbar thông báo
+  // State cho Snackbar
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
 
-  // URL API của bạn - Đã cập nhật theo yêu cầu của bạn
-  const API_BASE_URL = 'http://localhost:3000/api/categories'; 
+  const API_BASE_URL = 'http://localhost:3000/api/categories'; // Đã cập nhật API endpoint
 
-  // Hàm để tải danh sách danh mục từ API - Giữ nguyên logic
-  const fetchCategories = async () => {
+  // --- API CALLS ---
+  const fetchCategories = useCallback(async () => {
+    setLoading(true);
+    setError(null);
     try {
       const response = await fetch(API_BASE_URL);
       if (!response.ok) {
@@ -51,234 +120,392 @@ export default function CategoryManager() {
       }
       const data = await response.json();
       setCategories(data);
-    } catch (error) {
-      console.error("Lỗi khi tải danh mục:", error);
-      showSnackbar(`Lỗi khi tải danh mục: ${error instanceof Error ? error.message : String(error)}`, 'error');
+    } catch (err) {
+      setError('Không thể tải dữ liệu danh mục. Vui lòng thử lại.');
+      console.error('Fetch categories error:', err);
+      showSnackbar(`Lỗi khi tải danh mục: ${err instanceof Error ? err.message : String(err)}`, 'error');
+    } finally {
+      setLoading(false);
     }
-  };
+  }, []); // Dependency array: rỗng để chỉ fetch 1 lần khi component mount
 
   useEffect(() => {
     fetchCategories();
+  }, [fetchCategories]);
+
+  // --- HANDLERS ---
+
+  const showSnackbar = useCallback((message: string, severity: 'success' | 'error') => {
+    setSnackbarMessage(message);
+    setSnackbarSeverity(severity);
+    setSnackbarOpen(true);
   }, []);
 
-  // Xử lý thay đổi dữ liệu trong input/textarea của form - Giữ nguyên logic
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+  const handleSnackbarClose = useCallback((_event?: React.SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') return;
+    setSnackbarOpen(false);
+  }, []);
 
-  // Xử lý gửi form (thêm mới hoặc cập nhật danh mục) - Giữ nguyên logic
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault(); // Ngăn chặn hành vi mặc định của form
-    try {
-      const method = editingId ? 'PUT' : 'POST';
-      const url = editingId ? `${API_BASE_URL}/update/${editingId}` : `${API_BASE_URL}/add`;
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
+  const handleChangePage = useCallback((_event: unknown, newPage: number) => {
+    setPage(newPage);
+  }, []);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
-      }
+  const handleChangeRowsPerPage = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
+  }, []);
 
-      showSnackbar(`Danh mục đã được ${editingId ? 'cập nhật' : 'thêm mới'} thành công!`, 'success');
-      setFormData({ category_name: '', slug: '', description: '' });
-      setEditingId(null);
-      fetchCategories(); // Tải lại danh sách
-    } catch (error) {
-      console.error("Lỗi khi gửi dữ liệu:", error);
-      showSnackbar(`Lỗi khi ${editingId ? 'cập nhật' : 'thêm'} danh mục: ${error instanceof Error ? error.message : String(error)}`, 'error');
-    }
-  };
+  const handleRequestSort = useCallback((_event: React.MouseEvent<unknown>, property: HeadCellId) => {
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(property);
+  }, [order, orderBy]);
 
-  // Xử lý khi người dùng nhấn nút "Sửa" - Giữ nguyên logic
-  const handleEdit = (category: Category) => {
-    setFormData({
-      category_name: category.category_name,
-      slug: category.slug,
-      description: category.description,
-    });
-    setEditingId(category.category_id);
-  };
+  const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+    setPage(0);
+  }, []);
 
-  // Mở Dialog xác nhận xóa - Thay thế confirm() mặc định
-  const handleDeleteConfirm = (id: number) => {
-    setDeletingId(id);
+  const handleAddNewCategory = useCallback(() => { // Đổi tên handler
+    setEditingCategory(null); // Báo hiệu là thêm mới
+    setModalFormData({ category_name: '', slug: '', description: '' }); // Giá trị mặc định
+    setIsModalOpen(true);
+  }, []);
+
+  const handleEdit = useCallback((category: Category) => { // Đổi tên handler
+    setEditingCategory(category); // Đặt đối tượng category để chỉnh sửa
+    setModalFormData(category); // Load dữ liệu category vào form
+    setIsModalOpen(true);
+  }, []);
+
+  const handleDeleteConfirm = useCallback((categoryId: number) => { // Đổi tên handler
+    setDeletingId(categoryId);
     setOpenConfirmDialog(true);
-  };
+  }, []);
 
-  // Xử lý khi người dùng nhấn nút "Xoá" trong Dialog - Giữ nguyên logic
-  const handleDelete = async () => {
+  const handleDelete = useCallback(async () => {
     if (deletingId === null) return;
-
     try {
       const response = await fetch(`${API_BASE_URL}/delete/${deletingId}`, {
         method: 'DELETE',
       });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
-      }
-
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       showSnackbar('Danh mục đã được xóa thành công!', 'success');
-      setOpenConfirmDialog(false); // Đóng dialog
-      setDeletingId(null); // Reset ID đang xóa
+      setOpenConfirmDialog(false);
+      setDeletingId(null);
       fetchCategories(); // Tải lại danh sách sau khi xóa
     } catch (error) {
-      console.error("Lỗi khi xoá:", error);
       showSnackbar(`Lỗi khi xóa danh mục: ${error instanceof Error ? error.message : String(error)}`, 'error');
     }
-  };
+  }, [deletingId, fetchCategories, showSnackbar]);
 
-  // Đóng Dialog xác nhận xóa
-  const handleCloseConfirmDialog = () => {
+  const handleCloseConfirmDialog = useCallback(() => {
     setOpenConfirmDialog(false);
     setDeletingId(null);
-  };
+  }, []);
 
-  // Hiển thị Snackbar
-  const showSnackbar = (message: string, severity: 'success' | 'error') => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  };
+  const handleCloseModal = useCallback(() => {
+    setIsModalOpen(false);
+    setEditingCategory(null);
+    setModalFormData({}); // Reset form data
+  }, []);
 
-  // Đóng Snackbar
-  const handleSnackbarClose = (event?: React.SyntheticEvent | Event, reason?: string) => {
-    if (reason === 'clickaway') {
+  const handleModalFormChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setModalFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  }, []);
+
+
+  const handleSaveCategory = useCallback(async () => { // Đổi tên handler
+    // Validate form data here if needed
+    if (!modalFormData.category_name || !modalFormData.slug) {
+      showSnackbar('Vui lòng điền đầy đủ Tên Danh mục và Slug.', 'error');
       return;
     }
-    setSnackbarOpen(false);
-  };
+
+    try {
+      const method = editingCategory ? 'PUT' : 'POST';
+      const url = editingCategory ? `${API_BASE_URL}/update/${editingCategory.category_id}` : `${API_BASE_URL}/add`;
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(modalFormData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+      }
+
+      showSnackbar(`Danh mục đã được ${editingCategory ? 'cập nhật' : 'thêm mới'} thành công!`, 'success');
+      handleCloseModal();
+      fetchCategories(); // Tải lại danh sách sau khi lưu
+    } catch (error) {
+      showSnackbar(`Lỗi khi lưu danh mục: ${error instanceof Error ? error.message : String(error)}`, 'error');
+    }
+  }, [editingCategory, modalFormData, handleCloseModal, fetchCategories, showSnackbar]);
+
+  // --- MEMOIZED DATA FOR TABLE ---
+  const filteredAndSortedCategories = useMemo(() => { // Đổi tên biến
+    let currentCategories = categories;
+
+    if (searchTerm) {
+      currentCategories = currentCategories.filter((category) =>
+        category.category_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        category.slug.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        category.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(category.category_id).includes(searchTerm) // Tìm kiếm theo ID số
+      );
+    }
+
+    currentCategories = stableSort(currentCategories, getComparator(order, orderBy));
+
+    const startIndex = page * rowsPerPage;
+    return currentCategories.slice(startIndex, startIndex + rowsPerPage);
+  }, [categories, searchTerm, order, orderBy, page, rowsPerPage]);
+
+  const totalFilteredCategories = useMemo(() => { // Đổi tên biến
+    let currentCategories = categories;
+    if (searchTerm) {
+      currentCategories = currentCategories.filter((category) =>
+        category.category_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        category.slug.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        category.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(category.category_id).includes(searchTerm)
+      );
+    }
+    return currentCategories.length;
+  }, [categories, searchTerm]);
+
+  // --- RENDER ---
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+        <CircularProgress />
+        <Typography variant="h6" sx={{ ml: 2 }}>Đang tải dữ liệu danh mục...</Typography>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box 
+        sx={{ 
+          p: { xs: 2, sm: 3, md: 4 }, 
+          backgroundColor: theme.palette.background.default,
+          minHeight: '50px', // Đặt minHeight để vùng lỗi luôn chiếm không gian
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center' 
+        }}
+      >
+        <Typography color="error" variant="body1" sx={{ textAlign: 'center' }}>{error}</Typography>
+      </Box>
+    );
+  }
 
   return (
-    <Box sx={{ mt: 4 }}> {/* Thay div bằng Box, thêm margin-top */}
-      <Typography variant="h4" component="h1" gutterBottom>
-        Quản lý Danh mục
+    <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, backgroundColor: theme.palette.background.default }}>
+      <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 4, fontWeight: 'bold', color: theme.palette.primary.dark }}>
+        Quản Lý Danh Mục
       </Typography>
 
-      {/* Form thêm/sửa danh mục - Thay div bằng Paper */}
-      <Paper sx={{ p: 3, mb: 4 }}>
-        <Typography variant="h6" gutterBottom>
-          {editingId ? 'Chỉnh sửa Danh mục' : 'Thêm Danh mục Mới'}
-        </Typography>
-        <form onSubmit={handleSubmit}>
+      <Paper sx={{ p: 3, borderRadius: theme.shape.borderRadius, boxShadow: theme.shadows[3], mb: 3 }}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, mb: 2, gap: 2 }}>
           <TextField
-            label="Tên Danh mục"
-            name="category_name"
-            value={formData.category_name}
-            onChange={handleChange}
-            fullWidth
-            margin="normal"
-            required
-            variant="outlined" // Mặc định là outlined cho đẹp
-          />
-          <TextField
-            label="Slug"
-            name="slug"
-            value={formData.slug}
-            onChange={handleChange}
-            fullWidth
-            margin="normal"
-            required
+            label="Tìm kiếm danh mục..."
             variant="outlined"
-          />
-          <TextField
-            label="Mô tả"
-            name="description"
-            value={formData.description}
-            onChange={handleChange}
-            fullWidth
-            margin="normal"
-            multiline // Cho phép nhiều dòng
-            rows={3} // Số dòng mặc định
-            variant="outlined"
+            size="small"
+            value={searchTerm}
+            onChange={handleSearchChange}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <SearchIcon color="action" />
+                </InputAdornment>
+              ),
+            }}
+            sx={{ width: { xs: '100%', sm: '300px' } }}
           />
           <Button
-            type="submit"
-            variant="contained" // Button có nền màu
+            variant="contained"
             color="primary"
-            sx={{ mt: 2, mr: 2 }} // Margin top và margin right
+            startIcon={<AddIcon />}
+            onClick={handleAddNewCategory} // Đổi tên handler
+            sx={{ flexShrink: 0 }}
           >
-            {editingId ? 'Cập nhật' : 'Thêm Mới'}
+            Thêm Danh mục Mới
           </Button>
-          {editingId && (
-            <Button
-              variant="outlined" // Button không nền màu
-              color="secondary"
-              onClick={() => {
-                setEditingId(null);
-                setFormData({ category_name: '', slug: '', description: '' });
-              }}
-              sx={{ mt: 2 }}
-            >
-              Hủy
-            </Button>
-          )}
-        </form>
-      </Paper>
+        </Box>
 
-      {/* Danh sách các danh mục - Thay div bằng Paper và Table */}
-      <Paper sx={{ p: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          Danh sách Danh mục
-        </Typography>
-        {categories.length > 0 ? (
-          <TableContainer> {/* Thêm TableContainer để có thanh cuộn nếu bảng quá lớn */}
-            <Table>
-              <TableHead>
+        <TableContainer>
+          <Table aria-label="category management table">
+            <TableHead>
+              <TableRow>
+                {headCells.map((headCell) => (
+                  <TableCell
+                    key={headCell.id}
+                    // Tất cả các tiêu đề cột đều căn trái (nếu numeric là false)
+                    align={headCell.numeric ? 'right' : 'left'} 
+                    sortDirection={orderBy === headCell.id ? order : false}
+                    sx={{
+                      fontWeight: 'bold',
+                      backgroundColor: theme.palette.grey[200],
+                      cursor: headCell.disableSorting ? 'default' : 'pointer',
+                    }}
+                  >
+                    {!headCell.disableSorting ? (
+                      <TableSortLabel
+                        active={orderBy === headCell.id}
+                        direction={orderBy === headCell.id ? order : 'asc'}
+                        onClick={(event) => handleRequestSort(event, headCell.id)}
+                      >
+                        {headCell.label}
+                      </TableSortLabel>
+                    ) : (
+                      headCell.label
+                    )}
+                  </TableCell>
+                ))}
+                {/* Đảm bảo cột "Hành động" cũng căn trái nếu bạn muốn thế */}
+                <TableCell align="left" sx={{ fontWeight: 'bold', backgroundColor: theme.palette.grey[200] }}>Hành động</TableCell> 
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {filteredAndSortedCategories.length === 0 ? (
                 <TableRow>
-                  <TableCell>ID</TableCell>
-                  <TableCell>Tên Danh mục</TableCell>
-                  <TableCell>Slug</TableCell>
-                  <TableCell>Mô tả</TableCell>
-                  <TableCell align="right">Hành động</TableCell> {/* Căn phải cho cột hành động */}
+                  <TableCell colSpan={headCells.length + 1} align="center" sx={{ py: 3 }}>
+                    <Typography variant="subtitle1" color="text.secondary">
+                      Không tìm thấy danh mục nào.
+                    </Typography>
+                  </TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {categories.map((cat) => (
-                  <TableRow key={cat.category_id}>
-                    <TableCell>{cat.category_id}</TableCell>
-                    <TableCell>{cat.category_name}</TableCell>
-                    <TableCell>{cat.slug}</TableCell>
-                    <TableCell>{cat.description}</TableCell>
-                    <TableCell align="right">
-                      <IconButton color="primary" onClick={() => handleEdit(cat)}>
-                        <EditIcon /> {/* Icon Sửa */}
+              ) : (
+                filteredAndSortedCategories.map((category) => (
+                  <TableRow key={category.category_id} hover>
+                    <TableCell align="left">{category.category_id}</TableCell> {/* Căn trái cho ID */}
+                    <TableCell align="left">{category.category_name}</TableCell> {/* Căn trái cho Tên Danh mục */}
+                    <TableCell align="left">{category.slug}</TableCell> {/* Căn trái cho Slug */}
+                    <TableCell align="left">{category.description}</TableCell> {/* Căn trái cho Mô tả */}
+                    <TableCell align="left"> {/* Căn trái cho Hành động */}
+                      <IconButton
+                        aria-label="edit"
+                        color="primary"
+                        onClick={() => handleEdit(category)} // Đổi tên handler
+                        sx={{ mr: 1 }}
+                      >
+                        <EditIcon />
                       </IconButton>
-                      <IconButton color="error" onClick={() => handleDeleteConfirm(cat.category_id)}>
-                        <DeleteIcon /> {/* Icon Xóa */}
+                      <IconButton
+                        aria-label="delete"
+                        color="error"
+                        onClick={() => handleDeleteConfirm(category.category_id)} // Đổi tên handler
+                      >
+                        <DeleteIcon />
                       </IconButton>
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        ) : (
-          <Typography variant="body1" color="text.secondary" sx={{ mt: 2 }}>
-            Chưa có danh mục nào được thêm.
-          </Typography>
-        )}
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </TableContainer>
+
+        <TablePagination
+          rowsPerPageOptions={[10, 20, 50]} // Lựa chọn 10, 20, 50 hàng
+          component="div"
+          count={totalFilteredCategories}
+          rowsPerPage={rowsPerPage}
+          page={page}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          labelRowsPerPage="Số hàng mỗi trang:"
+          labelDisplayedRows={({ from, to, count }) =>
+            `${from}-${to} trên ${count !== -1 ? count : `hơn ${to}`}`
+          }
+        />
       </Paper>
 
-      {/* Confirm Delete Dialog - Thêm Dialog xác nhận xóa */}
+      {/* Modal Thêm/Chỉnh sửa Category */}
+      <Dialog open={isModalOpen} onClose={handleCloseModal} fullWidth maxWidth="sm" scroll="paper">
+        <DialogTitle>
+          {editingCategory ? 'Chỉnh sửa Danh mục' : 'Thêm Danh mục Mới'}
+          <IconButton
+            aria-label="close"
+            onClick={handleCloseModal}
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+              color: (theme) => theme.palette.grey[500],
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={2} sx={{ mt: 1 }}>
+            <TextField
+              label="Tên Danh mục"
+              name="category_name"
+              variant="outlined"
+              fullWidth
+              value={modalFormData.category_name || ''}
+              onChange={handleModalFormChange}
+              required
+            />
+            <TextField
+              label="Slug"
+              name="slug"
+              variant="outlined"
+              fullWidth
+              value={modalFormData.slug || ''}
+              onChange={handleModalFormChange}
+              required
+            />
+            <TextField
+              label="Mô tả"
+              name="description"
+              variant="outlined"
+              fullWidth
+              multiline
+              rows={3}
+              value={modalFormData.description || ''}
+              onChange={handleModalFormChange}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseModal} color="secondary">
+            Hủy
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSaveCategory} // Đổi tên handler
+          >
+            Lưu
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog Xác nhận Xóa */}
       <Dialog
         open={openConfirmDialog}
         onClose={handleCloseConfirmDialog}
-        aria-labelledby="confirm-dialog-title"
-        aria-describedby="confirm-dialog-description"
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
       >
-        <DialogTitle id="confirm-dialog-title">Xác nhận xóa</DialogTitle>
+        <DialogTitle id="alert-dialog-title">{"Xác nhận xóa danh mục?"}</DialogTitle>
         <DialogContent>
-          <DialogContentText id="confirm-dialog-description">
-            Bạn có chắc chắn muốn xóa danh mục này? Hành động này không thể hoàn tác.
+          <DialogContentText id="alert-dialog-description">
+            Bạn có chắc chắn muốn xóa danh mục này? Thao tác này không thể hoàn tác.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
@@ -291,7 +518,7 @@ export default function CategoryManager() {
         </DialogActions>
       </Dialog>
 
-      {/* Snackbar for notifications - Thêm Snackbar thông báo */}
+      {/* Snackbar thông báo */}
       <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
         <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
           {snackbarMessage}

@@ -69,15 +69,15 @@ export default function Layout({ children }: LayoutProps) {
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
     { text: 'Quản lý Danh mục', icon: <CategoryIcon />, path: '/categories' },
     { text: 'Quản lý Sản phẩm', icon: <ShoppingBagIcon />, path: '/products' },
-    { text: 'Sản phẩm Yêu thích', icon: <FavoriteIcon />, path: '/favorites' },
+    { text: 'Quản lý Sản phẩm Yêu thích', icon: <FavoriteIcon />, path: '/favorites' },
     { text: 'Quản lý Người dùng', icon: <PeopleIcon />, path: '/users' },
     { text: 'Quản lý Thương hiệu', icon: <LocalOffer />, path: '/brands' },
     { text: 'Quản lý Voucher', icon: <LocalOffer />, path: '/vouchers' },
     { text: 'Quản lý Đơn hàng', icon: <LocalOffer />, path: '/brands' },
     { text: 'Quản lý Bài viết', icon: <LocalOffer />, path: '/brands' },
     { text: 'Quản lý Mã giảm giá', icon: <LocalOffer />, path: '/brands' },
+    { text: 'Quản lýs', icon: <LocalOffer />, path: '/test' },
     { text: 'Quản lý Đánh giá sản phẩm', icon: <LocalOffer />, path: '/brands' },
-    { text: 'Quản lý Sản phẩm yêu thích', icon: <LocalOffer />, path: '/brands' },
     { text: 'Cài đặt', icon: <SettingsIcon />, path: '/settings' },
   ];
 
