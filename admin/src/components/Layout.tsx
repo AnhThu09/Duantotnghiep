@@ -76,7 +76,6 @@ export default function Layout({ children }: LayoutProps) {
     { text: 'Quản lý Đơn hàng', icon: <LocalOffer />, path: '/brands' },
     { text: 'Quản lý Bài viết', icon: <LocalOffer />, path: '/brands' },
     { text: 'Quản lý Mã giảm giá', icon: <LocalOffer />, path: '/brands' },
-    { text: 'Quản lýs', icon: <LocalOffer />, path: '/test' },
     { text: 'Quản lý Đánh giá sản phẩm', icon: <LocalOffer />, path: '/brands' },
     { text: 'Cài đặt', icon: <SettingsIcon />, path: '/settings' },
   ];
