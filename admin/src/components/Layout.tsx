@@ -1,4 +1,4 @@
-import React, { useState } from 'react'; // Không cần useCallback, useEffect nữa
+import React, { useState } from 'react';
 import {
   Box,
   Drawer,
@@ -34,12 +34,8 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
-// Bỏ hoàn toàn useAuth hook vì không còn cần quản lý xác thực ở đây nữa
-// const useAuth = () => { ... };
-
 export default function Layout({ children }: LayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false); // State quản lý Sidebar trên di động
-  // Không cần authorized, onSignIn, loading từ useAuth nữa
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -49,14 +45,15 @@ export default function Layout({ children }: LayoutProps) {
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
     { text: 'Quản lý Danh mục', icon: <CategoryIcon />, path: '/categories' },
     { text: 'Quản lý Sản phẩm', icon: <ShoppingBagIcon />, path: '/products' },
-    { text: 'Sản phẩm Yêu thích', icon: <FavoriteIcon />, path: '/favorites' },
+    { text: 'Quản lý Sản phẩm Yêu thích', icon: <FavoriteIcon />, path: '/favorite-products' }, // Đã sửa path
     { text: 'Quản lý Người dùng', icon: <PeopleIcon />, path: '/users' },
+
     { text: 'Quản lý Thương hiệu', icon: <StoreIcon />, path: '/brands' },
-    { text: 'Quản lý Voucher', icon: <LoyaltyIcon />, path: '/vouchers' },
+    { text: 'Quản lý Mã giảm giá', icon: <LoyaltyIcon />, path: '/discount-codes' }, // Đã sửa path
     { text: 'Quản lý Đơn hàng', icon: <ReceiptIcon />, path: '/orders' },
-    { text: 'Quản lý Bài viết', icon: <ArticleIcon />, path: '/posts' },
-    { text: 'Quản lý Mã giảm giá', icon: <LocalOfferIcon />, path: '/discounts' },
     { text: 'Quản lý Đánh giá sản phẩm', icon: <RateReviewIcon />, path: '/reviews' },
+    // Các dòng bị lặp hoặc sai icon/path dưới đây đã được loại bỏ/sửa theo logic của bạn
+
     { text: 'Cài đặt', icon: <SettingsIcon />, path: '/settings' },
   ];
 
@@ -88,14 +85,14 @@ export default function Layout({ children }: LayoutProps) {
     </Box>
   );
 
-  // Bỏ logic if (loading) và !authorized
   return (
     <Box sx={{ display: 'flex' }}>
+      {/* Khối JSX chính bao gồm Header, Sidebar và Content */}
       <>
-        {/* Sử dụng component Header mới */}
+        {/* Header */}
         <Header drawerWidth={drawerWidth} handleDrawerToggle={handleDrawerToggle} />
 
-        {/* Vùng Sidebar Navigation */}
+        {/* Sidebar Navigation */}
         <Box
           component="nav"
           sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}

@@ -4,13 +4,14 @@ import ReactDOM from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
-// Import từ Material-UI
-import { ThemeProvider, createTheme } from '@mui/material/styles';
-import { CssBaseline } from '@mui/material'; 
 
 // Import các context của bạn
 import { ThemeContextProvider } from './context/ThemeContext'; 
 import { SnackbarProvider } from './context/SnackbarContext.tsx';
+
+import { ThemeProvider, createTheme } from '@mui/material/styles';
+import { CssBaseline } from '@mui/material'; // Thêm CssBaseline ở đây để reset CSS mặc định
+
 
 // Tùy chỉnh theme cơ bản cho Material-UI
 const theme = createTheme({
@@ -38,4 +39,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       </SnackbarProvider>
     </ThemeContextProvider>
   </React.StrictMode>
+
+
+
 );
