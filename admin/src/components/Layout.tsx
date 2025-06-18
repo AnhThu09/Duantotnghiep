@@ -58,7 +58,7 @@ const useAuth = () => {
 
 export default function Layout({ children }: LayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false); // State quản lý Sidebar trên di động
-  const { authorized, onSignIn } = useAuth();
+  // const { authorized, onSignIn } = useAuth();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -112,9 +112,9 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <Box sx={{ display: 'flex' }}>
-      {!authorized ? (
+      {/* {!authorized ? (
         <SignInPage onSignIn={onSignIn} />
-      ) : (
+      ) : ( */}
         <>
           {/* Sử dụng component Header mới */}
           <Header drawerWidth={drawerWidth} handleDrawerToggle={handleDrawerToggle} />
@@ -165,7 +165,7 @@ export default function Layout({ children }: LayoutProps) {
             {children} {/* Nội dung của các trang con (Dashboard, CategoryManager) sẽ hiển thị ở đây */}
           </Box>
         </>
-      )}
+      {/* )} */}
     </Box>
   );
 }
