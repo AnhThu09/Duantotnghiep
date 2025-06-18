@@ -10,7 +10,6 @@ import CategoryManager from "././pages/CategoryManager"; // Chú ý đường d�
 import BrandManager from "./pages/BrandManager";
 import ProductManager from "./pages/ProductManager";
 import FavoriteProductsManager from "./pages/FavoriteProductsManager";
-import BrandManagerr from './pages/test';
 
 function App() {
   return (
@@ -26,7 +25,6 @@ function App() {
           <Route path="/products" element={<ProductManager />} />
           {/* <Route path="/favorites" element={<FavoritesPage />} /> */}
            <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/test" element={<BrandManagerr />} />
           <Route path="/favorites" element={<FavoriteProductsManager />} />
         </Routes>
       </Layout>
