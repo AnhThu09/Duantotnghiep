@@ -88,3 +88,4 @@ let nightOwlsTheme = createTheme({
 
 nightOwlsTheme = responsiveFontSizes(nightOwlsTheme);
 
+export default nightOwlsTheme;
