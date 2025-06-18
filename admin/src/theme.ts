@@ -86,10 +86,5 @@ let nightOwlsTheme = createTheme({
   // ... thêm bất kỳ tùy chỉnh nào khác của bạn
 });
 
-<<<<<<< HEAD
 nightOwlsTheme = responsiveFontSizes(nightOwlsTheme);
 
-export default nightOwlsTheme;
-=======
-export default nightOwlsTheme;
->>>>>>> a87fa716c740314f879e638477deb1ca452fc757
