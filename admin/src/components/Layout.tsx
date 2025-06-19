@@ -23,6 +23,9 @@ import StoreIcon from '@mui/icons-material/Store';
 import ArticleIcon from '@mui/icons-material/Article';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import RateReviewIcon from '@mui/icons-material/RateReview';
+import LibraryBooksIcon from '@mui/icons-material/LibraryBooks'; // Quản lý bài viết
+import ReviewsIcon from '@mui/icons-material/Reviews';           // Quản lý đánh giá
+
 import { Link as RouterLink } from 'react-router-dom';
 
 import Header from './Header'; // Import component Header đã tách riêng
@@ -51,6 +54,8 @@ export default function Layout({ children }: LayoutProps) {
     { text: 'Quản lý Thương hiệu', icon: <StoreIcon />, path: '/brands' },
     { text: 'Quản lý Mã giảm giá', icon: <LoyaltyIcon />, path: '/discount-codes' }, // Đã sửa path
     { text: 'Quản lý Đơn hàng', icon: <ReceiptIcon />, path: '/orders' },
+      { text: 'Quản lý Bài viết', icon: <ArticleIcon />, path: '/posts' },
+    { text: 'Quản lý Đánh giá', icon: <RateReviewIcon />, path: '/reviews' },
     { text: 'Quản lý Đánh giá sản phẩm', icon: <RateReviewIcon />, path: '/reviews' },
     // Các dòng bị lặp hoặc sai icon/path dưới đây đã được loại bỏ/sửa theo logic của bạn
 
