@@ -1,134 +1,81 @@
-import React, { useEffect, useState } from 'react';
-import { Pencil, Trash2, Plus, Search } from 'lucide-react';
+import React from 'react';
+import { Pencil, Trash2 } from 'lucide-react';
 
-interface Post {
-  id: number;
+type Post = {
+  post_id: number;
   title: string;
-  createdAt: string;
-  category: string;
-  tags: string[];
-  isVisible: boolean;
-  imageUrl: string;
-}
+  content: string;
+  thumbnail: string;
+  author_id: number;
+  slug: string;
+  created_at: string;
+  updated_at: string;
+};
 
-const mockPosts: Post[] = [
+const dummyPosts: Post[] = [
   {
-    id: 8,
-    title: 'Chi tiết bài viết',
-    createdAt: '23/09/2021 15:08:37',
-    category: '',
-    tags: ['Chủ đề bài viết'],
-    isVisible: true,
-    imageUrl: '/images/post1.jpg',
+    post_id: 1,
+    title: '10 mẹo chăm sóc da ban đêm',
+    content: 'Nội dung bài viết...',
+    thumbnail: '/images/skincare1.jpg',
+    author_id: 101,
+    slug: '10-meo-cham-soc-da',
+    created_at: '2024-06-01',
+    updated_at: '2024-06-02',
   },
   {
-    id: 7,
-    title: 'Đặc điểm nhận biết rau củ quả tươi hữu ích cho các',
-    createdAt: '06/09/2021 14:44:04',
-    category: 'Tin mới',
-    tags: ['Thông tin hữu ích'],
-    isVisible: true,
-    imageUrl: '/images/post2.jpg',
-  },
-  {
-    id: 6,
-    title: 'Tại sao cần phải ăn rau củ quả mỗi ngày?',
-    createdAt: '06/09/2021 14:44:04',
-    category: 'Tin mới',
-    tags: ['Sống khỏe'],
-    isVisible: true,
-    imageUrl: '/images/post3.jpg',
+    post_id: 2,
+    title: 'Top sản phẩm dưỡng ẩm 2024',
+    content: 'Nội dung bài viết...',
+    thumbnail: '/images/skincare2.jpg',
+    author_id: 102,
+    slug: 'top-san-pham-duong-am',
+    created_at: '2024-06-10',
+    updated_at: '2024-06-11',
   },
 ];
 
-const PostManager = () => {
-  const [posts, setPosts] = useState<Post[]>(mockPosts);
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const handleDelete = (id: number) => {
-    const confirm = window.confirm('Bạn có chắc muốn xoá bài viết này?');
-    if (confirm) {
-      setPosts(posts.filter((post) => post.id !== id));
-    }
-  };
-
-  const filteredPosts = posts.filter((post) =>
-    post.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
+const ManagePosts: React.FC = () => {
   return (
-    <div className="p-4">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold">Quản lý bài viết</h2>
-        <button className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-1">
-          <Plus size={18} /> Thêm mới
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-semibold">Quản lý Bài viết</h2>
+        <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+          + Thêm bài viết
         </button>
       </div>
 
-      <div className="flex gap-2 mb-4">
-        <input
-          type="text"
-          placeholder="Nhập từ khóa tìm kiếm"
-          className="border px-3 py-2 rounded w-full"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-        <button className="bg-gray-300 px-4 py-2 rounded flex items-center">
-          <Search size={18} />
-        </button>
-      </div>
-
-      <div className="overflow-x-auto">
-        <table className="min-w-full border text-sm">
+      <div className="bg-white shadow-md rounded overflow-x-auto">
+        <table className="min-w-full text-sm text-left border">
           <thead className="bg-gray-100">
             <tr>
-              <th className="border p-2">STT</th>
-              <th className="border p-2">Tiêu đề</th>
-              <th className="border p-2">Đặc điểm</th>
-              <th className="border p-2">Hiển thị</th>
-              <th className="border p-2">Tác vụ</th>
+              <th className="py-3 px-4 border-b">ID</th>
+              <th className="py-3 px-4 border-b">Tiêu đề</th>
+              <th className="py-3 px-4 border-b">Thumbnail</th>
+              <th className="py-3 px-4 border-b">Author ID</th>
+              <th className="py-3 px-4 border-b">Slug</th>
+              <th className="py-3 px-4 border-b">Ngày tạo</th>
+              <th className="py-3 px-4 border-b">Ngày cập nhật</th>
+              <th className="py-3 px-4 border-b text-center">Hành động</th>
             </tr>
           </thead>
           <tbody>
-            {filteredPosts.map((post, index) => (
-              <tr key={post.id} className="border-t">
-                <td className="border p-2 text-center">{post.id}</td>
-                <td className="border p-2">
-                  <div className="flex gap-2">
-                    <img src={post.imageUrl} alt="thumb" className="w-14 h-10 object-cover" />
-                    <div>
-                      <div className="font-medium">{post.title}</div>
-                      <div className="text-gray-500 text-xs">Ngày tạo: {post.createdAt}</div>
-                    </div>
-                  </div>
+            {dummyPosts.map((post) => (
+              <tr key={post.post_id} className="hover:bg-gray-50">
+                <td className="py-3 px-4 border-b">{post.post_id}</td>
+                <td className="py-3 px-4 border-b">{post.title}</td>
+                <td className="py-3 px-4 border-b">
+                  <img src={post.thumbnail} alt="Thumbnail" className="w-16 h-10 object-cover rounded" />
                 </td>
-                <td className="border p-2">
-                  <input
-                    type="text"
-                    value={post.category}
-                    readOnly
-                    className="border px-2 py-1 w-full mb-1"
-                  />
-                  {post.tags.map((tag, idx) => (
-                    <span
-                      key={idx}
-                      className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs inline-block mr-1"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </td>
-                <td className="border p-2 text-center">
-                  <input type="checkbox" checked={post.isVisible} readOnly />
-                </td>
-                <td className="border p-2 text-center">
-                  <button className="text-blue-600 hover:underline mr-2">
+                <td className="py-3 px-4 border-b">{post.author_id}</td>
+                <td className="py-3 px-4 border-b">{post.slug}</td>
+                <td className="py-3 px-4 border-b">{post.created_at}</td>
+                <td className="py-3 px-4 border-b">{post.updated_at}</td>
+                <td className="py-3 px-4 border-b text-center space-x-3">
+                  <button className="text-blue-600 hover:text-blue-800">
                     <Pencil size={18} />
                   </button>
-                  <button
-                    className="text-red-600 hover:underline"
-                    onClick={() => handleDelete(post.id)}
-                  >
+                  <button className="text-red-600 hover:text-red-800">
                     <Trash2 size={18} />
                   </button>
                 </td>
@@ -141,4 +88,4 @@ const PostManager = () => {
   );
 };
 
-export default PostManager;
+export default ManagePosts;
