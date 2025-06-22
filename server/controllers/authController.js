@@ -2,57 +2,99 @@ import { db } from "../config/connectBD.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-const SECRET_KEY = "secret"; // Nên dùng biến môi trường .env
+const SECRET_KEY = "a-string-secret-at-least-256-bits-long";
 
-// Đăng ký
-export const register = (req, res) => {
-  const { username, email, password } = req.body;
+export const register = async (req, res) => {
+  const { full_name, email, password_hash, phone_number } = req.body;
 
-  const checkUser = "SELECT * FROM users WHERE username = ?";
-  db.query(checkUser, [username], (err, data) => {
-    if (err) return res.status(500).json(err);
-    if (data.length > 0) return res.status(409).json("Tài khoản đã tồn tại!");
+  try {
+    if (!full_name || !email || !password_hash || !phone_number) {
+      return res.status(400).json({
+        message: "Vui lòng nhập đầy đủ thông tin",
+      });
+    }
+
+    const [users] = await db.promise().query(
+      "SELECT * FROM users WHERE email = ?",
+      [email]
+    );
+    if (users.length > 0) {
+      return res.status(409).json({
+        message: "Email đã tồn tại, vui lòng chọn email khác!",
+      });
+    }
 
     const salt = bcrypt.genSaltSync(10);
-    const hash = bcrypt.hashSync(password, salt);
+    const hash = bcrypt.hashSync(password_hash, salt);
 
-    const insert = "INSERT INTO users (username, email, password) VALUES (?, ?, ?)";
-    db.query(insert, [username, email, hash], (err2) => {
-      if (err2) return res.status(500).json(err2);
-      res.status(201).json("Đăng ký thành công!");
+    await db.promise().query(
+      "INSERT INTO users (full_name, email, password_hash, phone_number) VALUES (?, ?, ?, ?)",
+      [full_name, email, hash, phone_number]
+    );
+
+    res.status(201).json({
+      message: "Đăng ký thành công",
     });
-  });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Đăng ký thất bại" });
+  }
 };
 
-// Đăng nhập
-export const login = (req, res) => {
-  const { username, password } = req.body;
+export const login = async (req, res) => {
+  const { email, password_hash } = req.body;
 
-  const sql = "SELECT * FROM users WHERE username = ?";
-  db.query(sql, [username], (err, data) => {
-    if (err) return res.status(500).json(err);
-    if (data.length === 0) return res.status(404).json("Không tìm thấy tài khoản!");
+  try {
+    if (!email || !password_hash) {
+      return res.status(400).json({
+        message: "Vui lòng nhập email và mật khẩu",
+      });
+    }
 
-    const isPasswordValid = bcrypt.compareSync(password, data[0].password);
-    if (!isPasswordValid) return res.status(401).json("Mật khẩu không đúng!");
+    const [users] = await db.promise().query(
+      "SELECT * FROM users WHERE email = ?",
+      [email]
+    );
 
-    const token = jwt.sign({ id: data[0].user_id }, SECRET_KEY, { expiresIn: "1d" });
+    if (users.length === 0) {
+      return res.status(404).json({
+        message: "Không tìm thấy tài khoản!",
+      });
+    }
 
-    res
-      .cookie("access_token", token, {
-        httpOnly: true,
-        secure: false, // true nếu dùng HTTPS
-        sameSite: "lax",
-      })
-      .status(200)
-      .json({ message: "Đăng nhập thành công", user: { id: data[0].user_id, username } });
-  });
+    const user = users[0];
+    const isPasswordValid = bcrypt.compareSync(password_hash, user.password_hash);
+
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        message: "Mật khẩu không đúng!",
+      });
+    }
+
+    const token = jwt.sign({ id: user.user_id, role: user.role }, SECRET_KEY, { expiresIn: "1d" });
+
+    res.status(200).json({
+      message: "Đăng nhập thành công",
+      token,
+      user: {
+        id: user.user_id,
+        full_name: user.full_name,
+        email: user.email,
+        phone_number: user.phone_number,
+        role: user.role,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Đăng nhập thất bại" });
+  }
 };
 
-// Đăng xuất
-export const logout = (req, res) => {
-  res
-    .clearCookie("access_token")
-    .status(200)
-    .json("Đăng xuất thành công!");
+export const logout = async (req, res) => {
+  try {
+    res.status(200).json({ message: "Đăng xuất thành công" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Đăng xuất thất bại" });
+  }
 };
