@@ -7,6 +7,7 @@ import cartRoutes from './routes/cart.js'
 import categoryRoutes from './routes/categoryRoutes.js'
 import ContactRoutes from './routes/contact.js'
 import orderRoutes from './routes/order.js'
+import userRoutes from './routes/user.js'
 
 const app = express()
 
@@ -32,6 +33,7 @@ app.use('/api/cart', cartRoutes)
 app.use('/api', ContactRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/orders', orderRoutes)
+app.use('/api/users', userRoutes)
 
 // Handle 404 Not Found
 app.use((req, res, next) => {
