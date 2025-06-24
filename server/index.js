@@ -39,5 +39,4 @@ app.use('/api/orders', orderRoutes)
 // ✅ Khởi động server
 app.listen(3000, () => {
   console.log('🚀 ExpressJS server started on http://localhost:3000')
-})git add .
-git commit -m "Resolve conflict lần cuối"
+})
