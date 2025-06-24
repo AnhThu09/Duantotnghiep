@@ -263,7 +263,7 @@ export default function CategoryManager() { // Đã đổi tên hàm export
         String(category.category_id).includes(searchTerm) // Tìm kiếm theo ID số
       );
     }
-
+     
     currentCategories = stableSort(currentCategories, getComparator(order, orderBy));
 
     const startIndex = page * rowsPerPage;

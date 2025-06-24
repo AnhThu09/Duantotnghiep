@@ -21,6 +21,9 @@ import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import PeopleIcon from '@mui/icons-material/People';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
+import LibraryBooksIcon from '@mui/icons-material/LibraryBooks'; // Quản lý bài viết
+import ReviewsIcon from '@mui/icons-material/Reviews';           // Quản lý đánh giá
+
 import { Link as RouterLink } from 'react-router-dom'; // Dùng để liên kết các mục menu với React Router
 import ConfirmationNumberIcon from '@mui/icons-material/ConfirmationNumber' // <-- Icon này đã đúng, chỉ cần để nó cùng với các icon khác
 
@@ -47,6 +50,8 @@ export default function Layout({ children }: LayoutProps) {
     { text: 'Quản lý Sản phẩm', icon: <ShoppingBagIcon />, path: '/products' },
     { text: 'Quản lý Người dùng', icon: <PeopleIcon />, path: '/users' },
     { text: 'Quản lý Voucher', icon: <ConfirmationNumberIcon />, path: '/vouchers' }, // <-- THÊM DÒNG NÀY VÀO ĐÂY
+      { text: 'Quản lý Bài viết', icon: <ArticleIcon />, path: '/posts' },
+  { text: 'Quản lý Đánh giá', icon: <RateReviewIcon />, path: '/reviews' },
     { text: 'Cài đặt', icon: <SettingsIcon />, path: '/settings' },
   ];
 

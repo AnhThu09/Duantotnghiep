@@ -1,41 +1,48 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart'
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder'
 import {
   Box,
-  Checkbox,
-  FormControlLabel,
-  FormGroup,
-  Slider,
-  Typography,
-  Select,
-  MenuItem,
   Card,
   CardContent,
   CardMedia,
-  IconButton,
+  Checkbox,
+  FormControlLabel,
+  FormGroup,
   Grid,
-  Pagination
-} from '@mui/material';
-import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
+  IconButton,
+  MenuItem,
+  Pagination,
+  Select,
+  Slider,
+  Typography,
+} from '@mui/material'
+import axios from 'axios'
+import { useEffect, useState } from 'react'
 
-const brands = ['The Ordinary', 'Neutrogena', 'MAC', 'La Roche Posay', 'IOPE', 'Some By Mi'];
-const categories = ['Chăm sóc da', 'Trang điểm', 'Chống nắng', 'Mặt nạ', 'Tẩy trang'];
-const ratings = ['5 sao trở lên', '4 sao trở lên', '3 sao trở lên', '2 sao trở lên', '1 sao trở lên'];
+const brands = ['The Ordinary', 'Neutrogena', 'MAC', 'La Roche Posay', 'IOPE', 'Some By Mi']
+const categories = ['Chăm sóc da', 'Trang điểm', 'Chống nắng', 'Mặt nạ', 'Tẩy trang']
+const ratings = [
+  '5 sao trở lên',
+  '4 sao trở lên',
+  '3 sao trở lên',
+  '2 sao trở lên',
+  '1 sao trở lên',
+]
 
 export default function ProductList() {
-  const [products, setProducts] = useState<any[]>([]);
-  const [priceRange, setPriceRange] = useState<number[]>([0, 2000000]);
+  const [products, setProducts] = useState<any[]>([])
+  const [priceRange, setPriceRange] = useState<number[]>([0, 2000000])
 
   useEffect(() => {
-    axios.get('http://localhost:3000/products')
-      .then((res) => setProducts(res.data))
-      .catch((err) => console.error('Lỗi khi tải sản phẩm:', err));
-  }, []);
+    axios
+      .get('http://localhost:3000/products')
+      .then(res => setProducts(res.data))
+      .catch(err => console.error('Lỗi khi tải sản phẩm:', err))
+  }, [])
 
   const handlePriceChange = (event: Event, newValue: number | number[]) => {
-    setPriceRange(newValue as number[]);
-  };
+    setPriceRange(newValue as number[])
+  }
 
   return (
     <Box sx={{ maxWidth: '1200px', mx: 'auto', px: 2, pt: 0, pb: 4 }}>
@@ -49,24 +56,32 @@ export default function ProductList() {
       <Box sx={{ display: 'flex', gap: 4 }}>
         {/* Sidebar */}
         <Box sx={{ width: 250, flexShrink: 0 }}>
-          <Typography fontWeight="bold" mb={1}>Thương hiệu</Typography>
+          <Typography fontWeight="bold" mb={1}>
+            Thương hiệu
+          </Typography>
           <FormGroup>
-            {brands.map((brand) => (
+            {brands.map(brand => (
               <FormControlLabel
                 key={brand}
-                control={<Checkbox sx={{ color: '#e91e63', '&.Mui-checked': { color: '#e91e63' } }} />}
+                control={
+                  <Checkbox sx={{ color: '#e91e63', '&.Mui-checked': { color: '#e91e63' } }} />
+                }
                 label={brand}
               />
             ))}
           </FormGroup>
 
           <Box mt={4}>
-            <Typography fontWeight="bold" mb={1}>Danh mục</Typography>
+            <Typography fontWeight="bold" mb={1}>
+              Danh mục
+            </Typography>
             <FormGroup>
-              {categories.map((cat) => (
+              {categories.map(cat => (
                 <FormControlLabel
                   key={cat}
-                  control={<Checkbox sx={{ color: '#e91e63', '&.Mui-checked': { color: '#e91e63' } }} />}
+                  control={
+                    <Checkbox sx={{ color: '#e91e63', '&.Mui-checked': { color: '#e91e63' } }} />
+                  }
                   label={cat}
                 />
               ))}
@@ -74,7 +89,9 @@ export default function ProductList() {
           </Box>
 
           <Box mt={4}>
-            <Typography fontWeight="bold" mb={1}>Khoảng giá</Typography>
+            <Typography fontWeight="bold" mb={1}>
+              Khoảng giá
+            </Typography>
             <Slider
               value={priceRange}
               onChange={handlePriceChange}
@@ -89,12 +106,16 @@ export default function ProductList() {
           </Box>
 
           <Box mt={4}>
-            <Typography fontWeight="bold" mb={1}>Đánh giá</Typography>
+            <Typography fontWeight="bold" mb={1}>
+              Đánh giá
+            </Typography>
             <FormGroup>
-              {ratings.map((rate) => (
+              {ratings.map(rate => (
                 <FormControlLabel
                   key={rate}
-                  control={<Checkbox sx={{ color: '#e91e63', '&.Mui-checked': { color: '#e91e63' } }} />}
+                  control={
+                    <Checkbox sx={{ color: '#e91e63', '&.Mui-checked': { color: '#e91e63' } }} />
+                  }
                   label={rate}
                 />
               ))}
@@ -104,28 +125,24 @@ export default function ProductList() {
 
         {/* Product List */}
         <Box sx={{ flex: 1 }}>
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-  <Typography variant="subtitle1" sx={{ marginBottom: '8px' }}> {/* Thay đổi giá trị marginBottom */}
-    Hiển thị {products.length} sản phẩm
-  </Typography>
-  <Select size="small" defaultValue="mới nhất" sx={{ marginTop: '-30px' }}> {/* Thay đổi marginTop */}
-    <MenuItem value="mới nhất">Mới nhất</MenuItem>
-    <MenuItem value="giá tăng">Giá tăng dần</MenuItem>
-    <MenuItem value="giá giảm">Giá giảm dần</MenuItem>
-  </Select>
-</Box>
+          <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+            <Typography variant="subtitle1" sx={{ marginBottom: '8px' }}>
+              {' '}
+              {/* Thay đổi giá trị marginBottom */}
+              Hiển thị {products.length} sản phẩm
+            </Typography>
+            <Select size="small" defaultValue="mới nhất" sx={{ marginTop: '-30px' }}>
+              {' '}
+              {/* Thay đổi marginTop */}
+              <MenuItem value="mới nhất">Mới nhất</MenuItem>
+              <MenuItem value="giá tăng">Giá tăng dần</MenuItem>
+              <MenuItem value="giá giảm">Giá giảm dần</MenuItem>
+            </Select>
+          </Box>
 
           <Grid container spacing={2}>
-            {products.map((product) => (
-              <Grid
-                item
-                xs={12}
-                sm={6}
-                md={4}
-                lg={3}
-                key={product.id}
-                sx={{ display: 'flex' }}
-              >
+            {products.map(product => (
+              <Grid item xs={12} sm={6} md={4} lg={3} key={product.id} sx={{ display: 'flex' }}>
                 <Card
                   sx={{
                     display: 'flex',
@@ -214,5 +231,5 @@ export default function ProductList() {
         </Box>
       </Box>
     </Box>
-  );
+  )
 }

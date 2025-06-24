@@ -10,8 +10,7 @@ import baseNightOwlsTheme from '../theme';
 interface ThemeContextProps {
   toggleColorMode: () => void;
   mode: 'light' | 'dark';
-  // Bạn có thể thêm các trạng thái và hàm setters khác ở đây nếu muốn quản lý global state
-  // Ví dụ: notificationSettings: NotificationSettings; setNotificationSettings: (settings: NotificationSettings) => void;
+ 
 }
 
 // Tạo và export ThemeContext

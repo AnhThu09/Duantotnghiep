@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // Import useCallback
 import {
   Grid,
   Card,
@@ -18,19 +18,25 @@ import {
   CircularProgress,
   IconButton,
   Tooltip,
-  Chip, // Added Chip for order status
+  Chip,
 } from '@mui/material';
-// Icons cho KPIs
-import PeopleIcon from '@mui/icons-material/People'; // Tổng người dùng
-import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1'; // Người dùng đăng ký mới
-import HowToRegIcon from '@mui/icons-material/HowToReg'; // Người dùng hoạt động
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart'; // Đơn hàng mới
-import MonetizationOnIcon from '@mui/icons-material/MonetizationOn'; // Doanh thu hôm nay
-import Inventory2Icon from '@mui/icons-material/Inventory2'; // Sản phẩm tồn kho
-import RefreshIcon from '@mui/icons-material/Refresh'; // Refresh icon
-import CheckCircleIcon from '@mui/icons-material/CheckCircle'; // Icon cho đơn hàng hoàn thành
-import PendingActionsIcon from '@mui/icons-material/PendingActions'; // Icon cho đơn hàng đang xử lý
-import CancelIcon from '@mui/icons-material/Cancel'; // Icon cho đơn hàng đã hủy
+import PeopleIcon from '@mui/icons-material/People';
+import PersonAddAlt1Icon from '@mui/icons-material/PersonAddAlt1';
+import HowToRegIcon from '@mui/icons-material/HowToReg';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
+import Inventory2Icon from '@mui/icons-material/Inventory2';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import PendingActionsIcon from '@mui/icons-material/PendingActions';
+import CancelIcon from '@mui/icons-material/Cancel';
+
+import LoyaltyIcon from '@mui/icons-material/Loyalty';
+import StoreIcon from '@mui/icons-material/Store';
+import ArticleIcon from '@mui/icons-material/Article';
+import ReceiptIcon from '@mui/icons-material/Receipt';
+import RateReviewIcon from '@mui/icons-material/RateReview';
+
 
 import { Bar, Pie } from 'react-chartjs-2';
 import {
@@ -45,7 +51,6 @@ import {
   DoughnutController,
 } from 'chart.js';
 
-// Đăng ký các thành phần cần thiết cho Chart.js
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -57,7 +62,7 @@ ChartJS.register(
   DoughnutController
 );
 
-// Styled Components with Transitions
+// Styled Components (giữ nguyên)
 const StatCard = styled(Card)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -78,7 +83,7 @@ const DashboardPaper = styled(Paper)(({ theme }) => ({
   display: 'flex',
   flexDirection: 'column',
   height: '100%',
-  minHeight: '350px', // Đặt minHeight cố định để các chart có không gian
+  minHeight: '350px',
   backgroundColor: theme.palette.background.paper,
   borderRadius: theme.shape.borderRadius,
   boxShadow: theme.shadows[3],
@@ -96,102 +101,174 @@ const AnimatedButton = styled(Button)(({ theme }) => ({
   },
 }));
 
+
+// Định nghĩa kiểu dữ liệu cho các state
+interface StatItem {
+  title: string;
+  value: string;
+  icon: React.ReactElement;
+}
+
+interface ChartData {
+  labels: string[];
+  datasets: {
+    label: string;
+    data: number[];
+    backgroundColor: string | string[];
+    borderColor: string | string[];
+    borderWidth: number;
+    borderRadius?: number;
+  }[];
+}
+
+interface OrderItem {
+  id: number;
+  orderId: string;
+  customer: string;
+  product: string;
+  total: number;
+  status: string;
+  time: string;
+}
+
+// Cấu hình Base URL của API của bạn
+const API_BASE_URL = 'http://localhost:3000/api/dashboard'; // Thay thế bằng URL API thực tế của bạn
+
 export default function Dashboard() {
   const theme = useTheme();
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  useEffect(() => {
+  // State để lưu trữ dữ liệu từ API
+  const [stats, setStats] = useState<StatItem[]>([]);
+  const [revenueChartData, setRevenueChartData] = useState<ChartData>({ labels: [], datasets: [] });
+  const [productCategorySalesData, setProductCategorySalesData] = useState<ChartData>({ labels: [], datasets: [] });
+  const [userActivityChartData, setUserActivityChartData] = useState<ChartData>({ labels: [], datasets: [] });
+  const [recentOrders, setRecentOrders] = useState<OrderItem[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  // Hàm để fetch tất cả dữ liệu dashboard
+  const fetchDashboardData = useCallback(async () => {
     setLoading(true);
-    const timer = setTimeout(() => {
+    setError(null); // Reset lỗi
+    try {
+      // Fetch Stats
+      const statsRes = await fetch(`${API_BASE_URL}/stats`);
+      if (!statsRes.ok) throw new Error('Failed to fetch stats');
+      const statsData = await statsRes.json();
+      setStats([
+        { title: 'Tổng Người dùng', value: statsData.totalUsers.toLocaleString(), icon: <PeopleIcon sx={{ fontSize: 35, color: theme.palette.primary.main }} /> },
+        { title: 'Đăng ký mới (tháng này)', value: statsData.newRegistrationsThisMonth.toLocaleString(), icon: <PersonAddAlt1Icon sx={{ fontSize: 35, color: theme.palette.info.main }} /> },
+        { title: 'Người dùng hoạt động (hôm nay)', value: statsData.activeUsersToday.toLocaleString(), icon: <HowToRegIcon sx={{ fontSize: 35, color: theme.palette.secondary.main }} /> },
+        { title: 'Đơn hàng mới (hôm nay)', value: statsData.newOrdersToday.toLocaleString(), icon: <ShoppingCartIcon sx={{ fontSize: 35, color: theme.palette.success.main }} /> },
+        { title: 'Doanh thu hôm nay', value: statsData.revenueToday.toLocaleString('vi-VN') + ' VND', icon: <MonetizationOnIcon sx={{ fontSize: 35, color: theme.palette.warning.main }} /> },
+        { title: 'Sản phẩm tồn kho', value: statsData.stockProducts.toLocaleString(), icon: <Inventory2Icon sx={{ fontSize: 35, color: theme.palette.error.main }} /> },
+      ]);
+
+      // Fetch Revenue Chart Data
+      const revenueRes = await fetch(`${API_BASE_URL}/revenue-by-month`);
+      if (!revenueRes.ok) throw new Error('Failed to fetch revenue chart data');
+      const revenueData = await revenueRes.json();
+      setRevenueChartData({
+        labels: revenueData.labels,
+        datasets: [{
+          label: 'Doanh thu (VND)',
+          data: revenueData.data,
+          backgroundColor: theme.palette.primary.main,
+          borderColor: theme.palette.primary.dark,
+          borderWidth: 1,
+          borderRadius: 4,
+        }],
+      });
+
+      // Fetch Product Sales by Category Data
+      const productSalesRes = await fetch(`${API_BASE_URL}/sales-by-category`);
+      if (!productSalesRes.ok) throw new Error('Failed to fetch product sales data');
+      const productSalesData = await productSalesRes.json();
+      setProductCategorySalesData({
+        labels: productSalesData.labels,
+        datasets: [{
+          label: 'Doanh thu theo danh mục (VND)',
+          data: productSalesData.data,
+          backgroundColor: [
+            theme.palette.info.light,
+            theme.palette.success.light,
+            theme.palette.warning.light,
+            theme.palette.secondary.light,
+            theme.palette.primary.light,
+          ],
+          borderColor: [
+            theme.palette.info.main,
+            theme.palette.success.main,
+            theme.palette.warning.main,
+            theme.palette.secondary.main,
+            theme.palette.primary.main,
+          ],
+          borderWidth: 1,
+        }],
+      });
+
+      // Fetch User Activity Data
+      const userActivityRes = await fetch(`${API_BASE_URL}/user-activity`);
+      if (!userActivityRes.ok) throw new Error('Failed to fetch user activity data');
+      const userActivityData = await userActivityRes.json();
+      setUserActivityChartData({
+        labels: userActivityData.labels,
+        datasets: [
+          {
+            label: 'Người dùng đăng ký mới',
+            data: userActivityData.newRegistrations,
+            backgroundColor: theme.palette.success.main,
+            borderColor: theme.palette.success.dark,
+            borderWidth: 1,
+            borderRadius: 4,
+          },
+          {
+            label: 'Người dùng đăng nhập',
+            data: userActivityData.logins,
+            backgroundColor: theme.palette.primary.light,
+            borderColor: theme.palette.primary.main,
+            borderWidth: 1,
+            borderRadius: 4,
+          },
+        ],
+      });
+
+      // Fetch Recent Orders
+      const ordersRes = await fetch(`${API_BASE_URL}/recent-orders`);
+      if (!ordersRes.ok) throw new Error('Failed to fetch recent orders');
+      const ordersData = await ordersRes.json();
+      setRecentOrders(ordersData);
+
+    } catch (err: any) {
+      console.error('Error fetching dashboard data:', err);
+      setError(err.message || 'Không thể tải dữ liệu dashboard. Vui lòng thử lại.');
+      // Đặt lại dữ liệu về rỗng hoặc mặc định khi có lỗi để tránh lỗi render
+      setStats([]);
+      setRevenueChartData({ labels: [], datasets: [] });
+      setProductCategorySalesData({ labels: [], datasets: [] });
+      setUserActivityChartData({ labels: [], datasets: [] });
+      setRecentOrders([]);
+    } finally {
       setLoading(false);
-    }, 1500);
-    return () => clearTimeout(timer);
-  }, [refreshKey]);
+    }
+  }, [theme]); // Thêm theme vào dependencies vì màu sắc phụ thuộc vào nó
+
+  useEffect(() => {
+    fetchDashboardData();
+  }, [fetchDashboardData, refreshKey]); // Gọi fetchDashboardData khi component mount hoặc refreshKey thay đổi
 
   const handleRefresh = () => {
     setRefreshKey(prev => prev + 1);
   };
 
-  // --- Dữ liệu giả định mới và cập nhật cho Dashboard Mỹ phẩm Night Owls ---
-
-  const stats = [
-    { title: 'Tổng Người dùng', value: '15,234', icon: <PeopleIcon sx={{ fontSize: 35, color: theme.palette.primary.main }} /> },
-    { title: 'Đăng ký mới (tháng này)', value: '185', icon: <PersonAddAlt1Icon sx={{ fontSize: 35, color: theme.palette.info.main }} /> }, // New KPI
-    { title: 'Người dùng hoạt động (hôm nay)', value: '720', icon: <HowToRegIcon sx={{ fontSize: 35, color: theme.palette.secondary.main }} /> }, // New KPI
-    { title: 'Đơn hàng mới (hôm nay)', value: '56', icon: <ShoppingCartIcon sx={{ fontSize: 35, color: theme.palette.success.main }} /> },
-    { title: 'Doanh thu hôm nay', value: '15.000.000 VND', icon: <MonetizationOnIcon sx={{ fontSize: 35, color: theme.palette.warning.main }} /> },
-    { title: 'Sản phẩm tồn kho', value: '250', icon: <Inventory2Icon sx={{ fontSize: 35, color: theme.palette.error.main }} /> }, // Updated icon color
-  ];
-
-  const chartData = {
-    labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6'],
-    datasets: [
-      {
-        label: 'Doanh thu (VND)',
-        data: [65000000, 59000000, 80000000, 81000000, 76000000, 92000000], // Updated data for realism
-        backgroundColor: theme.palette.primary.main,
-        borderColor: theme.palette.primary.dark,
-        borderWidth: 1,
-        borderRadius: 4,
-      },
-    ],
-  };
-
-  const productData = {
-    labels: ['Chăm sóc da', 'Trang điểm', 'Chăm sóc tóc', 'Nước hoa', 'Dụng cụ'], // More general categories for beauty
-    datasets: [
-      {
-        label: 'Doanh thu theo danh mục (VND)', // Changed label for clarity
-        data: [120000000, 80000000, 50000000, 70000000, 30000000], // Updated data
-        backgroundColor: [
-          theme.palette.info.light,    // Chăm sóc da
-          theme.palette.success.light, // Trang điểm
-          theme.palette.warning.light, // Chăm sóc tóc
-          theme.palette.secondary.light, // Nước hoa
-          theme.palette.primary.light,   // Dụng cụ
-        ],
-        borderColor: [
-          theme.palette.info.main,
-          theme.palette.success.main,
-          theme.palette.warning.main,
-          theme.palette.secondary.main,
-          theme.palette.primary.main,
-        ],
-        borderWidth: 1,
-      },
-    ],
-  };
-
-  // New chart data for user registration/login
-  const userActivityData = {
-    labels: ['Tuần 1', 'Tuần 2', 'Tuần 3', 'Tuần 4'],
-    datasets: [
-      {
-        label: 'Người dùng đăng ký mới',
-        data: [25, 30, 18, 40],
-        backgroundColor: theme.palette.success.main,
-        borderColor: theme.palette.success.dark,
-        borderWidth: 1,
-        borderRadius: 4,
-      },
-      {
-        label: 'Người dùng đăng nhập',
-        data: [150, 180, 160, 200],
-        backgroundColor: theme.palette.primary.light,
-        borderColor: theme.palette.primary.main,
-        borderWidth: 1,
-        borderRadius: 4,
-      },
-    ],
-  };
-
+  // --- Chart Options (giữ nguyên, chỉ thay đổi data) ---
   const userActivityOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'top',
+        position: 'top' as const, // Thêm as const
         labels: {
           color: theme.palette.text.primary,
           font: { size: 14 },
@@ -205,7 +282,7 @@ export default function Dashboard() {
         titleColor: theme.palette.primary.main,
         titleFont: { weight: 'bold' },
         callbacks: {
-          label: function (context) {
+          label: function (context: any) { // Dùng any để đơn giản hóa callback
             let label = context.dataset.label || '';
             if (label) { label += ': '; }
             if (context.parsed.y !== null) {
@@ -233,7 +310,7 @@ export default function Dashboard() {
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'top',
+        position: 'top' as const,
         labels: {
           color: theme.palette.text.primary,
           font: { size: 14 },
@@ -248,7 +325,7 @@ export default function Dashboard() {
         titleColor: theme.palette.primary.main,
         titleFont: { weight: 'bold' },
         callbacks: {
-          label: function (context) {
+          label: function (context: any) {
             let label = context.dataset.label || '';
             if (label) { label += ': '; }
             if (context.parsed.y !== null) {
@@ -268,8 +345,8 @@ export default function Dashboard() {
         ticks: {
           color: theme.palette.text.secondary,
           font: { size: 12 },
-          callback: function (value) {
-            return (value as number / 1000000).toFixed(0) + ' Tr VND'; // Display in millions for better readability
+          callback: function (value: any) {
+            return (value as number / 1000000).toFixed(0) + ' Tr VND';
           },
         },
         grid: { color: theme.palette.divider },
@@ -282,7 +359,7 @@ export default function Dashboard() {
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'right',
+        position: 'right' as const,
         labels: {
           color: theme.palette.text.primary,
           font: { size: 14 },
@@ -297,14 +374,14 @@ export default function Dashboard() {
         titleColor: theme.palette.primary.main,
         titleFont: { weight: 'bold' },
         callbacks: {
-          label: function (context) {
+          label: function (context: any) {
             let label = context.label || '';
             if (label) { label += ': '; }
             if (context.parsed !== null) {
               const dataset = context.dataset;
-              const total = dataset.data.reduce((previousValue, currentValue) => previousValue + (currentValue as number), 0);
+              const total = dataset.data.reduce((previousValue: number, currentValue: number) => previousValue + currentValue, 0);
               const currentValue = dataset.data[context.dataIndex] as number;
-              const percentage = ((currentValue / total) * 100).toFixed(1); // One decimal for percentage
+              const percentage = ((currentValue / total) * 100).toFixed(1);
               label = label + currentValue.toLocaleString('vi-VN') + ' VND (' + percentage + '%)';
             }
             return label;
@@ -314,19 +391,7 @@ export default function Dashboard() {
     },
   };
 
-  // Dữ liệu đơn hàng giả định chi tiết hơn
-  const recentOrders = [
-    { id: 1, orderId: 'NO-ORD001', customer: 'Nguyễn Thu Trang', product: 'Kem dưỡng ẩm', total: 450000, status: 'Hoàn thành', time: '5 phút trước' },
-    { id: 2, orderId: 'NO-ORD002', customer: 'Phạm Thanh Mai', product: 'Son lì Nighty Red', total: 280000, status: 'Đang xử lý', time: '15 phút trước' },
-    { id: 3, orderId: 'NO-ORD003', customer: 'Trần Minh Anh', product: 'Sữa rửa mặt', total: 180000, status: 'Đã hủy', time: '1 giờ trước' },
-    { id: 4, orderId: 'NO-ORD004', customer: 'Lê Hoàng Yến', product: 'Mascara Volume Up', total: 320000, status: 'Hoàn thành', time: '2 giờ trước' },
-    { id: 5, orderId: 'NO-ORD005', customer: 'Đỗ Hải Ly', product: 'Nước tẩy trang', total: 200000, status: 'Đang xử lý', time: '3 giờ trước' },
-    { id: 6, orderId: 'NO-ORD006', customer: 'Vũ Quốc Bảo', product: 'Nước hoa Twilight Bloom', total: 650000, status: 'Hoàn thành', time: '4 giờ trước' },
-    { id: 7, orderId: 'NO-ORD007', customer: 'Ngô Thùy Linh', product: 'Serum Vitamin C', total: 520000, status: 'Đang xử lý', time: '5 giờ trước' },
-    { id: 8, orderId: 'NO-ORD008', customer: 'Dương Thị Hà', product: 'Chì kẻ mắt', total: 150000, status: 'Hoàn thành', time: '6 giờ trước' },
-  ];
-
-  // Hàm để render Chip trạng thái đơn hàng
+  // Hàm để render Chip trạng thái đơn hàng (giữ nguyên)
   const renderOrderStatus = (status: string) => {
     let color: 'success' | 'warning' | 'error' | 'default';
     let icon: React.ReactElement;
@@ -365,28 +430,52 @@ export default function Dashboard() {
         </Tooltip>
       </Stack>
 
+      {error && (
+        <Box sx={{ mb: 4, p: 2, backgroundColor: theme.palette.error.light, color: theme.palette.error.contrastText, borderRadius: 1 }}>
+          <Typography variant="body1">Lỗi: {error}</Typography>
+        </Box>
+      )}
+
       {/* Stats Cards Row */}
       <Grid container spacing={3} sx={{ mb: 4 }}>
-        {stats.map((stat, index) => (
-          <Grid item xs={12} sm={6} md={2} key={index}> {/* Adjusted md size for 6 cards */}
-            <Zoom in={!loading} style={{ transitionDelay: loading ? '0ms' : `${index * 120}ms` }}>
+        {loading ? (
+          Array.from(new Array(6)).map((_, index) => (
+            <Grid item xs={12} sm={6} md={2} key={index}>
               <StatCard>
-                <Box sx={{ mr: 2, display: 'flex', alignItems: 'center' }}>{stat.icon}</Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 35, height: 35, mr: 2 }}>
+                  <CircularProgress size={20} />
+                </Box>
                 <Box>
-                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.2 }}>
-                    {stat.title}
-                  </Typography>
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.2 }}>Đang tải...</Typography>
                   <Typography variant="h6" component="div" sx={{ fontWeight: 'bold', color: theme.palette.text.primary }}>
-                    {loading ? <CircularProgress size={20} sx={{ verticalAlign: 'middle' }} /> : stat.value}
+                    <CircularProgress size={20} sx={{ verticalAlign: 'middle' }} />
                   </Typography>
                 </Box>
               </StatCard>
-            </Zoom>
-          </Grid>
-        ))}
+            </Grid>
+          ))
+        ) : (
+          stats.map((stat, index) => (
+            <Grid item xs={12} sm={6} md={2} key={index}>
+              <Zoom in={true} style={{ transitionDelay: `${index * 120}ms` }}>
+                <StatCard>
+                  <Box sx={{ mr: 2, display: 'flex', alignItems: 'center' }}>{stat.icon}</Box>
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 0.2 }}>
+                      {stat.title}
+                    </Typography>
+                    <Typography variant="h6" component="div" sx={{ fontWeight: 'bold', color: theme.palette.text.primary }}>
+                      {stat.value}
+                    </Typography>
+                  </Box>
+                </StatCard>
+              </Zoom>
+            </Grid>
+          ))
+        )}
       </Grid>
 
-      {/* Charts Section - Now with User Activity Chart */}
+      {/* Charts Section */}
       <Grid container spacing={4} sx={{ mb: 4 }}>
         {/* Revenue Chart */}
         <Grid item xs={12} md={6}>
@@ -402,7 +491,13 @@ export default function Dashboard() {
                     <CircularProgress />
                   </Box>
                 ) : (
-                  <Bar data={chartData} options={chartOptions} />
+                  revenueChartData.labels.length > 0 ? (
+                    <Bar data={revenueChartData} options={chartOptions} />
+                  ) : (
+                    <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center', mt: 4 }}>
+                      Không có dữ liệu doanh thu.
+                    </Typography>
+                  )
                 )}
               </Box>
             </DashboardPaper>
@@ -423,14 +518,20 @@ export default function Dashboard() {
                     <CircularProgress />
                   </Box>
                 ) : (
-                  <Bar data={userActivityData} options={userActivityOptions} />
+                  userActivityChartData.labels.length > 0 ? (
+                    <Bar data={userActivityChartData} options={userActivityOptions} />
+                  ) : (
+                    <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center', mt: 4 }}>
+                      Không có dữ liệu hoạt động người dùng.
+                    </Typography>
+                  )
                 )}
               </Box>
             </DashboardPaper>
           </Slide>
         </Grid>
 
-        {/* Product Sales by Category Chart (formerly Product Chart) */}
+        {/* Product Sales by Category Chart */}
         <Grid item xs={12} md={6}>
           <Slide direction="right" in={!loading} mountOnEnter unmountOnExit>
             <DashboardPaper>
@@ -438,21 +539,25 @@ export default function Dashboard() {
                 Doanh thu theo danh mục sản phẩm
               </Typography>
               <Divider sx={{ mb: 2 }} />
-              <Box sx={{ flexGrow: 1, position: 'relative' }}>
+              <Box sx={{ flexGrow: 1, position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                 {loading ? (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                    <CircularProgress />
-                  </Box>
+                  <CircularProgress />
                 ) : (
-                  <Pie data={productData} options={productOptions} />
+                  productCategorySalesData.labels.length > 0 ? (
+                    <Pie data={productCategorySalesData} options={productOptions} />
+                  ) : (
+                    <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center', mt: 4 }}>
+                      Không có dữ liệu doanh thu theo danh mục.
+                    </Typography>
+                  )
                 )}
               </Box>
             </DashboardPaper>
           </Slide>
         </Grid>
 
-        {/* Recent Orders List - Detailed */}
-        <Grid item xs={12} md={6}> {/* Changed to md=6 for a better 2-column layout */}
+        {/* Recent Orders List */}
+        <Grid item xs={12} md={6}>
           <Slide direction="left" in={!loading} mountOnEnter unmountOnExit>
             <DashboardPaper sx={{ minHeight: 'auto' }}>
               <Typography variant="h6" gutterBottom sx={{ mb: 2, fontWeight: 'medium', color: theme.palette.text.primary }}>
@@ -464,37 +569,43 @@ export default function Dashboard() {
                   <CircularProgress />
                 </Box>
               ) : (
-                <List sx={{ flexGrow: 1, overflowY: 'auto', mb: 1, maxHeight: '300px' }}> {/* Increased maxHeight */}
-                  {recentOrders.map((order) => (
-                    <React.Fragment key={order.id}>
-                      <ListItem
-                        secondaryAction={renderOrderStatus(order.status)}
-                        sx={{ py: 1.5, '&:hover': { backgroundColor: theme.palette.action.hover } }}
-                      >
-                        <ListItemText
-                          primary={
-                            <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: theme.palette.text.primary }}>
-                              {order.product}
-                              <Box component="span" sx={{ ml: 1, fontSize: '0.85rem', color: theme.palette.text.secondary }}>
-                                (#{order.orderId})
-                              </Box>
-                            </Typography>
-                          }
-                          secondary={
-                            <Typography variant="body2" color="text.secondary">
-                              <Box component="span" sx={{ fontWeight: 'medium', color: theme.palette.primary.main }}>{order.customer}</Box>
-                              {' | '}
-                              <Box component="span" sx={{ fontWeight: 'bold' }}>{order.total.toLocaleString('vi-VN')} VND</Box>
-                              {' | '}
-                              {order.time}
-                            </Typography>
-                          }
-                        />
-                      </ListItem>
-                      <Divider component="li" />
-                    </React.Fragment>
-                  ))}
-                </List>
+                recentOrders.length > 0 ? (
+                  <List sx={{ flexGrow: 1, overflowY: 'auto', mb: 1, maxHeight: '300px' }}>
+                    {recentOrders.map((order) => (
+                      <React.Fragment key={order.id}>
+                        <ListItem
+                          secondaryAction={renderOrderStatus(order.status)}
+                          sx={{ py: 1.5, '&:hover': { backgroundColor: theme.palette.action.hover } }}
+                        >
+                          <ListItemText
+                            primary={
+                              <Typography variant="subtitle1" sx={{ fontWeight: 'bold', color: theme.palette.text.primary }}>
+                                {order.product}
+                                <Box component="span" sx={{ ml: 1, fontSize: '0.85rem', color: theme.palette.text.secondary }}>
+                                  (#{order.orderId})
+                                </Box>
+                              </Typography>
+                            }
+                            secondary={
+                              <Typography variant="body2" color="text.secondary">
+                                <Box component="span" sx={{ fontWeight: 'medium', color: theme.palette.primary.main }}>{order.customer}</Box>
+                                {' | '}
+                                <Box component="span" sx={{ fontWeight: 'bold' }}>{order.total.toLocaleString('vi-VN')} VND</Box>
+                                {' | '}
+                                {order.time}
+                              </Typography>
+                            }
+                          />
+                        </ListItem>
+                        <Divider component="li" />
+                      </React.Fragment>
+                    ))}
+                  </List>
+                ) : (
+                  <Typography variant="body1" color="text.secondary" sx={{ textAlign: 'center', mt: 4 }}>
+                    Không có đơn hàng mới nào.
+                  </Typography>
+                )
               )}
               <AnimatedButton
                 variant="text"
