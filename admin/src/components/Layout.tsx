@@ -50,11 +50,10 @@ export default function Layout({ children }: LayoutProps) {
     { text: 'Quản lý Sản phẩm', icon: <ShoppingBagIcon />, path: '/products' },
     { text: 'Quản lý Sản phẩm Yêu thích', icon: <FavoriteIcon />, path: '/favorite-products' }, // Đã sửa path
     { text: 'Quản lý Người dùng', icon: <PeopleIcon />, path: '/users' },
-
     { text: 'Quản lý Thương hiệu', icon: <StoreIcon />, path: '/brands' },
     { text: 'Quản lý Mã giảm giá', icon: <LoyaltyIcon />, path: '/discount-codes' }, // Đã sửa path
     { text: 'Quản lý Đơn hàng', icon: <ReceiptIcon />, path: '/orders' },
-      { text: 'Quản lý Bài viết', icon: <ArticleIcon />, path: '/posts' },
+    { text: 'Quản lý Bài viết', icon: <ArticleIcon />, path: '/posts' },
     { text: 'Quản lý Đánh giá', icon: <RateReviewIcon />, path: '/reviews' },
     { text: 'Quản lý Đánh giá sản phẩm', icon: <RateReviewIcon />, path: '/reviews' },
     // Các dòng bị lặp hoặc sai icon/path dưới đây đã được loại bỏ/sửa theo logic của bạn
