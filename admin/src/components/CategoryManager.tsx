@@ -7,13 +7,14 @@ interface Category {
   category_name: string;
   slug: string;
   description: string;
+  image_url: string;
 }
 
 export default function CategoryManager() {
   // State để lưu trữ danh sách các danh mục
   const [categories, setCategories] = useState<Category[]>([]);
   // State để quản lý dữ liệu trong form thêm/sửa
-  const [formData, setFormData] = useState({ category_name: '', slug: '', description: '' });
+  const [formData, setFormData] = useState({ category_name: '', slug: '', description: '', image_url: ''});
   // State để lưu trữ ID của danh mục đang được chỉnh sửa (null nếu đang thêm mới)
   const [editingId, setEditingId] = useState<number | null>(null);
 
@@ -55,7 +56,7 @@ export default function CategoryManager() {
       });
       // Sau khi thêm/cập nhật thành công, tải lại danh sách, reset form và trạng thái editing
       fetchCategories();
-      setFormData({ category_name: '', slug: '', description: '' });
+      setFormData({ category_name: '', slug: '', description: '',  image_url: '' });
       setEditingId(null);
     } catch (err) {
       console.error('Lỗi khi gửi dữ liệu:', err);
@@ -65,7 +66,7 @@ export default function CategoryManager() {
 
   // Xử lý khi người dùng nhấn nút "Sửa"
   const handleEdit = (cat: Category) => {
-    setFormData({ category_name: cat.category_name, slug: cat.slug, description: cat.description });
+    setFormData({ category_name: cat.category_name, slug: cat.slug, description: cat.description,   image_url: cat.image_url });
     setEditingId(cat.category_id);
   };
 
@@ -109,6 +110,13 @@ export default function CategoryManager() {
           value={formData.description}
           onChange={handleChange}
         />
+        <input
+          className="form-input"
+          placeholder="Link ảnh (image_url)"
+          name="image_url"
+          value={formData.image_url}
+          onChange={handleChange}
+        />
         <button
           className="submit-button"
           onClick={handleSubmit}
@@ -120,7 +128,7 @@ export default function CategoryManager() {
             className="submit-button cancel-button"
             onClick={() => {
               setEditingId(null);
-              setFormData({ category_name: '', slug: '', description: '' });
+              setFormData({ category_name: '', slug: '', description: '',  image_url: '' });
             }}
             style={{ marginTop: '0.5rem', backgroundColor: '#6c757d' }} // Thêm style tạm cho nút hủy
           >
@@ -133,26 +141,54 @@ export default function CategoryManager() {
       {categories.length > 0 ? (
         <ul className="category-list">
           {categories.map((cat) => (
-            <li key={cat.category_id} className="category-item">
-              <div className="category-info">
-                <h3>{cat.category_name}</h3>
-                <p>{cat.description}</p>
-              </div>
-              <div className="action-buttons">
-                <button
-                  className="action-button edit-button"
-                  onClick={() => handleEdit(cat)}
-                >
-                  Sửa
-                </button>
-                <button
-                  className="action-button delete-button"
-                  onClick={() => handleDelete(cat.category_id)}
-                >
-                  Xoá
-                </button>
-              </div>
-            </li>
+             <li
+      key={cat.category_id}
+      className="category-item"
+      style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        padding: '1rem',
+        marginBottom: '1rem',
+        border: '1px solid #ddd',
+        borderRadius: '8px',
+        backgroundColor: '#f9f9f9',
+        gap: '1rem',
+        flexWrap: 'wrap',
+      }}
+    >
+      <img
+        src={cat.image_url}
+        alt={cat.category_name}
+        style={{
+          width: '100px',
+          height: '100px',
+          objectFit: 'cover',
+          borderRadius: '8px',
+          flexShrink: 0,
+        }}
+      />
+      <div style={{ flex: 1 }}>
+        <h3 style={{ margin: 0 }}>{cat.category_name}</h3>
+        <p style={{ marginTop: '0.5rem', color: '#555' }}>{cat.description}</p>
+        <small style={{ color: '#999' }}>Slug: {cat.slug}</small>
+      </div>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        <button
+          className="action-button edit-button"
+          onClick={() => handleEdit(cat)}
+          style={{ padding: '0.4rem 0.8rem' }}
+        >
+          Sửa
+        </button>
+        <button
+          className="action-button delete-button"
+          onClick={() => handleDelete(cat.category_id)}
+          style={{ padding: '0.4rem 0.8rem', backgroundColor: '#dc3545', color: '#fff' }}
+        >
+          Xoá
+        </button>
+      </div>
+    </li>
           ))}
         </ul>
       ) : (

@@ -5,6 +5,8 @@ import Footer from './components/Footer'
 import NavBar from './components/Navbar'
 import About from './pages/About'
 import Account from './pages/Account'
+import HeroSection from './components/HeroSection'
+import CategoryList from './components/Category'
 function App() {
   return (
     <>
@@ -17,10 +19,12 @@ function App() {
           {/* <Route path="/contact" element={<Blog />} /> */}
           {/* <Route path="/categories" element={<Contact />} /> */}
           {/* <Route path="/favorites" element={<Favorites />} /> */}
-          {/* <Route path="/cart" element={<Cart />} /> */}
+          {/* <Route path="/category" element={<CategoryGallery />} /> */}
           <Route path="/account" element={<Account />} />
           <Route path="/contact" element={<ContactForm />} />
         </Routes>
+        <CategoryList />
+        <HeroSection />
         <Footer />
       </BrowserRouter>
     </>
