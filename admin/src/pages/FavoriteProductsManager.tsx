@@ -1,75 +1,74 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  Box,
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  IconButton,
+  Box, Typography, Table, TableBody, TableCell, TableContainer,
+  TableHead, TableRow, Paper, IconButton
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import axios from 'axios';
 
-interface Product {
-  id: number;
-  name: string;
-  category: string;
-  price: number;
+interface Favorite {
+  favorite_id: number;
+  user_id: number;
+  product: {
+    product_id: number;
+    name: string;
+    price: number;
+    thumbnail?: string;
+    category: {
+      category_name: string;
+    };
+  };
 }
 
-const mockFavorites: Product[] = [
-  { id: 101, name: 'Kem dưỡng trắng da', category: 'Chăm sóc da', price: 320000 },
-  { id: 102, name: 'Mascara dài mi', category: 'Trang điểm', price: 210000 },
-];
+const BASE_URL = 'http://localhost:3000/api';
 
 export default function FavoriteProductsManager() {
-  const [favorites, setFavorites] = useState<Product[]>(mockFavorites);
+  const [favorites, setFavorites] = useState<Favorite[]>([]);
 
-  const handleRemoveFavorite = (id: number) => {
-    const confirm = window.confirm('Bạn có chắc muốn bỏ yêu thích sản phẩm này?');
-    if (confirm) {
-      setFavorites(favorites.filter((product) => product.id !== id));
+  const fetchFavorites = async () => {
+    try {
+      const res = await axios.get(`${BASE_URL}/favorites`);
+      setFavorites(res.data);
+    } catch (err) {
+      console.error('Lỗi khi lấy sản phẩm yêu thích:', err);
     }
   };
 
+  const handleRemoveFavorite = async (favoriteId: number) => {
+    if (!window.confirm('Bạn có chắc muốn xoá khỏi yêu thích?')) return;
+    try {
+      await axios.delete(`${BASE_URL}/favorites/${favoriteId}`);
+      setFavorites(favorites.filter(f => f.favorite_id !== favoriteId));
+    } catch (err) {
+      console.error('Lỗi khi xoá yêu thích:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchFavorites();
+  }, []);
+
   return (
     <Box sx={{ mt: 4 }}>
-      <Typography variant="h5" gutterBottom>
-        Sản phẩm Yêu thích
-      </Typography>
-
-      <TableContainer
-        component={Paper}
-        sx={{
-          borderRadius: 2,
-          boxShadow: 3,
-          border: '1px solid #ddd',
-        }}
-      >
-        <Table sx={{ minWidth: 650 }}>
+      <Typography variant="h5" gutterBottom>Sản phẩm Yêu thích</Typography>
+      <TableContainer component={Paper}>
+        <Table>
           <TableHead>
-            <TableRow sx={{ backgroundColor: '#f0f0f0' }}>
-              <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #ccc' }}>Tên sản phẩm</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #ccc' }}>Danh mục</TableCell>
-              <TableCell sx={{ fontWeight: 'bold', borderRight: '1px solid #ccc' }}>Giá</TableCell>
-              <TableCell sx={{ fontWeight: 'bold' }} align="right">
-                Hành động
-              </TableCell>
+            <TableRow sx={{ backgroundColor: '#f5f5f5' }}>
+              <TableCell>Tên sản phẩm</TableCell>
+              <TableCell>Danh mục</TableCell>
+              <TableCell>Giá</TableCell>
+              <TableCell align="right">Hành động</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
-            {favorites.map((product) => (
-              <TableRow key={product.id} hover>
-                <TableCell sx={{ borderRight: '1px solid #eee' }}>{product.name}</TableCell>
-                <TableCell sx={{ borderRight: '1px solid #eee' }}>{product.category}</TableCell>
-                <TableCell sx={{ borderRight: '1px solid #eee' }}>
-                  {product.price.toLocaleString()}₫
-                </TableCell>
+            {favorites.map((fav) => (
+              <TableRow key={fav.favorite_id}>
+                <TableCell>{fav.product.name}</TableCell>
+                <TableCell>{fav.product.category?.category_name || '—'}</TableCell>
+                <TableCell>{fav.product.price.toLocaleString()}₫</TableCell>
                 <TableCell align="right">
-                  <IconButton onClick={() => handleRemoveFavorite(product.id)} color="error">
+                  <IconButton color="error" onClick={() => handleRemoveFavorite(fav.favorite_id)}>
                     <DeleteIcon />
                   </IconButton>
                 </TableCell>
@@ -77,9 +76,7 @@ export default function FavoriteProductsManager() {
             ))}
             {favorites.length === 0 && (
               <TableRow>
-                <TableCell colSpan={4} align="center">
-                  Không có sản phẩm yêu thích nào.
-                </TableCell>
+                <TableCell colSpan={4} align="center">Không có sản phẩm yêu thích nào.</TableCell>
               </TableRow>
             )}
           </TableBody>
