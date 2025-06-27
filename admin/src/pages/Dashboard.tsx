@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'; // Import useCallback
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Grid,
   Card,
@@ -31,13 +31,6 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PendingActionsIcon from '@mui/icons-material/PendingActions';
 import CancelIcon from '@mui/icons-material/Cancel';
 
-import LoyaltyIcon from '@mui/icons-material/Loyalty';
-import StoreIcon from '@mui/icons-material/Store';
-import ArticleIcon from '@mui/icons-material/Article';
-import ReceiptIcon from '@mui/icons-material/Receipt';
-import RateReviewIcon from '@mui/icons-material/RateReview';
-
-
 import { Bar, Pie } from 'react-chartjs-2';
 import {
   Chart as ChartJS,
@@ -62,7 +55,7 @@ ChartJS.register(
   DoughnutController
 );
 
-// Styled Components (giữ nguyên)
+// Styled Components
 const StatCard = styled(Card)(({ theme }) => ({
   display: 'flex',
   alignItems: 'center',
@@ -101,8 +94,7 @@ const AnimatedButton = styled(Button)(({ theme }) => ({
   },
 }));
 
-
-// Định nghĩa kiểu dữ liệu cho các state
+// Kiểu dữ liệu
 interface StatItem {
   title: string;
   value: string;
@@ -131,15 +123,15 @@ interface OrderItem {
   time: string;
 }
 
-// Cấu hình Base URL của API của bạn
-const API_BASE_URL = 'http://localhost:3000/api/dashboard'; // Thay thế bằng URL API thực tế của bạn
+// Cấu hình Base URL của API
+const API_BASE_URL = 'http://localhost:3000/api/dashboard';
 
 export default function Dashboard() {
   const theme = useTheme();
   const [loading, setLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // State để lưu trữ dữ liệu từ API
+  // State lưu trữ dữ liệu từ API
   const [stats, setStats] = useState<StatItem[]>([]);
   const [revenueChartData, setRevenueChartData] = useState<ChartData>({ labels: [], datasets: [] });
   const [productCategorySalesData, setProductCategorySalesData] = useState<ChartData>({ labels: [], datasets: [] });
@@ -147,12 +139,12 @@ export default function Dashboard() {
   const [recentOrders, setRecentOrders] = useState<OrderItem[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  // Hàm để fetch tất cả dữ liệu dashboard
+  // Fetch tất cả dữ liệu dashboard
   const fetchDashboardData = useCallback(async () => {
     setLoading(true);
-    setError(null); // Reset lỗi
+    setError(null);
     try {
-      // Fetch Stats
+      // Stats
       const statsRes = await fetch(`${API_BASE_URL}/stats`);
       if (!statsRes.ok) throw new Error('Failed to fetch stats');
       const statsData = await statsRes.json();
@@ -165,7 +157,7 @@ export default function Dashboard() {
         { title: 'Sản phẩm tồn kho', value: statsData.stockProducts.toLocaleString(), icon: <Inventory2Icon sx={{ fontSize: 35, color: theme.palette.error.main }} /> },
       ]);
 
-      // Fetch Revenue Chart Data
+      // Revenue Chart
       const revenueRes = await fetch(`${API_BASE_URL}/revenue-by-month`);
       if (!revenueRes.ok) throw new Error('Failed to fetch revenue chart data');
       const revenueData = await revenueRes.json();
@@ -181,7 +173,7 @@ export default function Dashboard() {
         }],
       });
 
-      // Fetch Product Sales by Category Data
+      // Product Sales by Category
       const productSalesRes = await fetch(`${API_BASE_URL}/sales-by-category`);
       if (!productSalesRes.ok) throw new Error('Failed to fetch product sales data');
       const productSalesData = await productSalesRes.json();
@@ -208,7 +200,7 @@ export default function Dashboard() {
         }],
       });
 
-      // Fetch User Activity Data
+      // User Activity
       const userActivityRes = await fetch(`${API_BASE_URL}/user-activity`);
       if (!userActivityRes.ok) throw new Error('Failed to fetch user activity data');
       const userActivityData = await userActivityRes.json();
@@ -234,16 +226,14 @@ export default function Dashboard() {
         ],
       });
 
-      // Fetch Recent Orders
+      // Recent Orders
       const ordersRes = await fetch(`${API_BASE_URL}/recent-orders`);
       if (!ordersRes.ok) throw new Error('Failed to fetch recent orders');
       const ordersData = await ordersRes.json();
       setRecentOrders(ordersData);
 
     } catch (err: any) {
-      console.error('Error fetching dashboard data:', err);
       setError(err.message || 'Không thể tải dữ liệu dashboard. Vui lòng thử lại.');
-      // Đặt lại dữ liệu về rỗng hoặc mặc định khi có lỗi để tránh lỗi render
       setStats([]);
       setRevenueChartData({ labels: [], datasets: [] });
       setProductCategorySalesData({ labels: [], datasets: [] });
@@ -252,23 +242,23 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, [theme]); // Thêm theme vào dependencies vì màu sắc phụ thuộc vào nó
+  }, [theme]);
 
   useEffect(() => {
     fetchDashboardData();
-  }, [fetchDashboardData, refreshKey]); // Gọi fetchDashboardData khi component mount hoặc refreshKey thay đổi
+  }, [fetchDashboardData, refreshKey]);
 
   const handleRefresh = () => {
     setRefreshKey(prev => prev + 1);
   };
 
-  // --- Chart Options (giữ nguyên, chỉ thay đổi data) ---
+  // Chart Options
   const userActivityOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        position: 'top' as const, // Thêm as const
+        position: 'top' as const,
         labels: {
           color: theme.palette.text.primary,
           font: { size: 14 },
@@ -282,7 +272,7 @@ export default function Dashboard() {
         titleColor: theme.palette.primary.main,
         titleFont: { weight: 'bold' },
         callbacks: {
-          label: function (context: any) { // Dùng any để đơn giản hóa callback
+          label: function (context: any) {
             let label = context.dataset.label || '';
             if (label) { label += ': '; }
             if (context.parsed.y !== null) {
@@ -391,7 +381,7 @@ export default function Dashboard() {
     },
   };
 
-  // Hàm để render Chip trạng thái đơn hàng (giữ nguyên)
+  // Render Chip trạng thái đơn hàng
   const renderOrderStatus = (status: string) => {
     let color: 'success' | 'warning' | 'error' | 'default';
     let icon: React.ReactElement;

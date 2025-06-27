@@ -20,6 +20,7 @@ function App() {
           <Route path="/categories" element={<CategoryManager />} />
           <Route path="/brands" element={<BrandManager />} />
           <Route path="/vouchers" element={<VoucherManager />} />
+          {/* <Route path="vouchers" element={<DiscountCodesManager />} /> */}
           <Route path="/users" element={<UserManager />} /> 
           <Route path="/vouchers/:id" element={<VoucherPage />} />
           <Route path="/products" element={<ProductManager />} />

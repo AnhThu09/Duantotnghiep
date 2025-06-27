@@ -39,12 +39,12 @@ const NavBar = () => {
               </Link>
             </li>
             <li className="nav-item mx-2">
-              <Link className="nav-link" to="/contact">
+              <Link className="nav-link" to="/">
                 Blog làm đẹp
               </Link>
             </li>
             <li className="nav-item mx-2">
-              <Link className="nav-link" to="/categories">
+              <Link className="nav-link" to="/contact">
                 Liên hệ
               </Link>
             </li>

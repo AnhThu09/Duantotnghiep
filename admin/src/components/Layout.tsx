@@ -16,49 +16,42 @@ import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import PeopleIcon from '@mui/icons-material/People';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
-import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import LoyaltyIcon from '@mui/icons-material/Loyalty';
 import StoreIcon from '@mui/icons-material/Store';
 import ArticleIcon from '@mui/icons-material/Article';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import RateReviewIcon from '@mui/icons-material/RateReview';
-import LibraryBooksIcon from '@mui/icons-material/LibraryBooks'; // Quản lý bài viết
-import ReviewsIcon from '@mui/icons-material/Reviews';           // Quản lý đánh giá
+import { Link as RouterLink, useLocation } from 'react-router-dom';
 
-import { Link as RouterLink } from 'react-router-dom';
+import Header from './Header';
 
-import Header from './Header'; // Import component Header đã tách riêng
-// import { SignInPage } from '../pages/SignInPage'; // KHÔNG CẦN DÒNG NÀY NỮA
-
-const drawerWidth = 240; // Chiều rộng cố định của Sidebar
+const drawerWidth = 240;
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 export default function Layout({ children }: LayoutProps) {
-  const [mobileOpen, setMobileOpen] = useState(false); // State quản lý Sidebar trên di động
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const location = useLocation();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
+  // Đảm bảo path '/vouchers' đúng với route quản lý mã giảm giá
   const navItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
-    { text: 'Quản lý Danh mục', icon: <CategoryIcon />, path: '/categories' },
-    { text: 'Quản lý Sản phẩm', icon: <ShoppingBagIcon />, path: '/products' },
-    { text: 'Quản lý Sản phẩm Yêu thích', icon: <FavoriteIcon />, path: '/favorite-products' }, // Đã sửa path
-    { text: 'Quản lý Người dùng', icon: <PeopleIcon />, path: '/users' },
-
-    { text: 'Quản lý Thương hiệu', icon: <StoreIcon />, path: '/brands' },
-    { text: 'Quản lý Mã giảm giá', icon: <LoyaltyIcon />, path: '/discount-codes' }, // Đã sửa path
-    { text: 'Quản lý Đơn hàng', icon: <ReceiptIcon />, path: '/orders' },
-      { text: 'Quản lý Bài viết', icon: <ArticleIcon />, path: '/posts' },
-    { text: 'Quản lý Đánh giá', icon: <RateReviewIcon />, path: '/reviews' },
-    { text: 'Quản lý Đánh giá sản phẩm', icon: <RateReviewIcon />, path: '/reviews' },
-    // Các dòng bị lặp hoặc sai icon/path dưới đây đã được loại bỏ/sửa theo logic của bạn
-
+    { text: 'Quản lý danh mục', icon: <CategoryIcon />, path: '/categories' },
+    { text: 'Quản lý sản phẩm', icon: <ShoppingBagIcon />, path: '/products' },
+    { text: 'Quản lý sản phẩm Yêu thích', icon: <FavoriteIcon />, path: '/favorites' },
+    { text: 'Quản lý người dùng', icon: <PeopleIcon />, path: '/users' },
+    { text: 'Quản lý thương hiệu', icon: <StoreIcon />, path: '/brands' },
+    { text: 'Quản lý mã giảm giá', icon: <LoyaltyIcon />, path: '/vouchers' }, // Đảm bảo dòng này có mặt
+    { text: 'Quản lý đơn hàng', icon: <ReceiptIcon />, path: '/orders' },
+    { text: 'Quản lý bài viết', icon: <ArticleIcon />, path: '/posts' },
+    { text: 'Quản lý đánh giá', icon: <RateReviewIcon />, path: '/reviews' },
     { text: 'Cài đặt', icon: <SettingsIcon />, path: '/settings' },
   ];
 
@@ -71,7 +64,18 @@ export default function Layout({ children }: LayoutProps) {
       <List>
         {navItems.map((item) => (
           <ListItem key={item.text} disablePadding>
-            <ListItemButton component={RouterLink} to={item.path}>
+            <ListItemButton
+              component={RouterLink}
+              to={item.path}
+              selected={location.pathname === item.path}
+              sx={{
+                '&.Mui-selected': {
+                  backgroundColor: 'primary.main',
+                  color: 'white',
+                  '& .MuiListItemIcon-root': { color: 'white' },
+                },
+              }}
+            >
               <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} />
             </ListItemButton>
@@ -92,18 +96,13 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <Box sx={{ display: 'flex' }}>
-      {/* Khối JSX chính bao gồm Header, Sidebar và Content */}
       <>
-        {/* Header */}
         <Header drawerWidth={drawerWidth} handleDrawerToggle={handleDrawerToggle} />
-
-        {/* Sidebar Navigation */}
         <Box
           component="nav"
           sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
           aria-label="primary sidebar"
         >
-          {/* Sidebar cho màn hình di động (temporary) */}
           <Drawer
             variant="temporary"
             open={mobileOpen}
@@ -116,8 +115,6 @@ export default function Layout({ children }: LayoutProps) {
           >
             {drawer}
           </Drawer>
-
-          {/* Sidebar cho màn hình máy tính (permanent) */}
           <Drawer
             variant="permanent"
             sx={{
@@ -129,18 +126,16 @@ export default function Layout({ children }: LayoutProps) {
             {drawer}
           </Drawer>
         </Box>
-
-        {/* Khu vực nội dung chính */}
         <Box
           component="main"
           sx={{
             flexGrow: 1,
             p: 3,
             width: { sm: `calc(100% - ${drawerWidth}px)` },
-            mt: '64px', // Margin top để tránh Header che khuất nội dung
+            mt: '64px',
           }}
         >
-          {children} {/* Nội dung của các trang con (Dashboard, CategoryManager) sẽ hiển thị ở đây */}
+          {children}
         </Box>
       </>
     </Box>
