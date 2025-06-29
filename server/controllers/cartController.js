@@ -1,76 +1,75 @@
-import { db } from "../config/connectBD.js"; 
+// 📁 controllers/cartController.js
+import { db } from "../config/connectBD.js";
 
-// Lấy danh sách sản phẩm trong giỏ hàng của 1 user
+// ✅ Lấy tất cả sản phẩm trong giỏ hàng của người dùng
 export const getCartItems = (req, res) => {
-  const { userId } = req.params;
+  const { user_id } = req.params;
+
   const sql = `
-    SELECT c.cart_item_id, c.product_id, p.name, p.price, p.image, c.quantity
-    FROM cart_items c
+    SELECT
+      c.quantity,
+      p.product_id,
+      p.name,
+      p.price,
+      p.thumbnail
+    FROM cart c
     JOIN products p ON c.product_id = p.product_id
     WHERE c.user_id = ?
   `;
-  db.query(sql, [userId], (err, results) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json(results);
-  });
-};
 
-// Thêm sản phẩm vào giỏ hàng
-export const addToCart = (req, res) => {
-  const { user_id, product_id, quantity } = req.body;
-
-  const checkSql = `SELECT * FROM cart_items WHERE user_id = ? AND product_id = ?`;
-  db.query(checkSql, [user_id, product_id], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
-
-    if (rows.length > 0) {
-      // Nếu sản phẩm đã có, cập nhật số lượng
-      const updateSql = `UPDATE cart_items SET quantity = quantity + ? WHERE user_id = ? AND product_id = ?`;
-      db.query(updateSql, [quantity, user_id, product_id], (err2) => {
-        if (err2) return res.status(500).json({ error: err2.message });
-        res.json({ message: 'Cập nhật số lượng thành công' });
-      });
-    } else {
-      // Nếu chưa có, thêm mới
-      const insertSql = `INSERT INTO cart_items (user_id, product_id, quantity) VALUES (?, ?, ?)`;
-      db.query(insertSql, [user_id, product_id, quantity], (err3) => {
-        if (err3) return res.status(500).json({ error: err3.message });
-        res.json({ message: 'Thêm vào giỏ hàng thành công' });
-      });
+  db.query(sql, [user_id], (err, result) => {
+    if (err) {
+      console.error('Lỗi khi lấy giỏ hàng:', err);
+      return res.status(500).json({ error: 'Lỗi server' });
     }
+    res.json(result);
   });
 };
 
-// Cập nhật số lượng sản phẩm
-export const updateCartItem = (req, res) => {
-  const { cartItemId } = req.params;
+// ✅ Cập nhật số lượng sản phẩm trong giỏ
+export const updateCartItemQuantity = (req, res) => {
+  const { user_id, product_id } = req.params;
   const { quantity } = req.body;
 
-  const sql = `UPDATE cart_items SET quantity = ? WHERE cart_item_id = ?`;
-  db.query(sql, [quantity, cartItemId], (err) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ message: 'Cập nhật giỏ hàng thành công' });
+  const sql = "UPDATE cart SET quantity = ? WHERE user_id = ? AND product_id = ?";
+  db.query(sql, [quantity, user_id, product_id], (err) => {
+    if (err) return res.status(500).json({ error: err });
+    res.json({ message: "✅ Cập nhật số lượng thành công" });
   });
 };
 
-// Xóa 1 sản phẩm khỏi giỏ hàng
-export const deleteCartItem = (req, res) => {
-  const { cartItemId } = req.params;
+// ✅ Xoá sản phẩm khỏi giỏ hàng
+export const removeCartItem = (req, res) => {
+  const { user_id, product_id } = req.params;
 
-  const sql = `DELETE FROM cart_items WHERE cart_item_id = ?`;
-  db.query(sql, [cartItemId], (err) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ message: 'Xóa sản phẩm khỏi giỏ hàng thành công' });
+  const sql = "DELETE FROM cart WHERE user_id = ? AND product_id = ?";
+  db.query(sql, [user_id, product_id], (err) => {
+    if (err) return res.status(500).json({ error: err });
+    res.json({ message: "✅ Xoá sản phẩm khỏi giỏ hàng thành công" });
   });
 };
 
-// Xóa toàn bộ giỏ hàng sau khi đặt hàng (tuỳ chọn)
-export const clearCart = (req, res) => {
-  const { userId } = req.params;
-
-  const sql = `DELETE FROM cart_items WHERE user_id = ?`;
-  db.query(sql, [userId], (err) => {
-    if (err) return res.status(500).json({ error: err.message });
-    res.json({ message: 'Đã xoá toàn bộ giỏ hàng' });
+// ✅ Thêm sản phẩm vào giỏ hàng (code cũ của bạn)
+export const addToCart = (req, res) => {
+  const { user_id, product_id, quantity } = req.body;
+  if (!user_id || !product_id || !quantity) {
+    return res.status(400).json({ error: 'Vui lòng cung cấp đầy đủ thông tin' });
+  }
+  const checkSql = "SELECT * FROM cart WHERE user_id = ? AND product_id = ?";
+  db.query(checkSql, [user_id, product_id], (err, result) => {
+    if (err) return res.status(500).json({ error: err });
+    if (result.length > 0) {
+      const updateSql = "UPDATE cart SET quantity = quantity + ? WHERE user_id = ? AND product_id = ?";
+      db.query(updateSql, [quantity, user_id, product_id], (err) => {
+        if (err) return res.status(500).json({ error: err });
+        return res.json({ message: "✅ Cập nhật số lượng sản phẩm trong giỏ hàng thành công" });
+      });
+    } else {
+      const insertSql = "INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, ?)";
+      db.query(insertSql, [user_id, product_id, quantity], (err) => {
+        if (err) return res.status(500).json({ error: err });
+        return res.json({ message: "✅ Thêm sản phẩm vào giỏ hàng thành công" });
+      });
+    }
   });
 };

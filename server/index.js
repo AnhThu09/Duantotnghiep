@@ -2,14 +2,13 @@ import cors from 'cors'
 import express from 'express'
 import path from 'path'
 import { db } from './config/connectBD.js'
-
 import authRoutes from './routes/auth.js'
 import brandsRouter from './routes/brands.js'
-import cartRoutes from './routes/cart.js'
 import categoryRoutes from './routes/categoryRoutes.js'
-import productRoutes from './routes/productRoutes.js' // ✅ Đổi tên
+import productRoutes from './routes/productRoutes.js'
 import ContactRoutes from './routes/contact.js'
 import orderRoutes from './routes/order.js'
+import cartRouter from './routes/cart.js'
 
 const app = express()
 
@@ -31,7 +30,7 @@ app.use('/uploads', express.static('uploads'))
 app.use('/api/products', productRoutes) 
 app.use('/api/categories', categoryRoutes)
 app.use('/api/brands', brandsRouter)
-app.use('/api/cart', cartRoutes)
+app.use('/api/cart', cartRouter)
 app.use('/api/contact', ContactRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/orders', orderRoutes)

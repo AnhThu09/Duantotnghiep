@@ -1,5 +1,4 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
-// import Home from './components/Home'
 import ContactForm from './pages/ContactForm'
 import Footer from './components/Footer'
 import NavBar from './components/Navbar'
@@ -9,11 +8,16 @@ import HeroSection from './pages/HeroSection'
 import ProductByCategory from './pages/ProductByCategory'
 import Home from './pages/Home'
 import ProductByBrand from './pages/ProductByBrand'
+import ProductsWeLove from './pages/ProductsWeLove'
+import CartSidebar from './components/CartSidebar'
+import React, { useState } from 'react'
+
 function App() {
+   const [isCartOpen, setIsCartOpen] = useState(false)
   return (
     <>
       <BrowserRouter>
-        <NavBar />
+        <NavBar onCartIconClick={() => setIsCartOpen(true)} />
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
@@ -28,6 +32,8 @@ function App() {
           <Route path="/account" element={<Account />} />
           <Route path="/contact" element={<ContactForm />} />
         </Routes>
+         <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
+        <ProductsWeLove/>
         <Footer />
       </BrowserRouter>
     </>

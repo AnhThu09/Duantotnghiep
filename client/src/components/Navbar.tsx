@@ -13,8 +13,10 @@ interface Brand {
   brand_name: string
   slug: string
 }
-
-const NavBar = () => {
+interface NavBarProps {
+  onCartIconClick: () => void; // Khai báo một prop là hàm không trả về gì
+}
+const NavBar = ({ onCartIconClick }: NavBarProps) => {
   const [categories, setCategories] = useState<Category[]>([])
   const [brands, setBrands] = useState<Brand[]>([])
 
@@ -155,7 +157,10 @@ const NavBar = () => {
           </div>
 
           <Link to="/favorites" className="text-dark"><FaHeart size={20} /></Link>
-          <Link to="/cart" className="text-dark"><FaShoppingCart size={20} /></Link>
+          <span className="text-dark" onClick={onCartIconClick} style={{ cursor: 'pointer' }}>
+            <FaShoppingCart size={20} />
+          </span>
+          
           <Link to="/account" className="text-dark"><FaUser size={20} /></Link>
         </div>
       </div>
