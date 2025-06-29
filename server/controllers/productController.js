@@ -65,3 +65,43 @@ export const deleteProduct = (req, res) => {
     res.json({ message: "🗑️ Xoá sản phẩm thành công" });
   });
 };
+// ✅ Sửa file controllers/productController.js
+export const getProductsByCategorySlug = (req, res) => {
+  const { slug } = req.params;
+
+  const sql = `
+    SELECT p.* FROM products p
+    JOIN categories c ON p.category_id = c.category_id
+    WHERE c.slug = ?
+  `;
+
+  db.query(sql, [slug], (err, result) => {
+    if (err) {
+      console.error('Lỗi khi truy vấn:', err);
+      return res.status(500).json({ error: 'Lỗi server' });
+    }
+
+    if (result.length === 0) {
+      return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
+    }
+
+    res.json(result);
+  });
+};
+export const getProductsByBrandSlug = (req, res) => {
+  const { slug } = req.params;
+
+  const sql = `
+    SELECT p.* FROM products p
+    JOIN brands b ON p.brand_id = b.brand_id
+    WHERE b.slug = ?
+  `;
+
+  db.query(sql, [slug], (err, result) => {
+    if (err) return res.status(500).json({ error: err });
+    if (result.length === 0) return res.status(404).json({ message: 'Không tìm thấy sản phẩm' });
+
+    res.json(result);
+  });
+};
+

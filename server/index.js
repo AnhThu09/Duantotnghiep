@@ -28,8 +28,8 @@ app.use(express.json())
 app.use('/uploads', express.static('uploads'))
 
 // ✅ Đăng ký router
+app.use('/api/products', productRoutes) 
 app.use('/api/categories', categoryRoutes)
-app.use('/api/products', productRoutes) // ✅ Thêm đúng
 app.use('/api/brands', brandsRouter)
 app.use('/api/cart', cartRoutes)
 app.use('/api/contact', ContactRoutes)

@@ -11,7 +11,7 @@ import {
   Snackbar,
 } from '@mui/material';
 import AddCircleOutlineIcon from '@mui/icons-material/AddCircleOutline';
-import ProductCard from '../components/ProductCard'; // Đảm bảo đường dẫn đúng
+import ProductCard from './ProductCard'; // Đảm bảo đường dẫn đúng
 import { useNavigate } from 'react-router-dom'; // Để điều hướng
 
 // Định nghĩa kiểu dữ liệu cho một sản phẩm (phải khớp với dữ liệu từ API của bạn)
