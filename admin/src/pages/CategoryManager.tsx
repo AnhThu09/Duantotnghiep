@@ -155,11 +155,6 @@ export default function CategoryManager() { // Đã đổi tên hàm export
     setPage(0);
   }, []);
 
-  const handleRequestSort = useCallback((_event: React.MouseEvent<unknown>, property: HeadCellId) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
-  }, [order, orderBy]);
 
   const handleSearchChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -286,7 +281,7 @@ export default function CategoryManager() { // Đã đổi tên hàm export
   // --- RENDER ---
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'left', alignItems: 'left', height: '80vh' }}>
         <CircularProgress />
         <Typography variant="h6" sx={{ ml: 2 }}>Đang tải dữ liệu danh mục...</Typography>
       </Box>
@@ -301,11 +296,11 @@ export default function CategoryManager() { // Đã đổi tên hàm export
           backgroundColor: theme.palette.background.default,
           minHeight: '50px', // Đặt minHeight để vùng lỗi luôn chiếm không gian
           display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center' 
+          alignItems: 'left', 
+          justifyContent: 'left' 
         }}
       >
-        <Typography color="error" variant="body1" sx={{ textAlign: 'center' }}>{error}</Typography>
+        <Typography color="error" variant="body1" sx={{ textAlign: 'left' }}>{error}</Typography>
       </Box>
     );
   }
@@ -317,7 +312,7 @@ export default function CategoryManager() { // Đã đổi tên hàm export
       </Typography>
 
       <Paper sx={{ p: 3, borderRadius: theme.shape.borderRadius, boxShadow: theme.shadows[3], mb: 3 }}>
-        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, mb: 2, gap: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'left' }, mb: 2, gap: 2 }}>
           <TextField
             label="Tìm kiếm danh mục..."
             variant="outlined"
@@ -348,39 +343,55 @@ export default function CategoryManager() { // Đã đổi tên hàm export
           <Table aria-label="category management table">
             <TableHead>
               <TableRow>
-                {headCells.map((headCell) => (
-                  <TableCell
-                    key={headCell.id}
-                    // Tất cả các tiêu đề cột đều căn trái (nếu numeric là false)
-                    align={headCell.numeric ? 'right' : 'left'} 
-                    sortDirection={orderBy === headCell.id ? order : false}
-                    sx={{
-                      fontWeight: 'bold',
-                      backgroundColor: theme.palette.grey[200],
-                      cursor: headCell.disableSorting ? 'default' : 'pointer',
+                <TableCell align="left" sx={{ fontWeight: 'bold', backgroundColor: theme.palette.grey[200] }}>
+                  <TableSortLabel
+                    active={orderBy === 'category_id'}
+                    direction={orderBy === 'category_id' ? order : 'asc'}
+                    onClick={() => {
+                      const isAsc = orderBy === 'category_id' && order === 'asc';
+                      setOrder(isAsc ? 'desc' : 'asc');
+                      setOrderBy('category_id');
                     }}
                   >
-                    {!headCell.disableSorting ? (
-                      <TableSortLabel
-                        active={orderBy === headCell.id}
-                        direction={orderBy === headCell.id ? order : 'asc'}
-                        onClick={(event) => handleRequestSort(event, headCell.id)}
-                      >
-                        {headCell.label}
-                      </TableSortLabel>
-                    ) : (
-                      headCell.label
-                    )}
-                  </TableCell>
-                ))}
-                {/* Đảm bảo cột "Hành động" cũng căn trái nếu bạn muốn thế */}
-                <TableCell align="left" sx={{ fontWeight: 'bold', backgroundColor: theme.palette.grey[200] }}>Hành động</TableCell> 
+                    ID
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell align="left" sx={{ fontWeight: 'bold', backgroundColor: theme.palette.grey[200] }}>
+                  <TableSortLabel
+                    active={orderBy === 'category_name'}
+                    direction={orderBy === 'category_name' ? order : 'asc'}
+                    onClick={() => {
+                      const isAsc = orderBy === 'category_name' && order === 'asc';
+                      setOrder(isAsc ? 'desc' : 'asc');
+                      setOrderBy('category_name');
+                    }}
+                  >
+                    Danh mục
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell align="left" sx={{ fontWeight: 'bold', backgroundColor: theme.palette.grey[200] }}>
+                  <TableSortLabel
+                    active={orderBy === 'slug'}
+                    direction={orderBy === 'slug' ? order : 'asc'}
+                    onClick={() => {
+                      const isAsc = orderBy === 'slug' && order === 'asc';
+                      setOrder(isAsc ? 'desc' : 'asc');
+                      setOrderBy('slug');
+                    }}
+                  >
+                    Slug
+                  </TableSortLabel>
+                </TableCell>
+                <TableCell align="center" sx={{ fontWeight: 'bold', backgroundColor: theme.palette.grey[200] }}>
+                  Mô tả
+                </TableCell>
+                <TableCell align="left" sx={{ fontWeight: 'bold', backgroundColor: theme.palette.grey[200] }}>Hành động</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {filteredAndSortedCategories.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={headCells.length + 1} align="center" sx={{ py: 3 }}>
+                  <TableCell colSpan={5} align="left" sx={{ py: 3 }}>
                     <Typography variant="subtitle1" color="text.secondary">
                       Không tìm thấy danh mục nào.
                     </Typography>
@@ -389,26 +400,27 @@ export default function CategoryManager() { // Đã đổi tên hàm export
               ) : (
                 filteredAndSortedCategories.map((category) => (
                   <TableRow key={category.category_id} hover>
-                    <TableCell align="left">{category.category_id}</TableCell> {/* Căn trái cho ID */}
-                    <TableCell align="left">{category.category_name}</TableCell> {/* Căn trái cho Tên Danh mục */}
-                    <TableCell align="left">{category.slug}</TableCell> {/* Căn trái cho Slug */}
-                    <TableCell align="left">{category.description}</TableCell> {/* Căn trái cho Mô tả */}
-                    <TableCell align="left"> {/* Căn trái cho Hành động */}
-                      <IconButton
-                        aria-label="edit"
-                        color="primary"
-                        onClick={() => handleEdit(category)} // Đổi tên handler
-                        sx={{ mr: 1 }}
-                      >
-                        <EditIcon />
-                      </IconButton>
-                      <IconButton
-                        aria-label="delete"
-                        color="error"
-                        onClick={() => handleDeleteConfirm(category.category_id)} // Đổi tên handler
-                      >
-                        <DeleteIcon />
-                      </IconButton>
+                    <TableCell align="left">{category.category_id}</TableCell>
+                    <TableCell align="left">{category.category_name}</TableCell>
+                    <TableCell align="left">{category.slug}</TableCell>
+                    <TableCell align="left">{category.description}</TableCell>
+                    <TableCell align="left">
+                      <Box sx={{ display: 'flex', justifyContent: 'left', gap: 1 }}>
+                        <IconButton
+                          aria-label="edit"
+                          color="primary"
+                          onClick={() => handleEdit(category)}
+                        >
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton
+                          aria-label="delete"
+                          color="error"
+                          onClick={() => handleDeleteConfirm(category.category_id)}
+                        >
+                          <DeleteIcon />
+                        </IconButton>
+                      </Box>
                     </TableCell>
                   </TableRow>
                 ))
@@ -452,7 +464,7 @@ export default function CategoryManager() { // Đã đổi tên hàm export
         <DialogContent dividers>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
-              label="Tên Danh mục"
+              label="Danh mục"
               name="category_name"
               variant="outlined"
               fullWidth

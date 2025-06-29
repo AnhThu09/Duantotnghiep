@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   Box,
   Drawer,
@@ -9,6 +9,7 @@ import {
   ListItemText,
   Divider,
   Typography,
+  CircularProgress,
 } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import CategoryIcon from '@mui/icons-material/Category';
@@ -16,24 +17,57 @@ import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import PeopleIcon from '@mui/icons-material/People';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
+// import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import LoyaltyIcon from '@mui/icons-material/Loyalty';
 import StoreIcon from '@mui/icons-material/Store';
 import ArticleIcon from '@mui/icons-material/Article';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import RateReviewIcon from '@mui/icons-material/RateReview';
+// import LibraryBooksIcon from '@mui/icons-material/LibraryBooks'; // Quản lý bài viết
+// import ReviewsIcon from '@mui/icons-material/Reviews';           // Quản lý đánh giá
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 
-import Header from './Header';
+import Header from './Header'; // Import component Header đã tách riêng
+import { SignInPage } from '../pages/SignInPage';
 
-const drawerWidth = 240;
+const drawerWidth = 240; // Chiều rộng cố định của Sidebar
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
+// Hàm kiểm tra đăng nhập
+const useAuth = () => {
+  const [authorized, setAuthorized] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  const onSignIn = useCallback(() => {
+    setLoading(true);
+    const token = localStorage.getItem("token");
+    if (token) {
+      setAuthorized(true);
+    } else {
+      setAuthorized(false);
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    onSignIn();
+  }, [onSignIn]);
+
+  return {
+    authorized,
+    onSignIn,
+    loading,
+    error: false,
+  };
+};
+
 export default function Layout({ children }: LayoutProps) {
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false); // State quản lý Sidebar trên di động
+  const { authorized, onSignIn, loading } = useAuth();
   const location = useLocation();
 
   const handleDrawerToggle = () => {
@@ -95,6 +129,18 @@ export default function Layout({ children }: LayoutProps) {
       </List>
     </Box>
   );
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+        <CircularProgress size={48} thickness={4} />
+      </Box>
+    );
+  }
+
+  if (!authorized) {
+    return <SignInPage onSignIn={onSignIn} />;
+  }
 
   return (
     <Box sx={{ display: 'flex' }}>
