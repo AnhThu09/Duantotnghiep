@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Drawer,
@@ -28,53 +28,24 @@ import RateReviewIcon from '@mui/icons-material/RateReview';
 // import ReviewsIcon from '@mui/icons-material/Reviews';           // Quản lý đánh giá
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 
-import Header from './Header'; // Import component Header đã tách riêng
-import { SignInPage } from '../pages/SignInPage';
+// import Header from './Header'; // Import component Header đã tách riêng
+// import { SignInPage } from '../pages/SignInPage';
 
-const drawerWidth = 240; // Chiều rộng cố định của Sidebar
+const drawerWidth = 240;
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
-// Hàm kiểm tra đăng nhập
-const useAuth = () => {
-  const [authorized, setAuthorized] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true);
-
-  const onSignIn = useCallback(() => {
-    setLoading(true);
-    const token = localStorage.getItem("token");
-    if (token) {
-      setAuthorized(true);
-    } else {
-      setAuthorized(false);
-    }
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    onSignIn();
-  }, [onSignIn]);
-
-  return {
-    authorized,
-    onSignIn,
-    loading,
-    error: false,
-  };
-};
-
 export default function Layout({ children }: LayoutProps) {
-  const [mobileOpen, setMobileOpen] = useState(false); // State quản lý Sidebar trên di động
-  const { authorized, onSignIn, loading } = useAuth();
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [loading] = useState(false); // Luôn là false để ẩn kiểm tra đăng nhập/loading
   const location = useLocation();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
-  // Đảm bảo path '/vouchers' đúng với route quản lý mã giảm giá
   const navItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
     { text: 'Quản lý danh mục', icon: <CategoryIcon />, path: '/categories' },
@@ -82,12 +53,10 @@ export default function Layout({ children }: LayoutProps) {
     { text: 'Quản lý sản phẩm yêu thích', icon: <FavoriteIcon />, path: '/favorites' },
     { text: 'Quản lý người dùng', icon: <PeopleIcon />, path: '/users' },
     { text: 'Quản lý thương hiệu', icon: <StoreIcon />, path: '/brands' },
-    { text: 'Quản lý mã giảm giá', icon: <LoyaltyIcon />, path: '/vouchers' }, // Đảm bảo dòng này có mặt
+    { text: 'Quản lý mã giảm giá', icon: <LoyaltyIcon />, path: '/vouchers' },
     { text: 'Quản lý đơn hàng', icon: <ReceiptIcon />, path: '/orders' },
     { text: 'Quản lý bài viết', icon: <ArticleIcon />, path: '/posts' },
     { text: 'Quản lý đánh giá sản phẩm', icon: <RateReviewIcon />, path: '/reviews' },
-    // Các dòng bị lặp hoặc sai icon/path dưới đây đã được loại bỏ/sửa theo logic của bạn
-
     { text: 'Cài đặt', icon: <SettingsIcon />, path: '/settings' },
   ];
 
@@ -130,22 +99,22 @@ export default function Layout({ children }: LayoutProps) {
     </Box>
   );
 
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-        <CircularProgress size={48} thickness={4} />
-      </Box>
-    );
-  }
-
-  if (!authorized) {
-    return <SignInPage onSignIn={onSignIn} />;
-  }
+  // Ẩn kiểm tra đăng nhập/loading, luôn hiển thị layout
+  // if (loading) {
+  //   return (
+  //     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+  //       <CircularProgress size={48} thickness={4} />
+  //     </Box>
+  //   );
+  // }
+  // if (!authorized) {
+  //   return <SignInPage onSignIn={onSignIn} />;
+  // }
 
   return (
     <Box sx={{ display: 'flex' }}>
       <>
-        <Header drawerWidth={drawerWidth} handleDrawerToggle={handleDrawerToggle} />
+        {/* <Header drawerWidth={drawerWidth} handleDrawerToggle={handleDrawerToggle} /> */}
         <Box
           component="nav"
           sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}

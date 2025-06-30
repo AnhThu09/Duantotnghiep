@@ -232,8 +232,12 @@ export default function Dashboard() {
       const ordersData = await ordersRes.json();
       setRecentOrders(ordersData);
 
-    } catch (err: any) {
-      setError(err.message || 'Không thể tải dữ liệu dashboard. Vui lòng thử lại.');
+    } catch (err: unknown) {
+      let errorMessage = 'Không thể tải dữ liệu dashboard. Vui lòng thử lại.';
+      if (err instanceof Error) {
+        errorMessage = err.message;
+      }
+      setError(errorMessage);
       setStats([]);
       setRevenueChartData({ labels: [], datasets: [] });
       setProductCategorySalesData({ labels: [], datasets: [] });
@@ -272,7 +276,7 @@ export default function Dashboard() {
         titleColor: theme.palette.primary.main,
         titleFont: { weight: 'bold' },
         callbacks: {
-          label: function (context: any) {
+          label: function (context: import('chart.js').TooltipItem<'bar'>) {
             let label = context.dataset.label || '';
             if (label) { label += ': '; }
             if (context.parsed.y !== null) {
@@ -315,7 +319,7 @@ export default function Dashboard() {
         titleColor: theme.palette.primary.main,
         titleFont: { weight: 'bold' },
         callbacks: {
-          label: function (context: any) {
+          label: function (context: import('chart.js').TooltipItem<'bar'>) {
             let label = context.dataset.label || '';
             if (label) { label += ': '; }
             if (context.parsed.y !== null) {
@@ -364,7 +368,7 @@ export default function Dashboard() {
         titleColor: theme.palette.primary.main,
         titleFont: { weight: 'bold' },
         callbacks: {
-          label: function (context: any) {
+          label: function (context: import('chart.js').TooltipItem<'pie'>) {
             let label = context.label || '';
             if (label) { label += ': '; }
             if (context.parsed !== null) {
