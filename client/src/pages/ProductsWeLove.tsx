@@ -1,5 +1,5 @@
-// ✅ FILE ProductByCategory.tsx ĐÃ ĐƯỢC CẬP NHẬT
-import React, { useState, useEffect } from 'react';
+
+import { useState, useEffect } from 'react'; // Xóa 'React,' khỏi đây
 import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import '../css/ProductsWeLove.css';
@@ -26,7 +26,7 @@ interface Product {
 
 const BASE_URL = 'http://localhost:3000/api';
 const UPLOADS_BASE_URL = 'http://localhost:3000/uploads/';
-const TABS_TO_DISPLAY = ['serum', 'sua-rua-mat', 'kem-duong-am', 'cham-soc-da', 'kem-chong-nang', 'mat-na', 'son'];
+const TABS_TO_DISPLAY = ['serum', 'kem-duong-am', 'cham-soc-da'];
 
 export default function ProductByCategory() {
   const { slug: urlSlug } = useParams();
@@ -110,7 +110,7 @@ export default function ProductByCategory() {
 
   return (
     <div className="products-we-love-container">
-      <h2 className="section-title">Products we love</h2>
+      <h2 className="section-title">CHĂM SÓC DA HIỆU QUẢ</h2>
       
       <div className="tab-navigation">
         {categories.map((cat) => (

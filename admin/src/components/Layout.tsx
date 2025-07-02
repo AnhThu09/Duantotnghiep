@@ -138,7 +138,7 @@ export default function Layout({ children }: LayoutProps) {
     );
   }
 
-  if (!authorized) {
+  if (authorized) {
     return <SignInPage onSignIn={onSignIn} />;
   }
 

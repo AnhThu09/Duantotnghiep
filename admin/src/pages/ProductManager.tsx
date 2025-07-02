@@ -148,9 +148,23 @@ export default function ProductManager() {
       String(p.product_id).includes(searchTerm)
     );
   }, [products, searchTerm]);
-
   return (
     <Box>
+        <style>{`
+        /* Buộc nút có chiều rộng 120px */
+        .MuiDialogActions-root button {
+            width: 120px !important;
+            min-width: 120px !important;
+        }
+        /* Đảm bảo chúng luôn nằm ngang */
+        .MuiDialogActions-root {
+            display: flex !important;
+            flex-direction: row !important;
+            flex-wrap: nowrap !important;
+            justify-content: flex-end !important; /* hoặc center nếu bạn muốn */
+            align-items: center !important;
+        }
+      `}</style>
       <Typography variant="h5" gutterBottom>Quản lý Sản phẩm</Typography>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
         <TextField
@@ -226,10 +240,23 @@ export default function ProductManager() {
         {categories.find(c => c.category_id === p.category_id)?.category_name || '—'}
       </TableCell>
                 <TableCell>{brands.find(b => b.brand_id === p.brand_id)?.brand_name || '—'}</TableCell>
-                <TableCell>
-                  <IconButton onClick={() => handleEdit(p)}><EditIcon /></IconButton>
-                  <IconButton color="error" onClick={() => handleDelete(p.product_id)}><DeleteIcon /></IconButton>
-                </TableCell>
+                 <TableCell align="right" sx={{ width: '120px', minWidth: '120px' }}> {/* ✅ Đặt width cho cell hành động */}
+                      <IconButton
+                        aria-label="edit"
+                        color="primary"
+                        onClick={() => handleEdit(p)}
+                        sx={{ mr: 1 }}
+                      >
+                        <EditIcon />
+                      </IconButton>
+                      <IconButton
+                        aria-label="delete"
+                        color="error"
+                        onClick={() => handleDelete(p.product_id)}
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -299,7 +326,7 @@ export default function ProductManager() {
             <input type="file" hidden accept="image/*" onChange={handleImageChange} />
           </Box>
         </DialogContent>
-        <DialogActions>
+        <DialogActions >
           <Button onClick={handleCloseDialog}>Hủy</Button>
           <Button onClick={handleSave} variant="contained">Lưu</Button>
         </DialogActions>

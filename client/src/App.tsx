@@ -8,7 +8,6 @@ import HeroSection from './pages/HeroSection'
 import ProductByCategory from './pages/ProductByCategory'
 import Home from './pages/Home'
 import ProductByBrand from './pages/ProductByBrand'
-import ProductsWeLove from './pages/ProductsWeLove'
 import CartSidebar from './components/CartSidebar'
 import React, { useState } from 'react'
 
@@ -33,7 +32,6 @@ function App() {
           <Route path="/contact" element={<ContactForm />} />
         </Routes>
          <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
-        <ProductsWeLove/>
         <Footer />
       </BrowserRouter>
     </>

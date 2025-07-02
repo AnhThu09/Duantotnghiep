@@ -4,11 +4,13 @@
   height: 360px;
   margin-left: -40px;
   margin-top: -170px;
+  margin-bottom: 170px;
+
 }
 
 .layer {
   position: absolute;
-  max-width: 350px;
+  max-width: 420px;
   height: auto;
 }
 
