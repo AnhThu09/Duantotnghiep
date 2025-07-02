@@ -1,5 +1,3 @@
-// src/components/ProductCard.tsx hoặc src/components/ProductCard/ProductCard.tsx
-
 import React from 'react';
 import {
   Card,

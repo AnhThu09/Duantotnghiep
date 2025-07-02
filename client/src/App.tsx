@@ -1,16 +1,20 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import React, { useState } from 'react'
 import ContactForm from './pages/ContactForm'
 import Footer from './components/Footer'
 import NavBar from './components/Navbar'
 import About from './pages/About'
 import Account from './pages/Account'
-import HeroSection from './pages/HeroSection'
+// import HeroSection from './pages/HeroSection'
 import ProductByCategory from './pages/ProductByCategory'
 import Home from './pages/Home'
 import ProductByBrand from './pages/ProductByBrand'
 import ProductsWeLove from './pages/ProductsWeLove'
 import CartSidebar from './components/CartSidebar'
-import React, { useState } from 'react'
+import CartPage from './pages/CartPage'
+import CheckoutPage from './pages/CheckoutPage'
+import ThankYouPage from './pages/ThankYouPage'
+import NotFound from './pages/NotFound'
 
 function App() {
    const [isCartOpen, setIsCartOpen] = useState(false)
@@ -31,6 +35,10 @@ function App() {
           <Route path="/thuong-hieu/:slug" element={<ProductByBrand />} />
           <Route path="/account" element={<Account />} />
           <Route path="/contact" element={<ContactForm />} />
+          <Route path="/cart" element={<CartPage />} />
+          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/thank-you" element={<ThankYouPage />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
          <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
         <ProductsWeLove/>
