@@ -1,13 +1,6 @@
-<<<<<<< HEAD
-// 📁 client/src/components/CartSidebar.tsx
-import React, { useState, useEffect, useMemo, useCallback } from 'react'; // Import useCallback
-import axios from 'axios';
-import { IconButton, Button } from '@mui/material'; 
-=======
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import axios from 'axios';
 import { IconButton, Button } from '@mui/material';
->>>>>>> 46df13841756a2d6566bd875c58dccb54aa00ad3
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
@@ -30,48 +23,30 @@ interface CartSidebarProps {
 
 const BASE_URL = 'http://localhost:3000/api';
 const UPLOADS_BASE_URL = 'http://localhost:3000/uploads/';
-<<<<<<< HEAD
-const DUMMY_USER_ID = 1; // ✅ HÃY THAY THẾ BẰNG USER_ID THẬT (Nếu chưa làm)
-=======
 const DUMMY_USER_ID = 1;
->>>>>>> 46df13841756a2d6566bd875c58dccb54aa00ad3
 
 export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const navigate = useNavigate(); // ✅
+  const navigate = useNavigate();
 
-<<<<<<< HEAD
-  // ✅ Fetch giỏ hàng từ API (sử dụng useCallback để tránh lỗi lint/re-render không cần thiết)
   const fetchCartItems = useCallback(async () => {
-=======
-  const fetchCartItems = async () => {
->>>>>>> 46df13841756a2d6566bd875c58dccb54aa00ad3
     try {
       const res = await axios.get(`${BASE_URL}/cart/${DUMMY_USER_ID}`);
       setCartItems(res.data);
-      console.log('✅ Đã lấy dữ liệu giỏ hàng:', res.data);
     } catch (err) {
       console.error('❌ Lỗi khi fetch giỏ hàng:', err);
     }
-  }, []); // Không có dependencies vì DUMMY_USER_ID là hằng số
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
       fetchCartItems();
     }
-<<<<<<< HEAD
-  }, [isOpen, fetchCartItems]); // Fetch lại khi sidebar mở hoặc fetchCartItems thay đổi
+  }, [isOpen, fetchCartItems]);
 
-  // ✅ Xử lý tăng/giảm số lượng sản phẩm
   const handleUpdateQuantity = useCallback(async (productId: number, newQuantity: number) => {
-    if (newQuantity < 1) return; // Không cho số lượng < 1
-
-=======
-  }, [isOpen]);
-
-  const handleUpdateQuantity = async (productId: number, newQuantity: number) => {
     if (newQuantity < 1) return;
->>>>>>> 46df13841756a2d6566bd875c58dccb54aa00ad3
+
     try {
       await axios.put(`${BASE_URL}/cart/${DUMMY_USER_ID}/${productId}`, { quantity: newQuantity });
       setCartItems(prevItems =>
@@ -82,14 +57,9 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
     } catch (err) {
       console.error('Lỗi khi cập nhật số lượng:', err);
     }
-  }, []); // Không có dependencies
+  }, []);
 
-<<<<<<< HEAD
-  // ✅ Xử lý xoá sản phẩm khỏi giỏ hàng
   const handleRemoveItem = useCallback(async (productId: number) => {
-=======
-  const handleRemoveItem = async (productId: number) => {
->>>>>>> 46df13841756a2d6566bd875c58dccb54aa00ad3
     if (window.confirm('Bạn có chắc muốn xoá sản phẩm này khỏi giỏ hàng?')) {
       try {
         await axios.delete(`${BASE_URL}/cart/${DUMMY_USER_ID}/${productId}`);
@@ -98,11 +68,11 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
         console.error('Lỗi khi xoá sản phẩm:', err);
       }
     }
-  }, []); // Không có dependencies
+  }, []);
 
   const subtotal = useMemo(() => {
     return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
-  }, [cartItems]); // Chạy lại khi cartItems thay đổi
+  }, [cartItems]);
 
   return (
     <>
@@ -123,16 +93,21 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                 <img src={`${UPLOADS_BASE_URL}${item.thumbnail}`} alt={item.name} className="item-image" />
                 <div className="item-details">
                   <div className="item-name">{item.name}</div>
-                  {/* ✅ SỬA Ở ĐÂY: Hiển thị TỔNG TIỀN CỦA ITEM */}
                   <div className="item-price">{(item.price * item.quantity).toLocaleString('vi-VN')} đ</div>
                   <div className="quantity-controls">
-                    <IconButton onClick={() => handleUpdateQuantity(item.product_id, item.quantity - 1)}><RemoveIcon fontSize="small" /></IconButton>
+                    <IconButton onClick={() => handleUpdateQuantity(item.product_id, item.quantity - 1)}>
+                      <RemoveIcon fontSize="small" />
+                    </IconButton>
                     <span className="quantity-value">{item.quantity}</span>
-                    <IconButton onClick={() => handleUpdateQuantity(item.product_id, item.quantity + 1)}><AddIcon fontSize="small" /></IconButton>
+                    <IconButton onClick={() => handleUpdateQuantity(item.product_id, item.quantity + 1)}>
+                      <AddIcon fontSize="small" />
+                    </IconButton>
                   </div>
                 </div>
                 <div className="item-actions">
-                  <IconButton onClick={() => handleRemoveItem(item.product_id)}><DeleteIcon fontSize="small" /></IconButton>
+                  <IconButton onClick={() => handleRemoveItem(item.product_id)}>
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
                 </div>
               </div>
             ))
@@ -142,7 +117,6 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
         <div className="cart-footer">
           <div className="subtotal">
             <span>Tạm tính</span>
-            {/* ✅ SỬA LỖI Ở ĐÂY: Hiển thị biến subtotal đã tính toán */}
             <span className="subtotal-price">{subtotal.toLocaleString('vi-VN')} đ</span>
           </div>
           <Button
