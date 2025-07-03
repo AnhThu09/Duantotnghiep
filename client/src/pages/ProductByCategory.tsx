@@ -1,4 +1,4 @@
-// 📁 client/src/pages/ProductByCategory.tsx
+// 📁 client/src/pages/ProductByCategory.tsx Thư
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import axios from 'axios';

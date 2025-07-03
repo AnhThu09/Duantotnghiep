@@ -99,7 +99,7 @@ export default function Layout({ children }: LayoutProps) {
     </Box>
   );
 
-  // Ẩn kiểm tra đăng nhập/loading, luôn hiển thị layout
+<<<<<<< HEAD
   if (loading) {
     return (
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
@@ -107,6 +107,33 @@ export default function Layout({ children }: LayoutProps) {
       </Box>
     );
   }
+
+  if (authorized) {
+    return <SignInPage onSignIn={onSignIn} />;
+  }
+=======
+  // Ẩn kiểm tra đăng nhập/loading, luôn hiển thị layout
+<<<<<<< HEAD
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+        <CircularProgress size={48} thickness={4} />
+      </Box>
+    );
+  }
+=======
+  // if (loading) {
+  //   return (
+  //     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+  //       <CircularProgress size={48} thickness={4} />
+  //     </Box>
+  //   );
+  // }
+  // if (!authorized) {
+  //   return <SignInPage onSignIn={onSignIn} />;
+  // }
+>>>>>>> 46df13841756a2d6566bd875c58dccb54aa00ad3
+>>>>>>> e11cc2e542dd99c29106da9e8abe55ac1e8c910b
 
 // if (!authorized) {
 //   return <SignInPage onSignIn={onSignIn} />;
