@@ -37,7 +37,7 @@ const HeroSection = () => {
                 >
                     {/* Layer ảnh với parallax */}
                     <motion.img
-                    src="/src/img/img3.png"
+                    src="./public/img/img3.png"
                     alt=""
                     className="layer img1"
                     style={{ willChange: "transform, opacity" }}
@@ -46,7 +46,7 @@ const HeroSection = () => {
                     transition={{ duration: 0.8, delay: 0.1 }}
                     />
                     <motion.img
-                    src="/src/img/img1.png"
+                    src="./public/img/img1.png"
                     alt=""
                     className="layer img2"
             initial={{ opacity: 0, y: 60 }}
@@ -54,7 +54,7 @@ const HeroSection = () => {
                     transition={{ duration: 0.8, delay: 0.3 }}
                     />
                     <motion.img
-                    src="/src/img/img2.png"
+                    src="./public/img/img2.png"
                     alt=""
                     className="layer img3"
                     initial={{ opacity: 0, y: 60 }}

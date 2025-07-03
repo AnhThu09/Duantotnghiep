@@ -3,9 +3,11 @@ import HeroSection from "./HeroSection"
 import CocoonHeroSection from "./trietli"
 import ProductsWeLove from './ProductsWeLove'
 import ProductDisplayPage from "./ProductDisplayPage"
+import BannerSlider from "../components/BannerSlider"
 const Home = () => {
   return (
     <>
+    <BannerSlider/>
       <HeroSection />
     <FeaturedSection 
         smallHeading="Hôm nay có gì đặc biệt?"

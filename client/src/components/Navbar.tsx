@@ -46,7 +46,7 @@ const NavBar = ({ onCartIconClick }: NavBarProps) => {
       <div className="d-flex justify-content-between align-items-center">
         <div className="d-flex align-items-center gap-2">
           <Link className="navbar-brand" to="/">
-            <img src="/img/Night owls.jpg" alt="logo" width="120" height="120" />
+            <img src="./public/img/Night owls.jpg" alt="logo" width="120" height="120" />
           </Link>
         </div>
 

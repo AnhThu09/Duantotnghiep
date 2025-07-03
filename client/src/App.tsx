@@ -15,6 +15,8 @@ import CheckoutPage from './pages/CheckoutPage'
 import ThankYouPage from './pages/ThankYouPage'
 import NotFound from './pages/NotFound'
 
+
+
 function App() {
    const [isCartOpen, setIsCartOpen] = useState(false)
   return (
