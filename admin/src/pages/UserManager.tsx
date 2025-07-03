@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-
 import {
   Box,
   Typography,
@@ -28,7 +27,7 @@ import DialogUserForm from "../components/DialogUserForm";
 import { useSnackbar } from "../hooks/useSnackbar";
 import type { UserFormData } from "../components/DialogUserForm";
 
-// --- MOCK DATA & INTERFACES ---
+// --- INTERFACES ---
 interface User {
   user_id: string;
   full_name: string;
@@ -74,8 +73,13 @@ export default function UserManager() {
   const [loading, setLoading] = useState<boolean>(true);
   const [tableLoading, setTableLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const token = localStorage.getItem("token");
+
+  // Lấy token ngay trước khi cần, hoặc trong useEffect nếu nó thay đổi
+  // và cần re-render
+  // const token = localStorage.getItem("token"); // Không nên lưu ở đây như state, lấy khi dùng
+
   const { openSnackbar } = useSnackbar();
+
   // State cho phân trang
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(5);
@@ -95,6 +99,17 @@ export default function UserManager() {
       limitParam = rowsPerPage,
       searchParam = debouncedSearchTerm
     ) => {
+      // Lấy token ngay trước khi sử dụng
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("Không có token xác thực. Vui lòng đăng nhập lại.");
+        setLoading(false);
+        setTableLoading(false);
+        // Có thể thêm logic chuyển hướng người dùng đến trang đăng nhập ở đây
+        // navigate('/login');
+        return;
+      }
+
       if (searchParam.trim() || pageParam !== 0) {
         setTableLoading(true);
       } else {
@@ -102,7 +117,6 @@ export default function UserManager() {
       }
       setError(null);
       try {
-        // Xây dựng URL với query parameters
         const url = new URL(`${API_URL_USERS}`);
         url.searchParams.set("page", (pageParam + 1).toString());
         url.searchParams.set("limit", limitParam.toString());
@@ -110,14 +124,25 @@ export default function UserManager() {
         if (searchParam.trim()) {
           url.searchParams.set("search", searchParam.trim());
         }
+        // console.log("Fetching users with token:", token); // Ghi log để kiểm tra token
 
         const response = await fetch(url.toString(), {
           method: "GET",
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${token}`, // Đảm bảo token được gửi đúng cách
             "Content-Type": "application/json",
           },
         });
+
+        // Xử lý lỗi 401 cụ thể từ response
+        if (response.status === 401) {
+          const errorData = await response.json();
+          setError(errorData.message || "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
+          // Clear token cũ và có thể chuyển hướng
+          localStorage.removeItem("token");
+          // navigate('/login'); // Nếu có react-router-dom
+          return;
+        }
 
         const data = await response.json();
 
@@ -129,15 +154,15 @@ export default function UserManager() {
         setUsers(data.users);
         setFilteredUsers(data.users);
         setTotalUsers(data.total || data.users.length);
-      } catch (err) {
-        setError("Không thể tải dữ liệu người dùng. Vui lòng thử lại.");
-        console.error(err);
+      } catch (err: any) { // Dùng any hoặc unknown và kiểm tra instance of Error
+        console.error("Lỗi khi tải dữ liệu người dùng:", err);
+        setError(err.message || "Không thể tải dữ liệu người dùng. Vui lòng thử lại.");
       } finally {
         setLoading(false);
         setTableLoading(false);
       }
     },
-    [page, rowsPerPage, debouncedSearchTerm, token]
+    [page, rowsPerPage, debouncedSearchTerm] // Loại bỏ token khỏi dependency vì nó được lấy bên trong
   );
 
   useEffect(() => {
@@ -207,10 +232,20 @@ export default function UserManager() {
     setEditingUser(user);
     setIsModalOpen(true);
   }, []);
+
   // Xử lý xóa người dùng
   const handleDelete = useCallback(
     async (userId: string) => {
       if (window.confirm(`Bạn có chắc chắn muốn xóa người dùng ${userId}?`)) {
+        const token = localStorage.getItem("token"); // Lấy token trước khi sử dụng
+        if (!token) {
+          openSnackbar({
+            text: "Không có token xác thực để xóa.",
+            severity: "error",
+          });
+          return;
+        }
+
         try {
           const response = await fetch(`${API_URL_USERS}/${userId}`, {
             method: "DELETE",
@@ -219,6 +254,16 @@ export default function UserManager() {
               "Content-Type": "application/json",
             },
           });
+
+          if (response.status === 401) {
+            const errorData = await response.json();
+            openSnackbar({
+              text: errorData.message || "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+              severity: "error",
+            });
+            localStorage.removeItem("token");
+            return;
+          }
 
           if (response.ok) {
             setUsers((prevUsers) =>
@@ -238,7 +283,7 @@ export default function UserManager() {
             });
           }
         } catch (error) {
-          console.error("Lỗi khi xóa người dùng:", error);
+          console.error("Lỗi kết nối khi xóa người dùng:", error);
           openSnackbar({
             text: "Lỗi kết nối khi xóa người dùng",
             severity: "error",
@@ -246,7 +291,7 @@ export default function UserManager() {
         }
       }
     },
-    [token, openSnackbar, fetchUsers, page, rowsPerPage, debouncedSearchTerm]
+    [openSnackbar, fetchUsers, page, rowsPerPage, debouncedSearchTerm]
   );
 
   // Đóng modal
@@ -258,6 +303,15 @@ export default function UserManager() {
   // Xử lý lưu người dùng từ form
   const handleSaveUser = useCallback(
     async (userData: Omit<User, "user_id">) => {
+      const token = localStorage.getItem("token"); // Lấy token trước khi sử dụng
+      if (!token) {
+        openSnackbar({
+          text: "Không có token xác thực để lưu người dùng.",
+          severity: "error",
+        });
+        return;
+      }
+
       try {
         // Format date_of_birth to ensure it's in YYYY-MM-DD format
         const formattedUserData = {
@@ -267,8 +321,9 @@ export default function UserManager() {
             : null,
         };
 
+        let response;
         if (editingUser) {
-          const response = await fetch(
+          response = await fetch(
             `${API_URL_USERS}/${editingUser.user_id}`,
             {
               method: "PUT",
@@ -279,31 +334,9 @@ export default function UserManager() {
               body: JSON.stringify(formattedUserData),
             }
           );
-
-          if (response.ok) {
-            setUsers((prevUsers) =>
-              prevUsers.map((user) =>
-                user.user_id === editingUser.user_id
-                  ? { ...formattedUserData, user_id: editingUser.user_id }
-                  : user
-              )
-            );
-            openSnackbar({
-              text: "Cập nhật người dùng thành công",
-              severity: "success",
-            });
-            handleCloseModal();
-            fetchUsers(page, rowsPerPage, debouncedSearchTerm); // Refresh danh sách - chỉ load table
-          } else {
-            const errorData = await response.json();
-            openSnackbar({
-              text: errorData.message || "Lỗi khi cập nhật người dùng",
-              severity: "error",
-            });
-          }
         } else {
           // Thêm người dùng mới
-          const response = await fetch(API_URL_USERS, {
+          response = await fetch(API_URL_USERS, {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
@@ -311,23 +344,31 @@ export default function UserManager() {
             },
             body: JSON.stringify(formattedUserData),
           });
+        }
 
-          if (response.ok) {
-            const newUser = await response.json();
-            setUsers((prevUsers) => [...prevUsers, newUser]);
-            openSnackbar({
-              text: "Thêm người dùng mới thành công",
-              severity: "success",
-            });
-            handleCloseModal();
-            fetchUsers(page, rowsPerPage, debouncedSearchTerm); // Refresh danh sách - chỉ load table
-          } else {
-            const errorData = await response.json();
-            openSnackbar({
-              text: errorData.message || "Lỗi khi thêm người dùng mới",
-              severity: "error",
-            });
-          }
+        if (response.status === 401) {
+          const errorData = await response.json();
+          openSnackbar({
+            text: errorData.message || "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.",
+            severity: "error",
+          });
+          localStorage.removeItem("token");
+          return;
+        }
+
+        if (response.ok) {
+          openSnackbar({
+            text: editingUser ? "Cập nhật người dùng thành công" : "Thêm người dùng mới thành công",
+            severity: "success",
+          });
+          handleCloseModal();
+          fetchUsers(page, rowsPerPage, debouncedSearchTerm); // Refresh danh sách - chỉ load table
+        } else {
+          const errorData = await response.json();
+          openSnackbar({
+            text: errorData.message || (editingUser ? "Lỗi khi cập nhật người dùng" : "Lỗi khi thêm người dùng mới"),
+            severity: "error",
+          });
         }
       } catch (error: unknown) {
         console.error("Lỗi khi lưu người dùng:", error);
@@ -343,7 +384,6 @@ export default function UserManager() {
     },
     [
       editingUser,
-      token,
       handleCloseModal,
       fetchUsers,
       openSnackbar,
@@ -524,7 +564,8 @@ export default function UserManager() {
               ) : (
                 filteredUsers.map((user, index) => (
                   <TableRow key={user.user_id} hover>
-                    <TableCell>{index + 1}</TableCell>
+                    {/* `user_id` should probably be displayed as the ID, not `index + 1` */}
+                    <TableCell>{user.user_id}</TableCell> 
                     <TableCell>{user.full_name}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>{user.phone_number}</TableCell>

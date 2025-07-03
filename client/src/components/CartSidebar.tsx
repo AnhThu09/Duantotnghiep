@@ -1,3 +1,4 @@
+
 // 📁 client/src/components/CartSidebar.tsx
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import axios from 'axios';
@@ -28,32 +29,44 @@ const UPLOADS_BASE_URL = 'http://localhost:3000/uploads/';
 
 const DUMMY_USER_ID = 1; // ✅ HÃY THAY THẾ BẰNG USER_ID THẬT (Nếu chưa làm)
 
+
+
 export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const navigate = useNavigate();
 
+
   // ✅ Fetch giỏ hàng từ API
   // Sử dụng useCallback để memoize hàm này, chỉ tạo lại khi có thay đổi trong dependencies
+
+
   const fetchCartItems = useCallback(async () => {
     try {
       const res = await axios.get(`${BASE_URL}/cart/${DUMMY_USER_ID}`);
       setCartItems(res.data);
-      console.log('✅ Đã lấy dữ liệu giỏ hàng:', res.data);
     } catch (err) {
       console.error('❌ Lỗi khi fetch giỏ hàng:', err);
     }
+
   }, []); // DUMMY_USER_ID là hằng số nên không cần thêm vào dependencies
+
 
   // ✅ useEffect để gọi fetchCartItems khi sidebar mở hoặc khi fetchCartItems thay đổi
   useEffect(() => {
     if (isOpen) {
       fetchCartItems();
     }
+
   }, [isOpen, fetchCartItems]); // Dependencies: isOpen và fetchCartItems
 
-  // ✅ Xử lý tăng/giảm số lượng sản phẩm
+
+
   const handleUpdateQuantity = useCallback(async (productId: number, newQuantity: number) => {
+
     if (newQuantity < 1) return; // Không cho số lượng < 1
+
+    if (newQuantity < 1) return;
+
 
     try {
       await axios.put(`${BASE_URL}/cart/${DUMMY_USER_ID}/${productId}`, { quantity: newQuantity });
@@ -67,7 +80,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
     }
   }, []); // Không có dependencies vì hàm này chỉ sử dụng các đối số đầu vào và setters
 
-  // ✅ Xử lý xoá sản phẩm khỏi giỏ hàng
+
   const handleRemoveItem = useCallback(async (productId: number) => {
     if (window.confirm('Bạn có chắc muốn xoá sản phẩm này khỏi giỏ hàng?')) {
       try {
@@ -82,7 +95,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   // ✅ Tính toán tổng phụ (subtotal)
   const subtotal = useMemo(() => {
     return cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
-  }, [cartItems]); // Chạy lại khi cartItems thay đổi
+  }, [cartItems]);
 
   return (
     <>
@@ -106,13 +119,19 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                   {/* ✅ HIỂN THỊ TỔNG TIỀN CỦA TỪNG ITEM */}
                   <div className="item-price">{(item.price * item.quantity).toLocaleString('vi-VN')} đ</div>
                   <div className="quantity-controls">
-                    <IconButton onClick={() => handleUpdateQuantity(item.product_id, item.quantity - 1)}><RemoveIcon fontSize="small" /></IconButton>
+                    <IconButton onClick={() => handleUpdateQuantity(item.product_id, item.quantity - 1)}>
+                      <RemoveIcon fontSize="small" />
+                    </IconButton>
                     <span className="quantity-value">{item.quantity}</span>
-                    <IconButton onClick={() => handleUpdateQuantity(item.product_id, item.quantity + 1)}><AddIcon fontSize="small" /></IconButton>
+                    <IconButton onClick={() => handleUpdateQuantity(item.product_id, item.quantity + 1)}>
+                      <AddIcon fontSize="small" />
+                    </IconButton>
                   </div>
                 </div>
                 <div className="item-actions">
-                  <IconButton onClick={() => handleRemoveItem(item.product_id)}><DeleteIcon fontSize="small" /></IconButton>
+                  <IconButton onClick={() => handleRemoveItem(item.product_id)}>
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
                 </div>
               </div>
             ))

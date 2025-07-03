@@ -131,7 +131,7 @@ export function ThemeContextProvider({ children }: ThemeContextProviderProps) {
             },
             MuiChip: {
               styleOverrides: {
-                root: ({ ownerState, theme }) => ({
+                root: ({ ownerState }) => ({
                   fontWeight: 'bold',
                   ...(ownerState.color === 'success' && {
                     backgroundColor: '#388E3C', // Màu tối hơn cho dark mode

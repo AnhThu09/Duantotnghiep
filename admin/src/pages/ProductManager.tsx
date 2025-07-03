@@ -64,12 +64,10 @@ export default function ProductManager() {
 
   // --- API CALLS ---
   // Hàm fetchProducts: Tải sản phẩm từ API (hiện tại là toàn bộ sản phẩm)
-  const fetchProducts = useCallback(async () => { // Đã loại bỏ searchQuery từ params, sẽ lọc client-side
+  const fetchProducts = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      // Gọi API để lấy TẤT CẢ sản phẩm.
-      // Nếu bạn muốn tìm kiếm và phân trang ở backend, bạn cần thêm các params search, limit, offset vào đây.
       const res = await axios.get(`${BASE_URL}/products`);
       
       // Sắp xếp ID giảm dần (ví dụ: 16, 15, 14, ...)
@@ -83,7 +81,7 @@ export default function ProductManager() {
     } finally {
       setLoading(false);
     }
-  }, []); // `fetchProducts` không có dependencies thay đổi, sẽ chỉ fetch một lần (hoặc khi gọi lại thủ công)
+  }, []);
 
   // useEffect để tải sản phẩm ban đầu
   useEffect(() => {
@@ -519,7 +517,7 @@ export default function ProductManager() {
             </Box>
           </Stack>
         </DialogContent>
-        <DialogActions >
+        <DialogActions>
           <Button onClick={handleCloseDialog}>Hủy</Button>
           <Button onClick={handleSave} variant="contained">Lưu</Button>
         </DialogActions>
