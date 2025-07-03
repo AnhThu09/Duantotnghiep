@@ -284,6 +284,7 @@ export default function ProductManager() {
                   <TableCell>{p.product_id}</TableCell>
                   <TableCell>{p.name}</TableCell>
                   <TableCell>{p.description ? p.description.substring(0, 50) + (p.description.length > 50 ? '...' : '') : '—'}</TableCell>
+                  {/* Dòng này đã được chỉnh sửa */}
                   <TableCell>{Number(p.price).toLocaleString('vi-VN')}₫</TableCell>
                   <TableCell>{p.quantity}</TableCell>
                   <TableCell>

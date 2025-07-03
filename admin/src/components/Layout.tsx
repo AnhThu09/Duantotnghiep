@@ -24,12 +24,12 @@ import StoreIcon from '@mui/icons-material/Store';
 import ArticleIcon from '@mui/icons-material/Article';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import RateReviewIcon from '@mui/icons-material/RateReview';
-// import LibraryBooksIcon from '@mui/icons-material/LibraryBooks'; // Quản lý bài viết
-// import ReviewsIcon from '@mui/icons-material/Reviews';           // Quản lý đánh giá
+import LibraryBooksIcon from '@mui/icons-material/LibraryBooks'; // Quản lý bài viết
+import ReviewsIcon from '@mui/icons-material/Reviews';           // Quản lý đánh giá
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 
-// import Header from './Header'; // Import component Header đã tách riêng
-// import { SignInPage } from '../pages/SignInPage';
+import Header from './Header'; // Import component Header đã tách riêng
+import { SignInPage } from '../pages/SignInPage';
 
 const drawerWidth = 240;
 
@@ -100,17 +100,17 @@ export default function Layout({ children }: LayoutProps) {
   );
 
   // Ẩn kiểm tra đăng nhập/loading, luôn hiển thị layout
-  // if (loading) {
-  //   return (
-  //     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-  //       <CircularProgress size={48} thickness={4} />
-  //     </Box>
-  //   );
-  // }
-  // if (!authorized) {
-  //   return <SignInPage onSignIn={onSignIn} />;
-  // }
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
+        <CircularProgress size={48} thickness={4} />
+      </Box>
+    );
+  }
 
+// if (!authorized) {
+//   return <SignInPage onSignIn={onSignIn} />;
+// }
   return (
     <Box sx={{ display: 'flex' }}>
       <>

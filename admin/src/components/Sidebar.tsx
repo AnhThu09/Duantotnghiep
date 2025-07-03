@@ -50,8 +50,8 @@ export default function Layout({ children }: LayoutProps) {
     { text: 'Quản lý Sản phẩm', icon: <ShoppingBagIcon />, path: '/products' },
     { text: 'Quản lý Người dùng', icon: <PeopleIcon />, path: '/users' },
     { text: 'Quản lý Voucher', icon: <ConfirmationNumberIcon />, path: '/vouchers' }, // <-- THÊM DÒNG NÀY VÀO ĐÂY
-    { text: 'Quản lý Bài viết', icon: <ArticleIcon />, path: '/posts' },
-    { text: 'Quản lý Đánh giá', icon: <RateReviewIcon />, path: '/reviews' },
+    { text: 'Quản lý Bài viết', icon: <LibraryBooksIcon />, path: '/posts' },
+    { text: 'Quản lý Đánh giá', icon: <ReviewsIcon />, path: '/reviews' },
     { text: 'Cài đặt', icon: <SettingsIcon />, path: '/settings' },
   ];
 
