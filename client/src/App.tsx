@@ -14,13 +14,21 @@ import CartPage from './pages/CartPage'
 import CheckoutPage from './pages/CheckoutPage'
 import ThankYouPage from './pages/ThankYouPage'
 import NotFound from './pages/NotFound'
-
+import RegisterPage from './pages/RegisterPage'
+import LoginPage from './pages/Login'
+import ForgotPasswordPage from './pages/ForgotPasswordPage'
+import ResetPasswordPage from './pages/ResetPasswordPage'
+import { AuthProvider } from './context/AuthContext';
+import PrivateRoute from './components/PrivateRoute';
+import ProductDetailPage from './pages/ProductDetailPage'
+import FavoriteProductsPage from './pages/FavoriteProductsPage'
 
 
 function App() {
    const [isCartOpen, setIsCartOpen] = useState(false)
   return (
     <>
+      <AuthProvider>
       <BrowserRouter>
         <NavBar onCartIconClick={() => setIsCartOpen(true)} />
         <Routes>
@@ -34,16 +42,24 @@ function App() {
           {/* <Route path="/category" element={<CategoryGallery />} /> */}
           <Route path="/danh-muc/:slug" element={<ProductByCategory />} />
           <Route path="/thuong-hieu/:slug" element={<ProductByBrand />} />
-          <Route path="/account" element={<Account />} />
+          <Route path="/products/:productId" element={<ProductDetailPage />} />
+          <Route path="/favorites" element={<FavoriteProductsPage />} />
           <Route path="/contact" element={<ContactForm />} />
           <Route path="/cart" element={<CartPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/login" element={<LoginPage />} />
           <Route path="/checkout" element={<CheckoutPage />} />
           <Route path="/thank-you" element={<ThankYouPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Route path="/account" element={<PrivateRoute><Account /></PrivateRoute>} />
+          
           <Route path="*" element={<NotFound />} />
         </Routes>
          <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
         <Footer />
       </BrowserRouter>
+      </AuthProvider>
     </>
   )
 }

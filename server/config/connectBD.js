@@ -1,9 +1,12 @@
-import mysql from 'mysql2'
+import mysql from 'mysql2';
+import dotenv from 'dotenv';
+
+dotenv.config(); // nạp biến môi trường từ .env
 
 export const db = mysql.createConnection({
-  host: 'localhost',
-  user: 'root',
-  password: '', // hoặc đúng mật khẩu MySQL của chị
-  database: 'datn2025',
-  port: 3306,
-})
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT
+});

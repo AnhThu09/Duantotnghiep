@@ -1,14 +1,12 @@
-// File: ProductByCategoryScroll.tsx
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 import {
   Box, Typography, Paper, IconButton, Snackbar, Alert, useTheme
 } from '@mui/material';
+import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
-
 interface Category {
   category_id: number;
   category_name: string;
@@ -28,14 +26,16 @@ const TABS_TO_DISPLAY = ['serum', 'kem-duong-am', 'cham-soc-da'];
 
 export default function ProductByCategoryScroll() {
   const { slug: urlSlug } = useParams();
-  const theme = useTheme();
+  // const theme = useTheme();
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-  const [activeCategorySlug, setActiveCategorySlug] = useState<string>('serum'); // ✅ mặc định là 'serum'
+  const [activeCategorySlug, setActiveCategorySlug] = useState<string>('serum');
   const [alert, setAlert] = useState({ open: false, message: '', severity: 'success' });
+  const [favorites, setFavorites] = useState<Set<number>>(new Set()); // ✅ Set để tra cứu nhanh
 
   const user_id = 1;
 
+  // ✅ Lấy danh mục
   useEffect(() => {
     axios.get(`${BASE_URL}/categories`)
       .then(res => {
@@ -44,24 +44,41 @@ export default function ProductByCategoryScroll() {
       });
   }, []);
 
+  // ✅ Lấy sản phẩm + danh sách yêu thích ban đầu
+  const fetchData = useCallback(async (slug: string) => {
+    try {
+      const res = await axios.get(`${BASE_URL}/products/category/${slug}`);
+      setProducts(res.data);
+
+      // Gọi luôn danh sách yêu thích
+      if (user_id) {
+        const favRes = await axios.get(`${BASE_URL}/favorites/${user_id}`);
+        const favSet = new Set(favRes.data.map((item: Product) => item.product_id));
+        setFavorites(favSet);
+      } else {
+        setFavorites(new Set());
+      }
+    } catch (err) {
+      setProducts([]);
+    }
+  }, []);
+
   useEffect(() => {
-    const slugToUse = urlSlug || 'serum'; // ✅ nếu không có slug, dùng 'serum'
+    const slugToUse = urlSlug || 'serum';
     setActiveCategorySlug(slugToUse);
-    axios.get(`${BASE_URL}/products/category/${slugToUse}`)
-      .then(res => setProducts(res.data))
-      .catch(() => setProducts([]));
-  }, [urlSlug]);
+    fetchData(slugToUse);
+  }, [urlSlug, fetchData]);
 
   const fetchProductsByTab = (tabSlug: string) => {
     setActiveCategorySlug(tabSlug);
-    axios.get(`${BASE_URL}/products/category/${tabSlug}`)
-      .then(res => setProducts(res.data))
-      .catch(() => setProducts([]));
+    fetchData(tabSlug);
   };
 
-  const handleAddToCart = async (product: Product) => {
+  const handleAddToCart = async (e: React.MouseEvent, product: Product) => {
+    e.stopPropagation();
+    e.preventDefault();
     if (!user_id) {
-      return setAlert({ open: true, message: '❌ Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!', severity: 'warning' });
+      return setAlert({ open: true, message: '❌ Vui lòng đăng nhập để thêm vào giỏ hàng!', severity: 'warning' });
     }
     try {
       const res = await axios.post(`${BASE_URL}/cart`, {
@@ -75,8 +92,44 @@ export default function ProductByCategoryScroll() {
     }
   };
 
-  const handleAddToFavorites = (product: Product) => {
-    setAlert({ open: true, message: `✅ Đã thêm '${product.name}' vào danh sách yêu thích!`, severity: 'info' });
+  const handleToggleFavorite = async (e: React.MouseEvent, product: Product, isCurrentlyFavorite: boolean) => {
+    e.stopPropagation();
+    e.preventDefault();
+
+    if (!user_id) {
+      return setAlert({ open: true, message: '❌ Vui lòng đăng nhập để thực hiện!', severity: 'warning' });
+    }
+
+    const newSet = new Set(favorites);
+    if (isCurrentlyFavorite) {
+      newSet.delete(product.product_id);
+    } else {
+      newSet.add(product.product_id);
+    }
+    setFavorites(newSet); // Cập nhật UI ngay
+
+    try {
+      if (isCurrentlyFavorite) {
+        await axios.delete(`${BASE_URL}/favorites/${user_id}/${product.product_id}`);
+        setAlert({ open: true, message: `Đã xóa '${product.name}' khỏi yêu thích!`, severity: 'info' });
+      } else {
+        await axios.post(`${BASE_URL}/favorites`, {
+          user_id,
+          product_id: product.product_id
+        });
+        setAlert({ open: true, message: `Đã thêm '${product.name}' vào yêu thích!`, severity: 'success' });
+      }
+    } catch (error) {
+      setAlert({ open: true, message: 'Lỗi khi cập nhật danh sách yêu thích.', severity: 'error' });
+      // Rollback
+      if (isCurrentlyFavorite) {
+        newSet.add(product.product_id);
+      } else {
+        newSet.delete(product.product_id);
+      }
+      setFavorites(newSet);
+      console.error("Lỗi cập nhật yêu thích:", error);
+    }
   };
 
   const handleCloseAlert = () => setAlert({ ...alert, open: false });
@@ -106,89 +159,105 @@ export default function ProductByCategoryScroll() {
         ))}
       </Box>
 
-      {/* ✅ KHÔNG CHO CUỘN NGANG */}
-          <Box
-            sx={{
-              display: 'flex',
-              overflowX: 'scroll',       // ✅ giữ hiệu ứng trượt ngang
-              gap: 2,
-              pb: 2,
-              scrollBehavior: 'smooth',  // ✅ trượt mượt
-              '&::-webkit-scrollbar': {
-                display: 'none'          // ✅ ẩn scrollbar cho Chrome, Safari
-              },
-              msOverflowStyle: 'none',   // ✅ ẩn scrollbar cho IE
-              scrollbarWidth: 'none',    // ✅ ẩn scrollbar cho Firefox
-            }}
-          >
-        {products.map(product => (
-          <Paper key={product.product_id}
-            sx={{
-              p: 2,
-              width: 300,
-              minHeight: 400,
-              flexShrink: 0,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'flex-start',
-              borderRadius: '8px',
-              boxShadow: 'rgba(0, 0, 0, 0.05) 0px 1px 2px 0px',
-              '&:hover': {
-                boxShadow: 'rgba(0, 0, 0, 0.1) 0px 4px 12px'
-              },
-              backgroundColor: '#fff',
-              textAlign: 'center'
-            }}
-          >
-            <Box sx={{ width: '100%', height: '300px', overflow: 'hidden', mb: 1.2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <img
-                src={`${UPLOADS_BASE_URL}${product.thumbnail}`}
-                alt={product.name}
-                style={{
-                  maxWidth: '100%',
-                  maxHeight: '100%',
-                  objectFit: 'contain',
-                  display: 'block',
-                }}
-                onError={(e) => {
-                  e.currentTarget.src = 'https://via.placeholder.com/240x240?text=No+Image';
-                }}
-              />
-            </Box>
-
-            <Typography
-              variant="subtitle1"
-              sx={{
-                fontWeight: 'bold',
-                textAlign: 'start',
-                mb: 2,
-                fontSize: '1.1rem',
-                minHeight: '2.6em',
-                display: '-webkit-box',
-                WebkitLineClamp: 2,
-                WebkitBoxOrient: 'vertical',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis'
-              }}
+      <Box
+        sx={{
+          display: 'flex',
+          overflowX: 'scroll',
+          gap: 2,
+          pb: 2,
+          scrollBehavior: 'smooth',
+          '&::-webkit-scrollbar': { display: 'none' },
+          msOverflowStyle: 'none',
+          scrollbarWidth: 'none',
+        }}
+      >
+        {products.map(product => {
+          const isFavorite = favorites.has(product.product_id);
+          return (
+            <Link
+              key={product.product_id}
+              to={`/products/${product.product_id}`}
+              style={{ textDecoration: 'none', color: 'inherit' }}
             >
-              {product.name}
-            </Typography>
+              <Paper
+                sx={{
+                  p: 2,
+                  width: 300,
+                  minHeight: 400,
+                  flexShrink: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'flex-start',
+                  borderRadius: '8px',
+                  boxShadow: 'rgba(0, 0, 0, 0.05) 0px 1px 2px 0px',
+                  '&:hover': { boxShadow: 'rgba(0, 0, 0, 0.1) 0px 4px 12px' },
+                  backgroundColor: '#fff',
+                  textAlign: 'center'
+                }}
+              >
+                <Box sx={{
+                  width: '100%', height: '300px', overflow: 'hidden',
+                  mb: 1.2, display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}>
+                  <img
+                    src={`${UPLOADS_BASE_URL}${product.thumbnail}`}
+                    alt={product.name}
+                    style={{
+                      maxWidth: '100%',
+                      maxHeight: '100%',
+                      objectFit: 'contain',
+                      display: 'block',
+                    }}
+                    onError={(e) => {
+                      e.currentTarget.src = 'https://via.placeholder.com/240x240?text=No+Image';
+                    }}
+                  />
+                </Box>
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 'auto', width: '100%' }}>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>
-                {Number(product.price).toLocaleString('vi-VN')}₫
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <IconButton size="small" sx={{ color: '#333' }} onClick={() => handleAddToFavorites(product)}>
-                  <FavoriteBorderIcon fontSize="small" />
-                </IconButton>
-                <IconButton size="small" sx={{ color: '#333' }} onClick={() => handleAddToCart(product)}>
-                  <ShoppingCartOutlinedIcon fontSize="small" />
-                </IconButton>
-              </Box>
-            </Box>
-          </Paper>
-        ))}
+                <Typography
+                  variant="subtitle1"
+                  sx={{
+                    fontWeight: 'bold',
+                    textAlign: 'start',
+                    mb: 2,
+                    fontSize: '1.1rem',
+                    minHeight: '2.6em',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis'
+                  }}
+                >
+                  {product.name}
+                </Typography>
+
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 'auto', width: '100%' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '1.1rem' }}>
+                    {Number(product.price).toLocaleString('vi-VN')}₫
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <IconButton
+                      size="small"
+                      sx={{ color: isFavorite ? 'black' : '#333' }}
+                      onClick={(e) => handleToggleFavorite(e, product, isFavorite)}
+                    >
+                      {isFavorite ? <FavoriteIcon fontSize="small" /> : <FavoriteBorderIcon fontSize="small" />}
+                    </IconButton>
+
+                    <IconButton
+                      size="small"
+                      sx={{ color: '#333' }}
+                      onClick={(e) => handleAddToCart(e, product)}
+                    >
+                      <ShoppingCartOutlinedIcon fontSize="small" />
+                    </IconButton>
+                  </Box>
+                </Box>
+              </Paper>
+            </Link>
+          );
+        })}
       </Box>
 
       <Snackbar open={alert.open} autoHideDuration={3000} onClose={handleCloseAlert}>

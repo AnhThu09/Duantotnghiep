@@ -23,5 +23,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src"]
+  "include": ["src", "../client/src/pages/RegisterForm.tsx", "../client/src/pages/RegisterPage.tsx", "../client/src/pages/VerifyOTP.tsx"]
 }

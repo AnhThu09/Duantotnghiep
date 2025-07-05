@@ -17,6 +17,7 @@ import ShoppingBagIcon from '@mui/icons-material/ShoppingBag';
 import PeopleIcon from '@mui/icons-material/People';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
+import ContactMailIcon from '@mui/icons-material/ContactMail';
 // import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import LoyaltyIcon from '@mui/icons-material/Loyalty';
@@ -61,6 +62,7 @@ export default function Layout({ children }: LayoutProps) {
     { text: 'Quản lý đơn hàng', icon: <ReceiptIcon />, path: '/orders' },
     { text: 'Quản lý bài viết', icon: <ArticleIcon />, path: '/posts' },
     { text: 'Quản lý đánh giá sản phẩm', icon: <RateReviewIcon />, path: '/reviews' },
+    { text: 'Quản lý liên hệ', icon: <ContactMailIcon />, path: '/contact' },
     { text: 'Cài đặt', icon: <SettingsIcon />, path: '/settings' },
   ];
 

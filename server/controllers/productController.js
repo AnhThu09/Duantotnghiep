@@ -26,6 +26,27 @@ export const getAllProducts = (req, res) => {
     res.json(result);
   });
 };
+// ✅ Lấy chi tiết sản phẩm theo ID
+export const getProductById = (req, res) => {
+  const { id } = req.params; // Lấy ID sản phẩm từ URL (ví dụ: /products/19)
+
+  const sql = "SELECT * FROM products WHERE product_id = ?"; // Truy vấn sản phẩm theo product_id
+
+  db.query(sql, [id], (err, result) => {
+    if (err) {
+      console.error('Lỗi khi lấy chi tiết sản phẩm:', err); // Log lỗi server
+      return res.status(500).json({ error: "Lỗi máy chủ khi lấy chi tiết sản phẩm." });
+    }
+
+    if (result.length === 0) {
+      // Nếu không tìm thấy sản phẩm với ID này
+      return res.status(404).json({ message: "Không tìm thấy sản phẩm này." });
+    }
+
+    // Trả về sản phẩm đầu tiên tìm thấy (chắc chắn chỉ có một)
+    res.json(result[0]);
+  });
+};
 
 // ✅ Thêm sản phẩm (bắt buộc ảnh, category_id, brand_id)
 export const createProduct = (req, res) => {

@@ -1,3 +1,4 @@
+//Thư
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 
 import {
@@ -355,9 +356,18 @@ export default function BrandManagerr() {
 
   return (
     <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, backgroundColor: theme.palette.background.default }}>
-      <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 4, fontWeight: 'bold', color: theme.palette.primary.dark }}>
-        Quản Lý Thương Hiệu
-      </Typography>
+ <Typography
+  variant="h4"
+  component="h1"
+  gutterBottom
+  sx={{
+    mb: 4,
+    fontWeight: 'bold',
+    color: 'rgb(17, 82, 147)' // ✅ màu chị chọn
+  }}
+>
+  Quản lý thương hiệu
+</Typography>
 
       <Paper sx={{ p: 3, borderRadius: theme.shape.borderRadius, boxShadow: theme.shadows[3], mb: 3 }}>
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, mb: 2, gap: 2 }}>

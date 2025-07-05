@@ -10,7 +10,13 @@ import orderRoutes from "./routes/order.js";
 import userRoutes from "./routes/user.js";
 import cartRouter from "./routes/cart.js";
 import paymentRoutes from "./routes/paymentRoutes.js";
+import dotenv from "dotenv";
+import favoriteRoutes from "./routes/favoriteRoutes.js";
 
+dotenv.config(); // ⬅️ THÊM DÒNG NÀY Ở TRÊN CÙNG
+console.log('EMAIL_USER from .env:', process.env.EMAIL_USER);
+console.log('EMAIL_PASS from .env:', process.env.EMAIL_PASS ? '********' : 'NOT_SET'); // KHÔNG IN MẬT KHẨU TRỰC TIẾP
+// ... các dòng code khác
 const app = express();
 
 // Kết nối MySQL
@@ -21,7 +27,6 @@ db.connect((err) => {
     console.log("✅ Kết nối MySQL thành công!");
   }
 });
-
 // Cấu hình middleware
 app.use(cors());
 app.use(express.json());
@@ -38,6 +43,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use('/api/favorites', favoriteRoutes);
+
 
 // Xử lý lỗi
 app.use((req, res) => {

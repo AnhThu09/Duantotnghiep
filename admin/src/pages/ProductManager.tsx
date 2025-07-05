@@ -293,9 +293,18 @@ export default function ProductManager() {
   // --- Main Component JSX Return ---
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 4, fontWeight: 'bold' }}>
-        Quản lý Sản phẩm
-      </Typography>
+     <Typography
+  variant="h4"
+  component="h1"
+  gutterBottom
+  sx={{
+    mb: 4,
+    fontWeight: 'bold',
+    color: 'rgb(17, 82, 147)' // ✅ màu chị chọn
+  }}
+>
+  Quản lý sản phẩm
+</Typography>
       <Paper sx={{ p: 3, boxShadow: 3, mb: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2, alignItems: 'center' }}>
           <TextField
