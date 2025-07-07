@@ -22,6 +22,7 @@ import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import ProductDetailPage from './pages/ProductDetailPage'
 import FavoriteProductsPage from './pages/FavoriteProductsPage'
+import BlogPostDetail from './pages/BlogPostDetail'
 
 
 function App() {
@@ -53,7 +54,7 @@ function App() {
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
           <Route path="/account" element={<PrivateRoute><Account /></PrivateRoute>} />
-          
+          <Route path="/posts/:slug" element={<BlogPostDetail />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
          <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />

@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import CategoryManager from "././pages/CategoryManager"; // Chú ý đường dẫn
 import BrandManager from "./pages/BrandManager";
 import ContactList from './pages/ContactList';
+import PostManager from './pages/PostManager';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -31,7 +32,7 @@ function App() {
           <Route path="/products" element={<ProductManager />} />
           <Route path="/favorites" element={<FavoriteProductsManager />} /> {/* Đã được thêm vào */}
           <Route path="/settings" element={<SettingsPage />} />
-          {/* <Route path="/favorites" element={<FavoritesPage />} /> */}
+          <Route path="/posts" element={<PostManager />} />
            <Route path="/settings" element={<SettingsPage />} />
           <Route path="/favorites" element={<FavoriteProductsManager />} />
           <Route path="/contact" element={<ContactList />} />
