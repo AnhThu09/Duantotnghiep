@@ -95,12 +95,12 @@ const LoginPage = () => {
 
       const token = res.data.token;
       const user = res.data.user; // Backend cần trả về object user đầy đủ (user_id, full_name, email, role, ...)
-      
+
       // ✅ Gọi hàm login từ AuthContext để lưu trạng thái đăng nhập vào context và localStorage
-      authLogin(token, user); 
-      
+      authLogin(token, user);
+
       setSnackbar({ open: true, message: 'Đăng nhập thành công!', severity: 'success' });
-      
+
       // Chuyển hướng người dùng sau khi đăng nhập thành công
       setTimeout(() => { // Chờ 1 chút để Snackbar hiển thị trước khi chuyển trang
         if (user.role === 'admin') {
@@ -136,6 +136,7 @@ const LoginPage = () => {
         maxWidth: 400, // Chiều rộng tối đa của form
         mx: 'auto',    // Căn giữa theo chiều ngang
         mt: 8,         // Margin top
+        mb: 8,         // Margin bottom
         p: 4,          // Padding bên trong
         bgcolor: '#fdf9ef', // Màu nền
         borderRadius: 2, // Bo tròn góc
@@ -152,14 +153,14 @@ const LoginPage = () => {
         <Typography
           component={Link} // Sử dụng Link từ react-router-dom
           to="/register"   // Đường dẫn đến trang đăng ký
-          sx={{ 
+          sx={{
             color: '#b38b40', // Màu chữ
             cursor: 'pointer', // Con trỏ chuột hình bàn tay
             textDecoration: 'none', // Bỏ gạch chân mặc định
             fontWeight: 'bold',      // Chữ đậm
-            '&:hover': { 
+            '&:hover': {
               textDecoration: 'underline' // Gạch chân khi hover
-            } 
+            }
           }}
         >
           Tạo tài khoản
@@ -226,14 +227,14 @@ const LoginPage = () => {
           variant="body2"
           component={Link} // Sử dụng Link từ react-router-dom
           to="/forgot-password" // Đường dẫn đến trang quên mật khẩu
-          sx={{ 
-            color: '#b38b40', 
+          sx={{
+            color: '#b38b40',
             cursor: 'pointer',
-            textDecoration: 'none', 
-            fontWeight: 'bold',      
-            '&:hover': { 
-              textDecoration: 'underline' 
-            } 
+            textDecoration: 'none',
+            fontWeight: 'bold',
+            '&:hover': {
+              textDecoration: 'underline'
+            }
           }}
           disabled={loading}
         >

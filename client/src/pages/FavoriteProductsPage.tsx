@@ -5,11 +5,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box, Typography, CircularProgress, Alert, Snackbar, Paper, IconButton, Grid, Button
 } from '@mui/material';
-import FavoriteIcon from '@mui/icons-material/Favorite'; 
+import FavoriteIcon from '@mui/icons-material/Favorite';
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom'; // Import useNavigate
-// import { useAuth } from '../context/AuthContext'; // Nếu bạn có Auth Context để lấy user_id
+import { useAuth } from '../context/AuthContext'; // Import useAuth
 
 // --- INTERFACES ---
 interface Product {
@@ -36,10 +36,10 @@ const FavoriteProductsPage: React.FC = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
   const navigate = useNavigate(); // Hook để điều hướng
+  const { currentUser } = useAuth(); // Lấy thông tin user từ AuthContext
 
-  // ✅ Giả định user_id là 1 cho mục đích demo.
-  // Trong ứng dụng thực tế, bạn sẽ lấy user_id từ trạng thái đăng nhập (ví dụ: Auth Context, Redux, localStorage).
-  const user_id = 1; // Ví dụ: const { user } = useAuth(); const user_id = user?.id;
+  // ✅ Lấy user_id từ AuthContext thay vì hardcode
+  const user_id = currentUser?.user_id;
 
   const showSnackbar = useCallback((message: string, severity: 'success' | 'error' | 'info' | 'warning') => {
     setSnackbarMessage(message);
@@ -56,8 +56,7 @@ const FavoriteProductsPage: React.FC = () => {
     if (!user_id) {
       showSnackbar('Vui lòng đăng nhập để xem danh sách yêu thích.', 'warning');
       setLoading(false);
-      // Optional: Redirect to login page if user is not logged in
-      // navigate('/login');
+      navigate('/login');
       return;
     }
 
@@ -74,7 +73,7 @@ const FavoriteProductsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [user_id, showSnackbar]);
+  }, [user_id, showSnackbar, navigate]);
 
   useEffect(() => {
     fetchFavoriteProducts();
@@ -83,6 +82,7 @@ const FavoriteProductsPage: React.FC = () => {
   const handleRemoveFavorite = async (productId: number) => {
     if (!user_id) {
       showSnackbar('Bạn cần đăng nhập để thực hiện hành động này.', 'warning');
+      navigate('/login');
       return;
     }
     try {
@@ -92,7 +92,7 @@ const FavoriteProductsPage: React.FC = () => {
       // Cập nhật lại danh sách yêu thích sau khi xóa
       fetchFavoriteProducts();
     } catch (error) {
-      const msg = (error as any).response?.data?.message || '❌ Lỗi khi xóa sản phẩm khỏi danh sách yêu thích.';
+      const msg = (error as { response?: { data?: { message?: string } } }).response?.data?.message || '❌ Lỗi khi xóa sản phẩm khỏi danh sách yêu thích.';
       console.error("Lỗi xóa sản phẩm yêu thích:", error);
       showSnackbar(msg, 'error');
     }
@@ -101,6 +101,7 @@ const FavoriteProductsPage: React.FC = () => {
   const handleAddToCart = async (product: Product) => {
     if (!user_id) {
       showSnackbar('❌ Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!', 'error');
+      navigate('/login');
       return;
     }
     try {
@@ -111,7 +112,7 @@ const FavoriteProductsPage: React.FC = () => {
       });
       showSnackbar(response.data.message || '✅ Đã thêm sản phẩm vào giỏ hàng!', 'success');
     } catch (error) {
-      const msg = (error as any).response?.data?.message || '❌ Thêm vào giỏ hàng thất bại.';
+      const msg = (error as { response?: { data?: { message?: string } } }).response?.data?.message || '❌ Thêm vào giỏ hàng thất bại.';
       console.error("Lỗi thêm vào giỏ hàng từ trang yêu thích:", error);
       showSnackbar(msg, 'error');
     }
@@ -139,7 +140,7 @@ const FavoriteProductsPage: React.FC = () => {
     return (
       <Box sx={{ p: 4, textAlign: 'center' }}>
         <Typography variant="h6" color="warning.main">Bạn cần đăng nhập để xem danh sách yêu thích.</Typography>
-        {/* <Button variant="contained" sx={{ mt: 2 }} onClick={() => navigate('/login')}>Đăng nhập ngay</Button> */}
+        <Button variant="contained" sx={{ mt: 2 }} onClick={() => navigate('/login')}>Đăng nhập ngay</Button>
       </Box>
     );
   }
@@ -185,7 +186,7 @@ const FavoriteProductsPage: React.FC = () => {
                   sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }}
                   onClick={() => handleRemoveFavorite(product.product_id)}
                 >
-                  <FavoriteIcon color="#212121" fontSize="small" />
+                  <FavoriteIcon sx={{ color: "#212121" }} fontSize="small" />
                 </IconButton>
 
                 <Link

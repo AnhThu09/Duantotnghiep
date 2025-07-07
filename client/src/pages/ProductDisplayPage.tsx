@@ -8,7 +8,8 @@ import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import FavoriteIcon from '@mui/icons-material/Favorite'; // Icon trái tim tô đậm (đã yêu thích)
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 
 // --- INTERFACES ---
 interface Product {
@@ -134,7 +135,9 @@ export default function ProductDisplayPage() {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info'>('success');
-  const user_id = 1;
+  const { currentUser } = useAuth();
+  const user_id = currentUser?.user_id;
+  const navigate = useNavigate();
 
   const [userFavorites, setUserFavorites] = useState<Set<number>>(new Set());
 
@@ -192,6 +195,7 @@ export default function ProductDisplayPage() {
     e.stopPropagation();
     if (!user_id) {
       showSnackbar('❌ Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!', 'error');
+      setTimeout(() => navigate('/login'), 1500);
       return;
     }
     try {
@@ -212,6 +216,7 @@ export default function ProductDisplayPage() {
     e.stopPropagation();
     if (!user_id) {
       showSnackbar('❌ Vui lòng đăng nhập để thêm sản phẩm vào danh sách yêu thích!', 'error');
+      setTimeout(() => navigate('/login'), 1500);
       return;
     }
 

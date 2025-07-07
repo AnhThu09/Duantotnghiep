@@ -44,12 +44,12 @@ function App() {
           <Route path="/danh-muc/:slug" element={<ProductByCategory />} />
           <Route path="/thuong-hieu/:slug" element={<ProductByBrand />} />
           <Route path="/products/:productId" element={<ProductDetailPage />} />
-          <Route path="/favorites" element={<FavoriteProductsPage />} />
+          <Route path="/favorites" element={<PrivateRoute><FavoriteProductsPage /></PrivateRoute>} />
           <Route path="/contact" element={<ContactForm />} />
-          <Route path="/cart" element={<CartPage />} />
+          <Route path="/cart" element={<PrivateRoute><CartPage /></PrivateRoute>} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/checkout" element={<CheckoutPage />} />
+          <Route path="/checkout" element={<PrivateRoute><CheckoutPage /></PrivateRoute>} />
           <Route path="/thank-you" element={<ThankYouPage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password" element={<ResetPasswordPage />} />
