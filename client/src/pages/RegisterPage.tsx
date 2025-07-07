@@ -32,7 +32,7 @@ const RegisterPage = () => {
   const [otp, setOtp] = useState('');
   const [isOTPSent, setIsOTPSent] = useState(false); // Trạng thái đã gửi OTP
   const [isVerified, setIsVerified] = useState(false); // Trạng thái đã xác minh email qua OTP
-  
+
   const [loading, setLoading] = useState(false); // Trạng thái loading chung cho các request
   const [showPassword, setShowPassword] = useState(false); // State ẩn/hiện mật khẩu
   const [showConfirmPassword, setShowConfirmPassword] = useState(false); // State ẩn/hiện xác nhận mật khẩu
@@ -173,7 +173,7 @@ const RegisterPage = () => {
       });
       console.log("Đăng ký thành công!");
       setSnackbar({ open: true, message: "Đăng ký tài khoản thành công!", severity: 'success' });
-      
+
       // --- RESET FORM SAU KHI ĐĂNG KÝ THÀNH CÔNG ---
       setFullName('');
       setEmail('');
@@ -201,7 +201,7 @@ const RegisterPage = () => {
 
   // --- JSX (Giao diện người dùng) ---
   return (
-    <Box sx={{ maxWidth: 450, mx: 'auto', mt: 8, p: 4, bgcolor: '#fdf9ef', borderRadius: 2, boxShadow: 3 }}>
+    <Box sx={{ maxWidth: 450, mx: 'auto', mt: 8, mb: 8, p: 4, bgcolor: '#fdf9ef', borderRadius: 2, boxShadow: 3 }}>
       <Typography variant="h5" fontWeight="bold" mb={3} textAlign="center" color="#333">Đăng ký tài khoản</Typography>
 
       {/* Trường Email và nút Gửi mã xác nhận */}
@@ -256,7 +256,7 @@ const RegisterPage = () => {
           </Typography>
           <TextField fullWidth label="Họ và tên" value={fullName} onChange={(e) => setFullName(e.target.value)} disabled={loading} />
           <TextField fullWidth label="Số điện thoại" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} disabled={loading} type="tel" />
-          
+
           <TextField
             fullWidth
             label="Mật khẩu"

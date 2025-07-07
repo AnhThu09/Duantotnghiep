@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import {
-  Box, Typography, Paper, IconButton, Snackbar, Alert, useTheme
+  Box, Typography, Paper, IconButton, Snackbar, Alert
 } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
@@ -26,6 +27,7 @@ const TABS_TO_DISPLAY = ['serum', 'kem-duong-am', 'cham-soc-da'];
 
 export default function ProductByCategoryScroll() {
   const { slug: urlSlug } = useParams();
+  const navigate = useNavigate();
   // const theme = useTheme();
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -33,7 +35,8 @@ export default function ProductByCategoryScroll() {
   const [alert, setAlert] = useState({ open: false, message: '', severity: 'success' });
   const [favorites, setFavorites] = useState<Set<number>>(new Set()); // ✅ Set để tra cứu nhanh
 
-  const user_id = 1;
+  const { currentUser } = useAuth();
+  const user_id = currentUser?.user_id;
 
   // ✅ Lấy danh mục
   useEffect(() => {
@@ -78,7 +81,9 @@ export default function ProductByCategoryScroll() {
     e.stopPropagation();
     e.preventDefault();
     if (!user_id) {
-      return setAlert({ open: true, message: '❌ Vui lòng đăng nhập để thêm vào giỏ hàng!', severity: 'warning' });
+      setAlert({ open: true, message: '❌ Vui lòng đăng nhập để thêm vào giỏ hàng!', severity: 'warning' });
+      setTimeout(() => navigate('/login'), 1500);
+      return;
     }
     try {
       const res = await axios.post(`${BASE_URL}/cart`, {
@@ -97,7 +102,9 @@ export default function ProductByCategoryScroll() {
     e.preventDefault();
 
     if (!user_id) {
-      return setAlert({ open: true, message: '❌ Vui lòng đăng nhập để thực hiện!', severity: 'warning' });
+      setAlert({ open: true, message: '❌ Vui lòng đăng nhập để thực hiện!', severity: 'warning' });
+      setTimeout(() => navigate('/login'), 1500);
+      return;
     }
 
     const newSet = new Set(favorites);

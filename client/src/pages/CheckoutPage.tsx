@@ -34,6 +34,7 @@ import {
 } from '@mui/icons-material';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
@@ -48,6 +49,17 @@ const CheckoutPage: React.FC = () => {
   const { state, clearCart } = useCart();
   const navigate = useNavigate();
   const theme = useTheme();
+  const { isAuthenticated } = useAuth();
+
+  // Kiểm tra đăng nhập khi component mount
+  React.useEffect(() => {
+    if (!isAuthenticated) {
+      // Hiển thị thông báo và chuyển hướng sau 1.5 giây
+      setTimeout(() => {
+        navigate('/login');
+      }, 1500);
+    }
+  }, [isAuthenticated, navigate]);
 
   const [form, setForm] = useState<CheckoutForm>({
     fullName: '',

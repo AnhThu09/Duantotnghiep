@@ -9,6 +9,8 @@ import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+
 import '../css/CartSidebar.css';
 
 interface CartItem {
@@ -27,13 +29,12 @@ interface CartSidebarProps {
 const BASE_URL = 'http://localhost:3000/api';
 const UPLOADS_BASE_URL = 'http://localhost:3000/uploads/';
 
-const DUMMY_USER_ID = 1; // ✅ HÃY THAY THẾ BẰNG USER_ID THẬT (Nếu chưa làm)
-
 
 
 export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const navigate = useNavigate();
+  const { currentUser } = useAuth();
 
 
   // ✅ Fetch giỏ hàng từ API
@@ -42,13 +43,13 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
 
   const fetchCartItems = useCallback(async () => {
     try {
-      const res = await axios.get(`${BASE_URL}/cart/${DUMMY_USER_ID}`);
+      const res = await axios.get(`${BASE_URL}/cart/${currentUser?.user_id}`);
       setCartItems(res.data);
     } catch (err) {
       console.error('❌ Lỗi khi fetch giỏ hàng:', err);
     }
 
-  }, []); // DUMMY_USER_ID là hằng số nên không cần thêm vào dependencies
+  }, [currentUser]); // DUMMY_USER_ID là hằng số nên không cần thêm vào dependencies
 
 
   // ✅ useEffect để gọi fetchCartItems khi sidebar mở hoặc khi fetchCartItems thay đổi
@@ -69,7 +70,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
 
 
     try {
-      await axios.put(`${BASE_URL}/cart/${DUMMY_USER_ID}/${productId}`, { quantity: newQuantity });
+      await axios.put(`${BASE_URL}/cart/${currentUser?.user_id}/${productId}`, { quantity: newQuantity });
       setCartItems(prevItems =>
         prevItems.map(item =>
           item.product_id === productId ? { ...item, quantity: newQuantity } : item
@@ -84,7 +85,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   const handleRemoveItem = useCallback(async (productId: number) => {
     if (window.confirm('Bạn có chắc muốn xoá sản phẩm này khỏi giỏ hàng?')) {
       try {
-        await axios.delete(`${BASE_URL}/cart/${DUMMY_USER_ID}/${productId}`);
+        await axios.delete(`${BASE_URL}/cart/${currentUser?.user_id}/${productId}`);
         setCartItems(prevItems => prevItems.filter(item => item.product_id !== productId));
       } catch (err) {
         console.error('Lỗi khi xoá sản phẩm:', err);
