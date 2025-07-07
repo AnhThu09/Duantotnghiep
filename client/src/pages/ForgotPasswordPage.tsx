@@ -50,9 +50,9 @@ const ForgotPasswordPage = () => {
       // Gửi yêu cầu OTP để đặt lại mật khẩu
       // Endpoint này KHÁC với request-otp của đăng ký. Nó cần xác nhận email tồn tại.
       const res = await axios.post('http://localhost:3000/api/auth/forgot-password-request-otp', { email });
-      
+
       setSnackbar({ open: true, message: res.data.message || "Mã xác nhận đã được gửi đến email của bạn.", severity: 'success' });
-      
+
       // Sau khi gửi OTP, chuyển hướng người dùng đến trang đặt lại mật khẩu với email đó
       setTimeout(() => {
         navigate(`/reset-password?email=${encodeURIComponent(email)}`);
@@ -68,7 +68,7 @@ const ForgotPasswordPage = () => {
   };
 
   return (
-    <Box sx={{ maxWidth: 450, mx: 'auto', mt: 8, p: 4, bgcolor: '#fdf9ef', borderRadius: 2, boxShadow: 3 }}>
+    <Box sx={{ maxWidth: 450, mx: 'auto', mt: 8, mb: 8, p: 4, bgcolor: '#fdf9ef', borderRadius: 2, boxShadow: 3 }}>
       <Typography variant="h5" fontWeight="bold" mb={3} textAlign="center" color="#333">Quên mật khẩu</Typography>
       <Typography variant="body2" mb={3} textAlign="center" color="text.secondary">
         Vui lòng nhập địa chỉ email bạn đã đăng ký để nhận mã xác nhận.

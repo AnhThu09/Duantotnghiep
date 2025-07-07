@@ -17,6 +17,7 @@ import {
 import { Add, Remove, Delete, ShoppingBag, ArrowForward, LocalShipping, Redeem } from '@mui/icons-material';
 import { useCart } from '../context/CartContext';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
@@ -24,6 +25,17 @@ const CartPage: React.FC = () => {
   const { state, updateQuantity, removeItem } = useCart();
   const navigate = useNavigate();
   const theme = useTheme();
+  const { isAuthenticated } = useAuth();
+
+  // Kiểm tra đăng nhập khi component mount
+  React.useEffect(() => {
+    if (!isAuthenticated) {
+      // Hiển thị thông báo và chuyển hướng sau 1.5 giây
+      setTimeout(() => {
+        navigate('/login');
+      }, 1500);
+    }
+  }, [isAuthenticated, navigate]);
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('vi-VN', {

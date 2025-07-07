@@ -9,8 +9,9 @@ import {
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 // --- INTERFACES ---
 interface Product {
@@ -39,7 +40,9 @@ const ProductDetailPage: React.FC = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
 
-  const user_id = 1; // Giả định user_id
+  const { currentUser } = useAuth();
+  const user_id = currentUser?.user_id; // Giả định user_id
+  const navigate = useNavigate();
 
   const showSnackbar = useCallback((message: string, severity: 'success' | 'error' | 'info' | 'warning') => {
     setSnackbarMessage(message);
@@ -77,8 +80,10 @@ const ProductDetailPage: React.FC = () => {
   const handleAddToCart = async () => {
     if (!user_id) {
       showSnackbar('❌ Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!', 'error');
+      setTimeout(() => navigate('/login'), 1500);
       return;
     }
+
     if (!product) return;
 
     try {
@@ -98,6 +103,7 @@ const ProductDetailPage: React.FC = () => {
   const handleAddToFavorites = async () => {
     if (!user_id) {
       showSnackbar('❌ Vui lòng đăng nhập để thêm sản phẩm vào danh sách yêu thích!', 'error');
+      setTimeout(() => navigate('/login'), 1500);
       return;
     }
     if (!product) return;
