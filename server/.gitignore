@@ -128,3 +128,6 @@ dist
 !.yarn/versions
 pnpm-lock.yaml
 node_modules
+.env            ← chứa mật khẩu DB, secret key → không nên đẩy lên
+node_modules/   ← rất nặng → không cần đẩy lên
+dist/           ← file build ra thôi → không cần đẩy lên

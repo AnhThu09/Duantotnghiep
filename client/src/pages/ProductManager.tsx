@@ -1,4 +1,4 @@
-// src/pages/ProductManager.tsx
+// src/pages/ProductManager.tsx 
 
 import React, { useEffect, useState, useCallback } from 'react';
 import {

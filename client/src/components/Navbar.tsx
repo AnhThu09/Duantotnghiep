@@ -1,39 +1,76 @@
-import { FaHeart, FaSearch, FaShoppingCart, FaUser } from 'react-icons/fa'
-import { Link } from 'react-router-dom'
-import { useEffect, useState } from 'react'
+import { FaHeart, FaSearch, FaShoppingCart, FaUser } from 'react-icons/fa'; // Giữ FaUser nếu muốn dùng icon
+import { Link, useNavigate } from 'react-router-dom'; // Thêm useNavigate
+import { useEffect, useState } from 'react';
+import { useAuth } from '../context/AuthContext'; // ✅ Import useAuth
+
+// Thêm các component MUI cần thiết nếu muốn dùng (ví dụ: Box, Button, Menu, MenuItem)
+import { Box, Button, Menu, MenuItem, Typography, CircularProgress } from '@mui/material';
 
 interface Category {
-  category_id: number
-  category_name: string
-  slug: string
+  category_id: number;
+  category_name: string;
+  slug: string;
 }
 
 interface Brand {
-  brand_id: number
-  brand_name: string
-  slug: string
+  brand_id: number;
+  brand_name: string;
+  slug: string;
 }
-interface NavBarProps {
-  onCartIconClick: () => void; // Khai báo một prop là hàm không trả về gì
-}
-const NavBar = ({ onCartIconClick }: NavBarProps) => {
-  const [categories, setCategories] = useState<Category[]>([])
-  const [brands, setBrands] = useState<Brand[]>([])
 
-  const [isProductHovered, setIsProductHovered] = useState(false)
-  const [isBrandHovered, setIsBrandHovered] = useState(false)
+interface NavBarProps {
+  onCartIconClick: () => void;
+}
+
+const NavBar = ({ onCartIconClick }: NavBarProps) => {
+  const { isAuthenticated, currentUser, logout, loadingAuth } = useAuth(); // ✅ Lấy trạng thái từ AuthContext
+  const navigate = useNavigate(); // ✅ Khởi tạo useNavigate
+
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
+
+  const [isProductHovered, setIsProductHovered] = useState(false);
+  const [isBrandHovered, setIsBrandHovered] = useState(false);
+
+  // State cho Menu tài khoản
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null); // Anchor element cho menu
+  const openAccountMenu = Boolean(anchorEl); // Trạng thái mở/đóng menu
+
+  // Xử lý mở Menu tài khoản
+  const handleOpenAccountMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  // Xử lý đóng Menu tài khoản
+  const handleCloseAccountMenu = () => {
+    setAnchorEl(null);
+  };
+
+  // Xử lý đăng xuất
+  const handleLogout = () => {
+    logout(); // Gọi hàm logout từ AuthContext
+    handleCloseAccountMenu(); // Đóng menu
+    navigate('/login'); // Chuyển hướng về trang đăng nhập
+  };
+
+  // Xử lý đi đến trang tài khoản
+  const handleGoToAccount = () => {
+    handleCloseAccountMenu(); // Đóng menu
+    navigate('/account'); // Chuyển hướng đến trang tài khoản
+  };
+
 
   useEffect(() => {
     fetch('http://localhost:3000/api/categories')
       .then((res) => res.json())
       .then((data) => setCategories(data))
-      .catch((err) => console.error('❌ Lỗi fetch categories:', err))
+      .catch((err) => console.error('❌ Lỗi fetch categories:', err));
 
     fetch('http://localhost:3000/api/brands')
       .then((res) => res.json())
       .then((data) => setBrands(data))
-      .catch((err) => console.error('❌ Lỗi fetch brands:', err))
-  }, [])
+      .catch((err) => console.error('❌ Lỗi fetch brands:', err));
+  }, []);
 
   return (
     <div className="px-4 text-dark font-sans" style={{
@@ -161,11 +198,70 @@ const NavBar = ({ onCartIconClick }: NavBarProps) => {
             <FaShoppingCart size={20} />
           </span>
           
-          <Link to="/account" className="text-dark"><FaUser size={20} /></Link>
+          {/* ✅ PHẦN TÀI KHOẢN NGƯỜI DÙNG */}
+          {loadingAuth ? ( // Hiển thị loading spinner khi đang kiểm tra auth
+            <CircularProgress size={20} color="inherit" sx={{ color: '#333' }} /> 
+          ) : isAuthenticated ? (
+            // Nếu đã đăng nhập: Hiển thị tên người dùng và menu dropdown
+
+<Box
+  sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', position: 'relative' }}
+  onMouseEnter={(e) => setAnchorEl(e.currentTarget)} // Hover vào sẽ mở menu
+  onMouseLeave={() => setAnchorEl(null)} // Rời chuột sẽ ẩn menu
+>
+  <FaUser size={20} className="me-1" />
+  {/* <Typography
+    variant="body2"
+    sx={{
+      fontSize: '16px',
+      textTransform: 'uppercase',
+      color: '#333',
+      '&:hover': { color: '#5EAB5A' },
+    }}
+  >
+    {currentUser?.full_name || currentUser?.email?.split('@')[0] || "Tài khoản"}
+  </Typography> */}
+
+  {/* MENU Dropdown */}
+  <Menu
+    anchorEl={anchorEl}
+    open={Boolean(anchorEl)}
+    onClose={() => setAnchorEl(null)}
+    MenuListProps={{
+      onMouseEnter: () => {}, // Giữ mở khi di chuột qua menu
+      onMouseLeave: () => setAnchorEl(null), // Rời chuột khỏi menu thì ẩn
+    }}
+    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+    transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+  >
+    <MenuItem
+      onClick={() => {
+        setAnchorEl(null);
+        navigate('/account');
+      }}
+    >
+      Quản lý tài khoản
+    </MenuItem>
+    <MenuItem
+      onClick={() => {
+        setAnchorEl(null);
+        logout();
+        navigate('/login');
+      }}
+    >
+      Đăng xuất
+    </MenuItem>
+  </Menu>
+</Box>
+
+          ) : (
+            // Nếu chưa đăng nhập: Link đến trang đăng nhập
+            <Link to="/login" className="text-dark"><FaUser size={20} /></Link>
+          )}
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default NavBar
+export default NavBar;

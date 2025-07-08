@@ -1,3 +1,4 @@
+//Thư
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Box, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
@@ -308,7 +309,7 @@ export default function CategoryManager() { // Đã đổi tên hàm export
   return (
     <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, backgroundColor: theme.palette.background.default }}>
       <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 4, fontWeight: 'bold', color: theme.palette.primary.dark }}>
-        Quản Lý Danh Mục
+        Quản lý danh mục
       </Typography>
 
       <Paper sx={{ p: 3, borderRadius: theme.shape.borderRadius, boxShadow: theme.shadows[3], mb: 3 }}>

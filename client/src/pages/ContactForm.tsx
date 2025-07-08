@@ -1,8 +1,6 @@
-// src/components/ContactForm.tsx
-
 import { useState } from 'react';
 import axios from 'axios';
-import '../css/ContactForm.css'; // File CSS này sẽ cần được cập nhật để hiển thị bố cục ngang hàng
+import '../css/ContactForm.css';
 
 interface FormData {
   name: string;
@@ -26,18 +24,48 @@ const ContactForm = () => {
     setForm({ ...form, [name]: value });
   };
 
+  // Hàm kiểm tra định dạng dữ liệu người dùng nhập
+  const validateForm = () => {
+    const { name, phone, email, message } = form;
+
+    // Kiểm tra tên: ít nhất 2 ký tự, không chứa số
+    if (!name.trim() || name.length < 2 || /\d/.test(name)) {
+      setStatus('❌ Vui lòng nhập họ tên hợp lệ (không chứa số).');
+      return false;
+    }
+
+    // Kiểm tra số điện thoại: chỉ chứa số và đủ 10 chữ số
+    if (!/^\d{10}$/.test(phone)) {
+      setStatus('❌ Số điện thoại phải có đúng 10 chữ số.');
+      return false;
+    }
+
+    // Kiểm tra định dạng email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setStatus('❌ Email không hợp lệ.');
+      return false;
+    }
+
+    // Kiểm tra nội dung tin nhắn
+    if (!message.trim() || message.length < 10) {
+      setStatus('❌ Nội dung cần ít nhất 10 ký tự.');
+      return false;
+    }
+
+    return true;
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setStatus('');
-    // Thêm kiểm tra validation đơn giản trước khi gửi (optional, nhưng nên có)
-    if (!form.name || !form.phone || !form.email || !form.message) {
-      setStatus('⚠️ Vui lòng điền đầy đủ các trường.');
-      return;
-    }
+
+    if (!validateForm()) return;
+
     try {
-      await axios.post('http://localhost:3000/api/contact', form); // API của bạn
+      await axios.post('http://localhost:3000/api/contact', form);
       setStatus('✅ Gửi thành công! Cảm ơn bạn đã liên hệ.');
-      setForm({ name: '', phone: '', email: '', message: '' }); // Reset form
+      setForm({ name: '', phone: '', email: '', message: '' });
     } catch (error) {
       console.error('❌ Gửi lỗi:', error);
       setStatus('❌ Gửi thất bại. Vui lòng thử lại sau.');
@@ -45,12 +73,10 @@ const ContactForm = () => {
   };
 
   return (
-    <div className="contact-container"> {/* Container chính chứa 2 cột */}
-
-      {/* Cột bên trái: Form Liên hệ */}
-      <div className="contact-form-column">
-        <h2>Liên hệ để cùng hợp tác</h2>
-        <p>Rất mong được đồng hành cùng bạn!</p>
+    <div className="contact-container">
+      <div className="contact-left">
+        <h2>Liên hệ chúng tôi để được tư vấn</h2>
+        <p>Đừng ngần ngại, chúng tôi luôn sẵn sàng đồng hành cùng bạn!</p>
 
         {status && <div className="form-status">{status}</div>}
 
@@ -99,47 +125,28 @@ const ContactForm = () => {
             />
           </div>
 
-          <button type="submit" className="submit-button">Gửi</button>
+          <button type="submit">Gửi</button>
         </form>
+
+        <div className="contact-info">
+          <h3>THÔNG TIN LIÊN HỆ</h3>
+          <div>
+            <strong>Số điện thoại:</strong> 0775413664
+            <button onClick={() => window.location.href = 'tel:0775413664'}>Gọi ngay</button>
+          </div>
+          <div>
+            <strong>Email:</strong> Thuhapd10684@gmail.com
+            <button onClick={() => window.location.href = 'mailto:Thuhapd10684@gmail.com'}>Gửi ngay</button>
+          </div>
+        </div>
       </div>
 
-      {/* Cột bên phải: Thông tin Liên hệ, Hình ảnh và Google Map */}
-      <div className="contact-info-column">
-        <div className="contact-info-section"> {/* Phần thông tin liên hệ chi tiết */}
-          <h3>THÔNG TIN LIÊN HỆ</h3>
-          <div className="info-item">
-            <span className="icon">📞</span> <strong>Số điện thoại:</strong> 0775413664 <button className="info-button">Gọi ngay</button>
-          </div>
-          <div className="info-item">
-            <span className="icon">✉️</span> <strong>Email:</strong> Thuhapd10684@gmail.com <button className="info-button">Gửi ngay</button>
-          </div>
-          <div className="info-item">
-            <span className="icon">📍</span> <strong>Địa chỉ:</strong> 123 Đường ABC, Phường XYZ, Quận MN, TP. Đà Nẵng
-          </div>
-        </div>
-
-        <div className="store-image-section">
-          <h3>Cửa hàng của chúng tôi</h3>
-          <img
-            src="https://scontent.fsgn2-7.fna.fbcdn.net/v/t39.30808-6/475040251_1317043996303473_739601201807759572_n.jpg"
-            alt="Contact"
-            style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px' }} // inline style cho border-radius và max-width
-          />
-        </div>
-
-        <div className="map-section">
-          <h3>Tìm chúng tôi trên bản đồ</h3>
-          <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3834.020297672322!2d108.21045231485854!3d16.06450638883656!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x314219b1b1f9b36d%3A0x7d2b2c1d2e1b1a1a!2zVHLGsOG7nW5nIMSQ4bqhaSBI4buNYyBCw6FjaCBLaG9hIC0gxJDhuqFpIEjhu41jIMSQw6AgU8ahxqFu!5e0!3m2!1svi!2svn!4v1678888888888!5m2!1svi!2svn" // HÃY THAY THẾ BẰNG URL BẢN ĐỒ THỰC TẾ CỦA BẠN!
-            width="100%"
-            height="250"
-            style={{ border: 0, borderRadius: '8px' }}
-            allowFullScreen={false}
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-            title="Google Maps Location"
-          ></iframe>
-        </div>
+      <div className="contact-right">
+        <img
+          src="https://www.thebodyshop.com/cdn/shop/files/25Q3_SOL_TonkaGroup_CT10.jpg?v=1748356989&width=1000"
+          alt="Contact"
+          width={600}
+        />
       </div>
     </div>
   );

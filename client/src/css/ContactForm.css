@@ -1,13 +1,36 @@
-/* src/css/ContactForm.css */
-
-/* Import font từ Google Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600&family=Playfair+Display:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;600&display=swap');
 
 body {
-  font-family: 'Be Vietnam Pro', sans-serif; /* Áp dụng font cho toàn bộ body */
+  font-family: 'Be Vietnam Pro', sans-serif;
+}
+form input:focus,
+form textarea:focus {
+  outline: none;
+  border-bottom: 1px solid black;
 }
 
-/* Base styles cho các input và textarea */
+.contact-container {
+  display: flex;
+  font-family: 'Playfair Display', serif;
+  padding: 50px 80px;
+  gap: 40px;
+}
+
+.contact-left {
+  flex: 1;
+  max-width: 600px;
+}
+
+.contact-left h2 {
+  font-weight: 400;
+  margin-bottom: 8px;
+}
+
+.contact-left p {
+  font-size: 16px;
+  margin-bottom: 30px;
+}
+
 form input,
 form textarea {
   width: 100%;
@@ -17,257 +40,8 @@ form textarea {
   padding: 10px 0;
   font-size: 16px;
   background: transparent;
-  box-sizing: border-box; /* Đảm bảo padding không làm tăng chiều rộng */
 }
 
-/* Style khi input/textarea được focus */
-form input:focus,
-form textarea:focus {
-  outline: none;
-  border-bottom: 1px solid black; /* Theo yêu cầu của bạn */
-}
-
-/* Styles cho Label của Form */
-form label {
-  display: block;
-  font-size: 14px;
-  margin-bottom: 8px;
-  color: #333;
-}
-
-/* Container chính cho toàn bộ Contact Form - Đã gộp và ưu tiên style mới nhất của bạn */
-.contact-container {
-  display: flex;
-  flex-direction: row; /* Đảm bảo các cột nằm ngang */
-  justify-content: space-between; /* Đẩy các cột ra hai bên */
-  gap: 60px; /* Khoảng cách giữa hai cột */
-  max-width: 1200px; /* Giới hạn chiều rộng tối đa */
-  margin: 0 auto; /* Căn giữa theo chiều ngang */
-  padding: 0px 20px; /* Padding hai bên */
-  font-family: 'Playfair Display', serif; /* Font cho container */
-  margin-top: 40px; /* Thêm margin top cho container */
-  margin-bottom: 40px; /* Thêm margin bottom cho container */
-}
-
-/* Cột Form Liên hệ (thay thế .contact-left) */
-.contact-form-column {
-  flex: 1; /* Cho phép co giãn */
-  max-width: 600px; /* Giới hạn chiều rộng tối đa */
-  padding: 25px; /* Padding bên trong cột */
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.contact-form-column h2 {
-  font-weight: 400;
-  margin-bottom: 8px;
-  color: #333;
-}
-
-.contact-form-column p {
-  font-size: 16px;
-  margin-bottom: 30px;
-  color: #666;
-}
-
-/* Các nhóm form (input + label) */
-.form-group {
-  margin-bottom: 15px; /* Khoảng cách giữa các nhóm form */
-}
-
-/* Style cho các nút button chung */
-button {
-  background: black;
-  color: white;
-  border: none;
-  padding: 10px 25px;
-  font-size: 13px;
-  font-weight: 600;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  border-radius: 5px; /* Bo góc nhẹ cho các nút chung */
-}
-
-button:hover {
-  opacity: 0.9;
-}
-
-/* Style cụ thể cho nút Gửi */
-.submit-button {
-  margin-top: 10px; /* Khoảng cách trên nút Gửi */
-}
-
-/* Cột Thông tin Liên hệ (thay thế .contact-right) */
-.contact-info-column {
-  flex: 1; /* Cho phép co giãn */
-  display: flex;
-  flex-direction: column; /* Sắp xếp nội dung bên trong theo chiều dọc */
-  align-items: flex-start; /* Căn nội dung từ trái sang */
-  justify-content: flex-start; /* Căn nội dung từ trên xuống */
-  padding: 25px; /* Padding bên trong cột */
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-/* Style cho phần thông tin liên hệ chi tiết (Số điện thoại, Email, Địa chỉ) */
-.contact-info-section {
-  margin-bottom: 25px;
-  width: 100%; /* Đảm bảo chiếm đủ chiều rộng của cột */
-}
-
-.contact-info-section h3 {
-  font-weight: bold;
-  margin-bottom: 20px;
-  font-size: 1.5em; /* Kích thước chữ tiêu đề con */
-  color: #333;
-}
-
-.contact-info-section .info-item { /* Thay thế .contact-info div của bạn */
-  margin-bottom: 15px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between; /* Đẩy nội dung và nút ra hai bên */
-  color: #555;
-  flex-wrap: wrap; /* Cho phép xuống dòng trên màn hình nhỏ */
-}
-
-.info-item strong {
-  margin-right: 5px;
-  color: #333;
-}
-
-.info-item .icon { /* Icon cho Số điện thoại, Email, Địa chỉ */
-  margin-right: 8px;
-  font-size: 1.2em;
-  color: #007bff; /* Màu sắc cho icon */
-}
-
-.info-item button.info-button { /* Nút "Gọi ngay", "Gửi ngay" */
-  background-color: #f0f0f0;
-  color: #007bff;
-  border: 1px solid #007bff;
-  padding: 5px 10px;
-  font-size: 0.9em;
-  margin-left: 10px; /* Khoảng cách với chữ */
-  border-radius: 5px;
-  white-space: nowrap; /* Ngăn không cho nút bị xuống dòng quá sớm */
-}
-
-.info-item button.info-button:hover {
-  background-color: #e0e0e0;
-}
-
-/* Style cho phần ảnh cửa hàng */
-.store-image-section {
-  margin-bottom: 25px;
-  width: 100%;
-}
-
-.store-image-section h3 {
-  font-size: 1.5em;
-  font-weight: bold;
-  margin-bottom: 15px;
-  color: #333;
-}
-
-.store-image-section img {
-  max-width: 100%;
-  height: auto;
-  border-radius: 10px;
-  object-fit: cover;
-  display: block; /* Loại bỏ khoảng trắng dưới ảnh */
-  margin: 0 auto; /* Căn giữa ảnh */
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-/* Style cho phần bản đồ */
-.map-section {
-  margin-bottom: 0; /* Là phần cuối cùng nên không có margin-bottom */
-  width: 100%;
-}
-
-.map-section h3 {
-  font-size: 1.5em;
-  font-weight: bold;
-  margin-bottom: 15px;
-  color: #333;
-}
-
-.map-section iframe {
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-}
-
-/* Style cho thông báo trạng thái */
-.form-status { /* Đã thay thế .status */
-  margin-top: 20px;
-  margin-bottom: 20px; /* Thêm margin-bottom để có khoảng cách với form */
-  padding: 10px;
-  border-radius: 5px;
-  font-style: italic;
-  text-align: center;
-  font-weight: bold;
-  background-color: #e6ffe6; /* Nền xanh nhạt cho thành công */
-  color: green;
-}
-.form-status.error {
-    background-color: #ffe6e6; /* Nền đỏ nhạt cho lỗi */
-    color: red;
-}
-.form-status.warning {
-    background-color: #fffbe6; /* Nền vàng nhạt cho cảnh báo */
-    color: orange;
-}
-
-
-/* Responsive adjustments */
-@media (min-width: 900px) { /* Cho màn hình lớn hơn 900px */
-  .contact-form-column {
-    flex-basis: calc(45% - 30px); /* Khoảng 45% trừ đi một nửa gap */
-    max-width: calc(45% - 30px);
-  }
-  .contact-info-column {
-    flex-basis: calc(55% - 30px); /* Khoảng 55% trừ đi một nửa gap */
-    max-width: calc(55% - 30px);
-  }
-}
-
-@media (max-width: 899px) { /* Khi màn hình nhỏ hơn 900px, các cột xếp dọc */
-  .contact-container {
-    flex-direction: column; /* Chuyển thành cột */
-    gap: 30px; /* Khoảng cách giữa các phần khi xếp dọc */
-    padding: 20px;
-  }
-  .contact-form-column,
-  .contact-info-column {
-    flex-basis: 100%; /* Mỗi cột chiếm toàn bộ chiều rộng */
-    max-width: 100%;
-    margin-bottom: 0; /* Bỏ margin-bottom nếu đã có gap */
-  }
-}
-
-@media (max-width: 599px) { /* Điều chỉnh thêm cho màn hình điện thoại rất nhỏ */
-  .contact-container {
-    padding: 15px;
-  }
-  .contact-form-column,
-  .contact-info-column {
-    padding: 15px;
-  }
-  .contact-form-column h2,
-  .contact-info-column h3 {
-    font-size: 1.3em;
-  }
-  .info-item button.info-button {
-      padding: 3px 8px;
-      font-size: 0.8em;
-  }
-}
-
-/* Các lớp flex-row từ code của bạn (nếu có sử dụng trong form) */
 .flex-row {
   display: flex;
   gap: 20px;
@@ -276,7 +50,71 @@ button:hover {
 .flex-row input {
   flex: 1;
 }
-
-.flex-row .form-group {
-  flex: 1; /* chiếm đều không gian */
+button {
+    background: black;
+    color: white;
+    border: none;
+    padding: 10px 25px;
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  button:hover {
+    opacity: 0.9;
+  }
+  .contact-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 60px;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 60px 20px;
+  }
+  
+.contact-info {
+  margin-top: 40px;
 }
+
+.contact-info h3 {
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.contact-info div {
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.contact-right {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .contact-right img {
+    max-width: 100%;
+    border-radius: 10px;
+    object-fit: cover;
+  }
+  
+
+.status {
+  margin-top: 20px;
+  font-style: italic;
+  color: green;
+}
+form label {
+    display: block;
+    font-size: 14px;
+    margin-bottom: 8px;
+    color: #333;
+  }
+  .flex-row .form-group {
+    flex: 1; /* chiáº¿m Ä‘á»u khÃ´ng gian */
+  }
