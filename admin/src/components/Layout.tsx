@@ -28,23 +28,19 @@ import LibraryBooksIcon from '@mui/icons-material/LibraryBooks'; // Quản lý b
 import ReviewsIcon from '@mui/icons-material/Reviews';           // Quản lý đánh giá
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 
-// import Header from './Header'; // Import component Header đã tách riêng
-// import { SignInPage } from '../pages/SignInPage';
-// import Header from './Header'; // Import component Header đã tách riêng
+import Header from './Header'; // Import component Header đã tách riêng
 import { SignInPage } from '../pages/SignInPage';
+
 const drawerWidth = 240;
 
 interface LayoutProps {
   children: React.ReactNode;
-    authorized: boolean; 
 }
-
 
 export default function Layout({ children }: LayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [loading] = useState(false); // Luôn là false để ẩn kiểm tra đăng nhập/loading
   const location = useLocation();
-  const [authorized, setAuthorized] = useState(false); 
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -104,26 +100,6 @@ export default function Layout({ children }: LayoutProps) {
   );
 
 
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-        <CircularProgress size={48} thickness={4} />
-      </Box>
-    );
-  }
-
-  if (authorized) {
-    return <SignInPage onSignIn={onSignIn} />;
-  }
-
-  // Ẩn kiểm tra đăng nhập/loading, luôn hiển thị layout
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-        <CircularProgress size={48} thickness={4} />
-      </Box>
-    );
-  }
   // if (loading) {
   //   return (
   //     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
@@ -134,6 +110,7 @@ export default function Layout({ children }: LayoutProps) {
   // if (!authorized) {
   //   return <SignInPage onSignIn={onSignIn} />;
   // }
+
 
 // if (!authorized) {
 //   return <SignInPage onSignIn={onSignIn} />;

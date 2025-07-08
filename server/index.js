@@ -49,6 +49,33 @@ app.use((err, req, res, next) => {
   res.status(500).json({ message: "Đã xảy ra lỗi máy chủ!" });
 });
 
+// --- API Endpoint: Tìm kiếm sản phẩm (Client-side filtering thì không cần endpoint này) ---
+// Nếu bạn muốn tìm kiếm server-side, bạn sẽ cần endpoint này
+app.get('/api/products/search', async (req, res) => {
+    const searchTerm = req.query.q; // Lấy từ khóa tìm kiếm từ query parameter 'q'
+
+    if (!searchTerm) {
+        return res.status(400).json({ error: 'Search term is required' });
+    }
+
+    const searchKeyword = `%${searchTerm}%`;
+
+    try {
+        const [rows] = await pool.execute(
+            `SELECT * FROM \`products\` 
+             WHERE \`name\` LIKE ? OR \`short_description\` LIKE ? OR \`description\` LIKE ? 
+             ORDER BY product_id DESC`,
+            [searchKeyword, searchKeyword, searchKeyword]
+        );
+        res.json(rows);
+    } catch (error) {
+        console.error('Error searching products:', error);
+        res.status(500).json({ error: 'Failed to search products' });
+    }
+});
+
+
+
 // Khởi động server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
