@@ -3,7 +3,7 @@ import React, { useState } from 'react'
 import ContactForm from './pages/ContactForm'
 import Footer from './components/Footer'
 import NavBar from './components/Navbar'
-import About from './pages/About'
+import About from './pages/ProductListWithFilters'
 import Account from './pages/Account'
 // import HeroSection from './pages/HeroSection'
 import ProductByCategory from './pages/ProductByCategory'
@@ -22,6 +22,7 @@ import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import ProductDetailPage from './pages/ProductDetailPage'
 import FavoriteProductsPage from './pages/FavoriteProductsPage'
+import ProductListWithFilters from './pages/ProductListWithFilters'
 
 
 function App() {
@@ -33,7 +34,7 @@ function App() {
         <NavBar onCartIconClick={() => setIsCartOpen(true)} />
         <Routes>
           <Route path="/" element={<Home />} />
-          <Route path="/about" element={<About />} />
+          <Route path="/products" element={<ProductListWithFilters />} />
           {/* <Route path="/brand" element={<ThuongHieu />} /> */}
           {/* <Route path="/km" element={<KhuyenMai />} /> */}
           {/* <Route path="/contact" element={<Blog />} /> */}
