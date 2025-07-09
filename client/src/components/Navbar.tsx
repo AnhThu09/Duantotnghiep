@@ -86,7 +86,6 @@ const NavBar = ({ onCartIconClick }: NavBarProps) => {
   textTransform: 'uppercase',
   letterSpacing: '1px',
   fontSize: '16px',
-  
 }}>
 
       <div className="d-flex justify-content-between align-items-center">
