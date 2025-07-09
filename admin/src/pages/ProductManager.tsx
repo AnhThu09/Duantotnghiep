@@ -220,9 +220,17 @@ export default function ProductManager() {
       }
       fetchProducts(); // Tải lại danh sách sau khi lưu
       handleCloseDialog();
-    } catch (err: any) {
-      console.error('Save error:', err.response?.data || err.message);
-      setAlert({ open: true, message: `❌ Lỗi khi lưu sản phẩm: ${err.response?.data?.message || err.message}`, severity: 'error' });
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        console.error('Save error:', err.response?.data || err.message);
+        setAlert({ open: true, message: `❌ Lỗi khi lưu sản phẩm: ${err.response?.data?.message || err.message}`, severity: 'error' });
+      } else if (err instanceof Error) {
+        console.error('Save error:', err.message);
+        setAlert({ open: true, message: `❌ Lỗi khi lưu sản phẩm: ${err.message}`, severity: 'error' });
+      } else {
+        console.error('Save error:', err);
+        setAlert({ open: true, message: '❌ Lỗi không xác định khi lưu sản phẩm.', severity: 'error' });
+      }
     }
   }, [editingProduct, formData, fetchProducts, handleCloseDialog]);
 

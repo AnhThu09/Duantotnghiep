@@ -59,6 +59,7 @@ const NavBar = ({ onCartIconClick }: NavBarProps) => {
     navigate('/account'); // Chuyển hướng đến trang tài khoản
   };
 
+ 
 
   useEffect(() => {
     fetch('http://localhost:3000/api/categories')
@@ -108,7 +109,7 @@ const NavBar = ({ onCartIconClick }: NavBarProps) => {
               onMouseLeave={() => setIsProductHovered(false)}
               style={{ position: 'relative' }}
             >
-              <Link className="nav-link" to="#">Sản phẩm</Link>
+              <Link className="nav-link" to="/products">Sản phẩm</Link>
               {isProductHovered && (
                 <div className="shadow-sm rounded" style={{
                   position: 'absolute',

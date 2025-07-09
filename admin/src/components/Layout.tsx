@@ -9,7 +9,7 @@ import {
   ListItemText,
   Divider,
   Typography,
-  CircularProgress, // Giữ lại nếu bạn có loading riêng cho phần nào đó trong layout
+  CircularProgress, 
 } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import CategoryIcon from '@mui/icons-material/Category';
@@ -45,7 +45,7 @@ export default function Layout({ children }: LayoutProps) {
     setMobileOpen(!mobileOpen);
   };
 
-  // ✅ Cập nhật đường dẫn (path) để phản ánh cấu trúc gốc của Admin App
+  // Cập nhật đường dẫn (path) để phản ánh cấu trúc gốc của Admin App
   // Ví dụ: /dashboard, /users, v.v. (KHÔNG CÓ TIỀN TỐ /admin/)
   const navItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' }, // Đường dẫn gốc của Admin App
@@ -100,6 +100,8 @@ export default function Layout({ children }: LayoutProps) {
       </List>
     </Box>
   );
+
+  // Không cần logic loading/authorized ở đây vì PrivateRoute đã xử lý.
 
   return (
     <Box sx={{ display: 'flex' }}>
