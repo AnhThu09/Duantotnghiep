@@ -1,341 +1,384 @@
-// import { db } from "../config/connectBD.js";
-// import bcrypt from "bcryptjs";
+import  { db }  from "../config/connectBD.js";
+import bcrypt from "bcryptjs";
 
-// const getUserProfile = async (req, res) => {
-//   try {
-//     const [users] = await db
-//       .promise()
-//       .query(
-//         "SELECT user_id, full_name, email, phone_number, gender, date_of_birth, address, ward, district, province, role, status, created_at, updated_at FROM users WHERE user_id = ?",
-//         [req.user.id]
-//       );
-//     if (users.length === 0) {
-//       return res.status(404).json({ message: "Không tìm thấy người dùng!" });
-//     }
-//     res.status(200).json(users[0]);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: "Lỗi server" });
-//   }
-// };
+const getUserProfile = async (req, res) => {
+  try {
+    const [users] = await db
+      .promise()
+      .query(
+        "SELECT user_id, full_name, email, phone_number, gender, date_of_birth, address, ward, district, province, role, status, created_at, updated_at FROM users WHERE user_id = ?",
+        [req.user.id]
+      );
+    if (users.length === 0) {
+      return res.status(404).json({ message: "Không tìm thấy người dùng!" });
+    }
+    res.status(200).json(users[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
 
-// const updateUserProfile = async (req, res) => {
-//   const {
-//     full_name,
-//     phone_number,
-//     gender,
-//     date_of_birth,
-//     address,
-//     ward,
-//     district,
-//     province,
-//     password_hash,
-//   } = req.body;
-//   try {
-//     if (!full_name || !phone_number) {
-//       return res
-//         .status(400)
-//         .json({ message: "Vui lòng nhập đầy đủ họ tên và số điện thoại!" });
-//     }
-//     let updateQuery =
-//       "UPDATE users SET full_name = ?, phone_number = ?, gender = ?, date_of_birth = ?, address = ?, ward = ?, district = ?, province = ?, updated_at = NOW()";
-//     let values = [
-//       full_name,
-//       phone_number,
-//       gender,
-//       date_of_birth,
-//       address,
-//       ward,
-//       district,
-//       province,
-//     ];
+const updateUserProfile = async (req, res) => {
+  const {
+    full_name,
+    phone_number,
+    gender,
+    date_of_birth,
+    address,
+    ward,
+    district,
+    province,
+    password_hash,
+  } = req.body;
+  try {
+    if (!full_name || !phone_number) {
+      return res
+        .status(400)
+        .json({ message: "Vui lòng nhập đầy đủ họ tên và số điện thoại!" });
+    }
+    let updateQuery =
+      "UPDATE users SET full_name = ?, phone_number = ?, gender = ?, date_of_birth = ?, address = ?, ward = ?, district = ?, province = ?, updated_at = NOW()";
+    let values = [
+      full_name,
+      phone_number,
+      gender,
+      date_of_birth,
+      address,
+      ward,
+      district,
+      province,
+    ];
 
-//     if (password_hash) {
-//       const salt = bcrypt.genSaltSync(10);
-//       const hash = bcrypt.hashSync(password_hash, salt);
-//       updateQuery += ", password_hash = ?";
-//       values.push(hash);
-//     }
+    if (password_hash) {
+      const salt = bcrypt.genSaltSync(10);
+      const hash = bcrypt.hashSync(password_hash, salt);
+      updateQuery += ", password_hash = ?";
+      values.push(hash);
+    }
 
-//     updateQuery += " WHERE user_id = ?";
-//     values.push(req.user.id);
+    updateQuery += " WHERE user_id = ?";
+    values.push(req.user.id);
 
-//     const [result] = await db.promise().query(updateQuery, values);
-//     if (result.affectedRows === 0) {
-//       return res.status(404).json({ message: "Không tìm thấy người dùng!" });
-//     }
-//     const [updatedUser] = await db
-//       .promise()
-//       .query(
-//         "SELECT user_id, full_name, email, phone_number, gender, date_of_birth, address, ward, district, province, role, status, created_at, updated_at FROM users WHERE user_id = ?",
-//         [req.user.id]
-//       );
-//     res.status(200).json(updatedUser[0]);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: "Lỗi server" });
-//   }
-// };
+    const [result] = await db.promise().query(updateQuery, values);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Không tìm thấy người dùng!" });
+    }
+    const [updatedUser] = await db
+      .promise()
+      .query(
+        "SELECT user_id, full_name, email, phone_number, gender, date_of_birth, address, ward, district, province, role, status, created_at, updated_at FROM users WHERE user_id = ?",
+        [req.user.id]
+      );
+    res.status(200).json(updatedUser[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
 
-// const getAllUsers = async (req, res) => {
-//   try {
-//     const page = parseInt(req.query.page) || 1;
-//     const limit = parseInt(req.query.limit) || 10;
-//     const search = req.query.search || "";
-//     const offset = (page - 1) * limit;
+const getAllUsers = async (req, res) => {
+  try {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const search = req.query.search || "";
+    const offset = (page - 1) * limit;
 
-//     let whereClause = "";
-//     let queryParams = [];
+    let whereClause = "";
+    let queryParams = [];
 
-//     // Xây dựng điều kiện tìm kiếm đơn giản
-//     if (search.trim()) {
-//       const searchTerm = `%${search.trim()}%`;
-//       whereClause = `WHERE (
-//         full_name LIKE ? OR
-//         email LIKE ? OR
-//         phone_number LIKE ? OR
-//         user_id LIKE ? OR
-//         role LIKE ? OR
-//         status LIKE ? OR
-//         COALESCE(address, '') LIKE ? OR
-//         COALESCE(ward, '') LIKE ? OR
-//         COALESCE(district, '') LIKE ? OR
-//         COALESCE(province, '') LIKE ?
-//       )`;
-//       queryParams = [searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm];
-//     }
+    // Xây dựng điều kiện tìm kiếm đơn giản
+    if (search.trim()) {
+      const searchTerm = `%${search.trim()}%`;
+      whereClause = `WHERE (
+        full_name LIKE ? OR
+        email LIKE ? OR
+        phone_number LIKE ? OR
+        user_id LIKE ? OR
+        role LIKE ? OR
+        status LIKE ? OR
+        COALESCE(address, '') LIKE ? OR
+        COALESCE(ward, '') LIKE ? OR
+        COALESCE(district, '') LIKE ? OR
+        COALESCE(province, '') LIKE ?
+      )`;
+      queryParams = [searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm];
+    }
 
-//     // Đếm tổng số bản ghi với điều kiện tìm kiếm
-//     const [countResult] = await db
-//       .promise()
-//       .query(`SELECT COUNT(*) as total FROM users ${whereClause}`, queryParams);
-//     const total = countResult[0].total;
+    // Đếm tổng số bản ghi với điều kiện tìm kiếm
+    const [countResult] = await db
+      .promise()
+      .query(`SELECT COUNT(*) as total FROM users ${whereClause}`, queryParams);
+    const total = countResult[0].total;
 
-//     // Lấy danh sách người dùng với điều kiện tìm kiếm và phân trang
-//     const [users] = await db
-//       .promise()
-//       .query(
-//         `SELECT user_id, full_name, email, phone_number, gender, date_of_birth, address, ward, district, province, role, status, created_at, updated_at
-//          FROM users
-//          ${whereClause}
-//          ORDER BY created_at DESC
-//          LIMIT ? OFFSET ?`,
-//         [...queryParams, limit, offset]
-//       );
+    // Lấy danh sách người dùng với điều kiện tìm kiếm và phân trang
+    const [users] = await db
+      .promise()
+      .query(
+        `SELECT user_id, full_name, email, phone_number, gender, date_of_birth, address, ward, district, province, role, status, created_at, updated_at
+         FROM users
+         ${whereClause}
+         ORDER BY created_at DESC
+         LIMIT ? OFFSET ?`,
+        [...queryParams, limit, offset]
+      );
 
-//     res.status(200).json({
-//       users,
-//       total,
-//       page,
-//       limit,
-//       search,
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: "Lỗi server" });
-//   }
-// };
+    res.status(200).json({
+      users,
+      total,
+      page,
+      limit,
+      search,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
 
-// const getUserById = async (req, res) => {
-//   try {
-//     const [users] = await db
-//       .promise()
-//       .query(
-//         "SELECT user_id, full_name, email, phone_number, gender, date_of_birth, address, ward, district, province, role, status, created_at, updated_at FROM users WHERE user_id = ?",
-//         [req.params.id]
-//       );
-//     if (users.length === 0) {
-//       return res.status(404).json({ message: "Không tìm thấy người dùng!" });
-//     }
-//     res.status(200).json(users[0]);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: "Lỗi server" });
-//   }
-// };
+const getUserById = async (req, res) => {
+  try {
+    const [users] = await db
+      .promise()
+      .query(
+        "SELECT user_id, full_name, email, phone_number, gender, date_of_birth, address, ward, district, province, role, status, created_at, updated_at FROM users WHERE user_id = ?",
+        [req.params.id]
+      );
+    if (users.length === 0) {
+      return res.status(404).json({ message: "Không tìm thấy người dùng!" });
+    }
+    res.status(200).json(users[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
 
-// const createUser = async (req, res) => {
-//   const {
-//     full_name,
-//     email,
-//     password_hash,
-//     phone_number,
-//     gender,
-//     date_of_birth,
-//     address,
-//     ward,
-//     district,
-//     province,
-//     role,
-//     status,
-//   } = req.body;
-//   try {
-//     if (!full_name || !email || !password_hash || !phone_number) {
-//       return res.status(400).json({
-//         message:
-//           "Vui lòng nhập đầy đủ họ tên, email, mật khẩu và số điện thoại!",
-//       });
-//     }
-//     const [existingUsers] = await db
-//       .promise()
-//       .query("SELECT * FROM users WHERE email = ? OR phone_number = ?", [
-//         email,
-//         phone_number,
-//       ]);
-//     if (existingUsers.length > 0) {
-//       if (existingUsers[0].email === email) {
-//         return res.status(409).json({ message: "Email đã tồn tại!" });
-//       }
-//       return res.status(409).json({ message: "Số điện thoại đã tồn tại!" });
-//     }
+const createUser = async (req, res) => {
+  // ✅ PHẦN DESTRUCTURING req.body PHẢI CHUẨN XÁC
+  const {
+    full_name,
+    email,
+    password_hash,
+    phone_number,
+    gender,
+    date_of_birth,
+    address,
+    ward,
+    district,
+    province,
+    role,   // ✅ Lấy role và status mà không có giá trị mặc định ở đây
+    status, // ✅
+  } = req.body;
 
-//     const salt = bcrypt.genSaltSync(10);
-//     const hash = bcrypt.hashSync(password_hash, salt);
+  try { // ✅ KHỐI TRY CỦA TOÀN BỘ HÀM CREATEUSER
+    if (!full_name || !email || !password_hash || !phone_number) {
+      return res.status(400).json({
+        message:
+          "Vui lòng nhập đầy đủ họ tên, email, mật khẩu và số điện thoại!",
+      });
+    }
 
-//     const [result] = await db
-//       .promise()
-//       .query(
-//         "INSERT INTO users (full_name, email, password_hash, phone_number, gender, date_of_birth, address, ward, district, province, role, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-//         [
-//           full_name,
-//           email,
-//           hash,
-//           phone_number,
-//           gender,
-//           date_of_birth,
-//           address,
-//           ward,
-//           district,
-//           province,
-//           role || "customer",
-//           status || "active",
-//         ]
-//       );
+    // ✅ Thêm validation email hợp lệ
+    if (!/.+@.+\..+/.test(email)) {
+        return res.status(400).json({ message: 'Email không đúng định dạng.' });
+    }
+    // ✅ Thêm validation mật khẩu hợp lệ (tối thiểu 6 ký tự)
+    if (password_hash.length < 6) {
+        return res.status(400).json({ message: 'Mật khẩu phải có ít nhất 6 ký tự.' });
+    }
+    // ✅ Thêm validation role/status hợp lệ
+    if (role && !['admin', 'customer'].includes(role)) {
+        return res.status(400).json({ message: 'Vai trò không hợp lệ. Chỉ có thể là "admin" hoặc "customer".' });
+    }
+    if (status && !['active', 'inactive'].includes(status)) {
+        return res.status(400).json({ message: 'Trạng thái không hợp lệ. Chỉ có thể là "active" hoặc "inactive".' });
+    }
 
-//     const [newUser] = await db
-//       .promise()
-//       .query(
-//         "SELECT user_id, full_name, email, phone_number, gender, date_of_birth, address, ward, district, province, role, status, created_at, updated_at FROM users WHERE user_id = ?",
-//         [result.insertId]
-//       );
-//     res.status(201).json(newUser[0]);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: "Lỗi server" });
-//   }
-// };
 
-// const updateUser = async (req, res) => {
-//   const {
-//     full_name,
-//     email,
-//     phone_number,
-//     gender,
-//     date_of_birth,
-//     address,
-//     ward,
-//     district,
-//     province,
-//     role,
-//     status,
-//     password_hash,
-//   } = req.body;
-//   try {
-//     if (!full_name || !email || !phone_number) {
-//       return res.status(400).json({
-//         message: "Vui lòng nhập đầy đủ họ tên, email và số điện thoại!",
-//       });
-//     }
-//     const [existingUsers] = await db
-//       .promise()
-//       .query(
-//         "SELECT * FROM users WHERE (email = ? OR phone_number = ?) AND user_id != ?",
-//         [email, phone_number, req.params.id]
-//       );
-//     if (existingUsers.length > 0) {
-//       if (existingUsers[0].email === email) {
-//         return res.status(409).json({ message: "Email đã tồn tại!" });
-//       }
-//       return res.status(409).json({ message: "Số điện thoại đã tồn tại!" });
-//     }
+    const [existingUsers] = await db
+      .promise()
+      .query("SELECT * FROM users WHERE email = ? OR phone_number = ?", [
+        email,
+        phone_number,
+      ]);
+    if (existingUsers.length > 0) {
+      if (existingUsers[0].email === email) {
+        return res.status(409).json({ message: "Email đã tồn tại!" });
+      }
+      return res.status(409).json({ message: "Số điện thoại đã tồn tại!" });
+    }
 
-//     let updateQuery =
-//       "UPDATE users SET full_name = ?, email = ?, phone_number = ?, gender = ?, date_of_birth = ?, address = ?, ward = ?, district = ?, province = ?, role = ?, status = ?, updated_at = NOW()";
-//     let values = [
-//       full_name,
-//       email,
-//       phone_number,
-//       gender,
-//       date_of_birth,
-//       address,
-//       ward,
-//       district,
-//       province,
-//       role,
-//       status,
-//     ];
+    const salt = bcrypt.genSaltSync(10);
+    const hash = bcrypt.hashSync(password_hash, salt);
 
-//     if (password_hash) {
-//       const salt = bcrypt.genSaltSync(10);
-//       const hash = bcrypt.hashSync(password_hash, salt);
-//       updateQuery += ", password_hash = ?";
-//       values.push(hash);
-//     }
+    const [result] = await db
+      .promise()
+      .query(
+        // ✅ Cập nhật câu lệnh INSERT để bao gồm is_email_verified
+        "INSERT INTO users (full_name, email, password_hash, phone_number, gender, date_of_birth, address, ward, district, province, role, status, is_email_verified, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())",
+        [
+          full_name,
+          email,
+          hash,
+          phone_number,
+          gender || null, // ✅ Gán null cho các trường tùy chọn nếu trống
+          date_of_birth || null,
+          address || null,
+          ward || null,
+          district || null,
+          province || null,
+          role || "customer",   // ✅ Giá trị mặc định cho role
+          status || "active",   // ✅ Giá trị mặc định cho status
+          true,                 // ✅ ĐẶT is_email_verified LÀ TRUE KHI ADMIN TẠO
+        ]
+      );
 
-//     updateQuery += " WHERE user_id = ?";
-//     values.push(req.params.id);
+    // ✅ Cập nhật truy vấn SELECT để lấy tất cả các trường (bao gồm is_email_verified)
+    const [newUser] = await db
+      .promise()
+      .query(
+        "SELECT user_id, full_name, email, phone_number, gender, date_of_birth, address, ward, district, province, role, status, is_email_verified, created_at, updated_at FROM users WHERE user_id = ?",
+        [result.insertId]
+      );
+    res.status(201).json(newUser[0]); // Trả về user vừa tạo
+  } catch (error) { // ✅ KHỐI CATCH CỦA HÀM
+    console.error(error);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
 
-//     const [result] = await db.promise().query(updateQuery, values);
-//     if (result.affectedRows === 0) {
-//       return res.status(404).json({ message: "Không tìm thấy người dùng!" });
-//     }
 
-//     const [updatedUser] = await db
-//       .promise()
-//       .query(
-//         "SELECT user_id, full_name, email, phone_number, gender, date_of_birth, address, ward, district, province, role, status, created_at, updated_at FROM users WHERE user_id = ?",
-//         [req.params.id]
-//       );
-//     res.status(200).json(updatedUser[0]);
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: "Lỗi server" });
-//   }
-// };
+const updateUser = async (req, res) => {
+  const {
+    full_name,
+    email,
+    phone_number,
+    gender,
+    date_of_birth,
+    address,
+    ward,
+    district,
+    province,
+    role,
+    status,
+    password_hash,
+  } = req.body;
+  try {
+    if (!full_name || !email || !phone_number) {
+      return res.status(400).json({
+        message: "Vui lòng nhập đầy đủ họ tên, email và số điện thoại!",
+      });
+    }
+    const [existingUsers] = await db
+      .promise()
+      .query(
+        "SELECT * FROM users WHERE (email = ? OR phone_number = ?) AND user_id != ?",
+        [email, phone_number, req.params.id]
+      );
+    if (existingUsers.length > 0) {
+      if (existingUsers[0].email === email) {
+        return res.status(409).json({ message: "Email đã tồn tại!" });
+      }
+      return res.status(409).json({ message: "Số điện thoại đã tồn tại!" });
+    }
 
-// const deleteUser = async (req, res) => {
-//   try {
-//     const [result] = await db
-//       .promise()
-//       .query("DELETE FROM users WHERE user_id = ?", [req.params.id]);
-//     if (result.affectedRows === 0) {
-//       return res.status(404).json({ message: "Không tìm thấy người dùng!" });
-//     }
-//     res.status(204).json({
-//       message: "Xóa người dùng thành công",
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: "Lỗi server" });
-//   }
-// };
+    let updateQuery =
+      "UPDATE users SET full_name = ?, email = ?, phone_number = ?, gender = ?, date_of_birth = ?, address = ?, ward = ?, district = ?, province = ?, role = ?, status = ?, updated_at = NOW()";
+    let values = [
+      full_name,
+      email,
+      phone_number,
+      gender,
+      date_of_birth,
+      address,
+      ward,
+      district,
+      province,
+      role,
+      status,
+    ];
 
-// export {
-//   getUserProfile,
-//   updateUserProfile,
-//   getAllUsers,
-//   getUserById,
-//   createUser,
-//   updateUser,
-//   deleteUser,
-// };
+    if (password_hash) {
+      const salt = bcrypt.genSaltSync(10);
+      const hash = bcrypt.hashSync(password_hash, salt);
+      updateQuery += ", password_hash = ?";
+      values.push(hash);
+    }
+
+    updateQuery += " WHERE user_id = ?";
+    values.push(req.params.id);
+
+    const [result] = await db.promise().query(updateQuery, values);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Không tìm thấy người dùng!" });
+    }
+
+    const [updatedUser] = await db
+      .promise()
+      .query(
+        "SELECT user_id, full_name, email, phone_number, gender, date_of_birth, address, ward, district, province, role, status, created_at, updated_at FROM users WHERE user_id = ?",
+        [req.params.id]
+      );
+    res.status(200).json(updatedUser[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
+const deleteUser = async (req, res) => {
+  try {
+    const [result] = await db
+      .promise()
+      .query("DELETE FROM users WHERE user_id = ?", [req.params.id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ message: "Không tìm thấy người dùng!" });
+    }
+    res.status(204).json({
+      message: "Xóa người dùng thành công",
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Lỗi server" });
+  }
+};
+
+export {
+  getUserProfile,
+  updateUserProfile,
+  getAllUsers,
+  getUserById,
+  createUser,
+  updateUser,
+  deleteUser,
+};
 
 // server/controllers/userController.js
 // server/controllers/userController.js
 // server/controllers/userController.js
-import { db } from "../config/connectBD.js"; // Import db của MySQL
-import bcrypt from "bcryptjs"; // Import bcrypt (nếu cần dùng ở đây, không trực tiếp dùng trong updateProfile)
+const saltRounds = 10; // Import bcrypt (nếu cần dùng ở đây, không trực tiếp dùng trong updateProfile)
+const mapUserToFrontend = (dbUser) => {
+  if (!dbUser) return null;
+  const dateOfBirthFormatted = dbUser.date_of_birth
+    ? new Date(dbUser.date_of_birth).toISOString().split('T')[0]
+    : null;
 
+  return {
+    user_id: dbUser.user_id,
+    full_name: dbUser.full_name,
+    email: dbUser.email,
+    phone_number: dbUser.phone_number,
+    gender: dbUser.gender,
+    date_of_birth: dateOfBirthFormatted,
+    address: dbUser.address,
+    ward: dbUser.ward,
+    district: dbUser.district,
+    province: dbUser.province,
+    role: dbUser.role,
+    status: dbUser.status,
+  };
+};
 // ===== LẤY THÔNG TIN PROFILE CỦA NGƯỜI DÙNG HIỆN TẠI =====
 export const getProfile = async (req, res) => {
     try {
@@ -457,3 +500,4 @@ export const updateProfile = async (req, res) => {
         res.status(500).json({ message: "Lỗi server không xác định khi cập nhật thông tin người dùng." });
     }
 };
+

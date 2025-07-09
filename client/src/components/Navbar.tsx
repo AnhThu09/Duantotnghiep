@@ -73,13 +73,21 @@ const NavBar = ({ onCartIconClick }: NavBarProps) => {
   }, []);
 
   return (
-    <div className="px-4 text-dark font-sans" style={{
-      fontFamily: 'Raleway, sans-serif',
-      fontWeight: 500,
-      textTransform: 'uppercase',
-      letterSpacing: '1px',
-      fontSize: '16px',
-    }}>
+<div className="px-4 text-dark font-sans" style={{
+  position: 'fixed', // ✅ Cố định khi cuộn
+  top: 0,
+  left: 0,
+  right: 0,
+  zIndex: 999, // ✅ Đè lên phần khác
+  backgroundColor: '#fffefb', // ✅ Có màu nền để che
+  fontFamily: 'Raleway, sans-serif',
+  fontWeight: 500,
+  textTransform: 'uppercase',
+  letterSpacing: '1px',
+  fontSize: '16px',
+  
+}}>
+
       <div className="d-flex justify-content-between align-items-center">
         <div className="d-flex align-items-center gap-2">
           <Link className="navbar-brand" to="/">

@@ -4,9 +4,9 @@ import { db } from "../config/connectBD.js";
 import dotenv from "dotenv";
 
 dotenv.config(); 
-
-const SECRET_KEY = process.env.JWT_SECRET || "a-string-secret-at-least-256-bits-long";
-
+// const SECRET_KEY = process.env.JWT_SECRET || "a-string-secret-at-least-256-bits-long";
+const SECRET_KEY = process.env.JWT_SECRET || "fallback_secret_if_env_fails"; // ✅ Đảm bảo đọc từ process.env
+console.log('authController SECRET_KEY (tạo token - FROM ENV):', SECRET_KEY);
 export const authMiddleware = (req, res, next) => {
   const token = req.headers.authorization?.split(" ")[1];
   if (!token) {
@@ -59,3 +59,4 @@ export const checkRole = (roles) => async (req, res, next) => {
     return res.status(403).json({ message: "Token không hợp lệ hoặc không có quyền!" });
   }
 };
+

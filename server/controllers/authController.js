@@ -1,12 +1,14 @@
 import { db } from "../config/connectBD.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
+// import dotenv from "dotenv";
 import { sendOTP } from '../utils/sendOTP.js';
 
-dotenv.config();
+// dotenv.config();
 const otpStore = new Map(); // email -> { otp, expiresAt, verified, type }
-const SECRET_KEY = process.env.JWT_SECRET || "backup-secret-key"; 
+// const SECRET_KEY = process.env.JWT_SECRET || "backup-secret-key"; 
+const SECRET_KEY = process.env.JWT_SECRET || "fallback_secret_if_env_fails"; // ✅ Đảm bảo đọc từ process.env
+console.log('authController SECRET_KEY (tạo token - FROM ENV):', SECRET_KEY);
 const OTP_EXPIRY_MINUTES = parseInt(process.env.OTP_EXPIRY_MINUTES || '5', 10);
 
 const generateOtp = () => {

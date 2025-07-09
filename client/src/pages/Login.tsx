@@ -101,15 +101,6 @@ const LoginPage = () => {
 
       setSnackbar({ open: true, message: 'Đăng nhập thành công!', severity: 'success' });
 
-      // Chuyển hướng người dùng sau khi đăng nhập thành công
-      setTimeout(() => { // Chờ 1 chút để Snackbar hiển thị trước khi chuyển trang
-        if (user.role === 'admin') {
-          navigate('/admin/dashboard'); // Chuyển hướng đến trang admin nếu là admin
-        } else {
-          navigate('/'); // Chuyển hướng về trang chủ nếu là user thường
-        }
-      }, 1000); // Chờ 1 giây
-
     } catch (err: any) { // Bắt lỗi để hiển thị thông báo từ backend
       console.error('Lỗi đăng nhập:', err);
       let errorMessage = 'Đăng nhập thất bại. Vui lòng thử lại.';
@@ -145,7 +136,7 @@ const LoginPage = () => {
     >
       <Typography variant="h6" fontWeight="bold">Đăng nhập</Typography>
       <Typography variant="h5" mt={1} mb={2} fontWeight="bold" color="text.primary">
-        Cocoon chào bạn trở lại.
+        Night Owls chào bạn trở lại.
       </Typography>
       <Typography variant="body2" mb={2}>
         Bạn chưa có tài khoản?{' '}

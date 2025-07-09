@@ -9,7 +9,7 @@ import {
   ListItemText,
   Divider,
   Typography,
-  CircularProgress,
+  CircularProgress, // Giữ lại nếu bạn có loading riêng cho phần nào đó trong layout
 } from '@mui/material';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import CategoryIcon from '@mui/icons-material/Category';
@@ -18,41 +18,37 @@ import PeopleIcon from '@mui/icons-material/People';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import ContactMailIcon from '@mui/icons-material/ContactMail';
-// import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import LoyaltyIcon from '@mui/icons-material/Loyalty';
 import StoreIcon from '@mui/icons-material/Store';
 import ArticleIcon from '@mui/icons-material/Article';
 import ReceiptIcon from '@mui/icons-material/Receipt';
 import RateReviewIcon from '@mui/icons-material/RateReview';
-import LibraryBooksIcon from '@mui/icons-material/LibraryBooks'; // Quản lý bài viết
-import ReviewsIcon from '@mui/icons-material/Reviews';           // Quản lý đánh giá
 import { Link as RouterLink, useLocation } from 'react-router-dom';
 
-// import Header from './Header'; // Import component Header đã tách riêng
-// import { SignInPage } from '../pages/SignInPage';
-// import Header from './Header'; // Import component Header đã tách riêng
-import { SignInPage } from '../pages/SignInPage';
+import { useAuth } from '../context/AuthContext'; // ✅ IMPORT useAuth từ đúng đường dẫn trong Admin App
+// import Header from './Header'; // Nếu bạn có Admin Header riêng
+
 const drawerWidth = 240;
 
+// LayoutProps chỉ cần children, vì logic authorized đã được PrivateRoute xử lý bên ngoài
 interface LayoutProps {
   children: React.ReactNode;
-    authorized: boolean; 
 }
-
 
 export default function Layout({ children }: LayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [loading] = useState(false); // Luôn là false để ẩn kiểm tra đăng nhập/loading
   const location = useLocation();
-  const [authorized, setAuthorized] = useState(false); 
+  const { logout } = useAuth(); // ✅ Lấy hàm logout từ AuthContext
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
 
+  // ✅ Cập nhật đường dẫn (path) để phản ánh cấu trúc gốc của Admin App
+  // Ví dụ: /dashboard, /users, v.v. (KHÔNG CÓ TIỀN TỐ /admin/)
   const navItems = [
-    { text: 'Dashboard', icon: <DashboardIcon />, path: '/' },
+    { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' }, // Đường dẫn gốc của Admin App
     { text: 'Quản lý danh mục', icon: <CategoryIcon />, path: '/categories' },
     { text: 'Quản lý sản phẩm', icon: <ShoppingBagIcon />, path: '/products' },
     { text: 'Quản lý sản phẩm yêu thích', icon: <FavoriteIcon />, path: '/favorites' },
@@ -69,7 +65,7 @@ export default function Layout({ children }: LayoutProps) {
   const drawer = (
     <Box onClick={handleDrawerToggle} sx={{ textAlign: 'center' }}>
       <Typography variant="h6" sx={{ my: 2 }}>
-        Night Owls
+        Night Owls - Admin Panel
       </Typography>
       <Divider />
       <List>
@@ -96,7 +92,7 @@ export default function Layout({ children }: LayoutProps) {
       <Divider />
       <List>
         <ListItem disablePadding>
-          <ListItemButton onClick={() => { /* Xử lý đăng xuất */ }}>
+          <ListItemButton onClick={logout}> {/* ✅ Gọi hàm logout từ AuthContext */}
             <ListItemIcon><LogoutIcon /></ListItemIcon>
             <ListItemText primary="Đăng xuất" />
           </ListItemButton>
@@ -105,85 +101,50 @@ export default function Layout({ children }: LayoutProps) {
     </Box>
   );
 
-
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-        <CircularProgress size={48} thickness={4} />
-      </Box>
-    );
-  }
-
-  if (authorized) {
-    return <SignInPage onSignIn={onSignIn} />;
-  }
-
-  // Ẩn kiểm tra đăng nhập/loading, luôn hiển thị layout
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-        <CircularProgress size={48} thickness={4} />
-      </Box>
-    );
-  }
-  // if (loading) {
-  //   return (
-  //     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh' }}>
-  //       <CircularProgress size={48} thickness={4} />
-  //     </Box>
-  //   );
-  // }
-  // if (!authorized) {
-  //   return <SignInPage onSignIn={onSignIn} />;
-  // }
-
-// if (!authorized) {
-//   return <SignInPage onSignIn={onSignIn} />;
-// }
   return (
     <Box sx={{ display: 'flex' }}>
-      <>
-        {/* <Header drawerWidth={drawerWidth} handleDrawerToggle={handleDrawerToggle} /> */}
-        <Box
-          component="nav"
-          sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
-          aria-label="primary sidebar"
-        >
-          <Drawer
-            variant="temporary"
-            open={mobileOpen}
-            onClose={handleDrawerToggle}
-            ModalProps={{ keepMounted: true }}
-            sx={{
-              display: { xs: 'block', sm: 'none' },
-              '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
-            }}
-          >
-            {drawer}
-          </Drawer>
-          <Drawer
-            variant="permanent"
-            sx={{
-              display: { xs: 'none', sm: 'block' },
-              '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
-            }}
-            open
-          >
-            {drawer}
-          </Drawer>
-        </Box>
-        <Box
-          component="main"
+      {/* Nếu bạn có một Header riêng cho Admin, import và render nó ở đây */}
+      {/* Ví dụ: <Header drawerWidth={drawerWidth} handleDrawerToggle={handleDrawerToggle} /> */}
+      
+      <Box
+        component="nav"
+        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+        aria-label="primary sidebar"
+      >
+        <Drawer
+          variant="temporary"
+          open={mobileOpen}
+          onClose={handleDrawerToggle}
+          ModalProps={{ keepMounted: true }}
           sx={{
-            flexGrow: 1,
-            p: 3,
-            width: { sm: `calc(100% - ${drawerWidth}px)` },
-            mt: '64px',
+            display: { xs: 'block', sm: 'none' },
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
           }}
         >
-          {children}
-        </Box>
-      </>
+          {drawer}
+        </Drawer>
+        <Drawer
+          variant="permanent"
+          sx={{
+            display: { xs: 'none', sm: 'block' },
+            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+          }}
+          open
+        >
+          {drawer}
+        </Drawer>
+      </Box>
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          p: 3,
+          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          // mt: '64px', // Thêm margin-top nếu bạn có Header cố định
+        }}
+      >
+        {children} {/* Đây là nơi các trang con của admin (UserManager, Dashboard, v.v.) sẽ được hiển thị */}
+      </Box>
     </Box>
   );
 }
