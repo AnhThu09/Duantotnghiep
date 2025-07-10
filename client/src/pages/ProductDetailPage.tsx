@@ -1,14 +1,23 @@
 // 📁 src/pages/ProductDetailPage.tsx (Thiết kế lại hiện đại, không thêm section)
 
-import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Box, Typography, CircularProgress, Alert, Snackbar, Button, Divider, Rating, Tab, Tabs
-} from '@mui/material';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import {
+  Alert,
+  Box,
+  Button,
+  CircularProgress,
+  Divider,
+  Rating,
+  Snackbar,
+  Tab,
+  Tabs,
+  Typography,
+} from '@mui/material';
+import React, { useCallback, useEffect, useState } from 'react';
 
-import { useParams, useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 interface Product {
@@ -36,7 +45,9 @@ const ProductDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info' | 'warning'>('success');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<
+    'success' | 'error' | 'info' | 'warning'
+  >('success');
 
   const { currentUser } = useAuth();
   const user_id = currentUser?.user_id; // Giả định user_id
@@ -45,16 +56,22 @@ const ProductDetailPage: React.FC = () => {
   const [tab, setTab] = useState(0);
   const [quantity, setQuantity] = useState(1);
 
-  const showSnackbar = useCallback((message: string, severity: 'success' | 'error' | 'info' | 'warning') => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  }, []);
+  const showSnackbar = useCallback(
+    (message: string, severity: 'success' | 'error' | 'info' | 'warning') => {
+      setSnackbarMessage(message);
+      setSnackbarSeverity(severity);
+      setSnackbarOpen(true);
+    },
+    []
+  );
 
-  const handleSnackbarClose = useCallback((_event?: React.SyntheticEvent | Event, reason?: string) => {
-    if (reason === 'clickaway') return;
-    setSnackbarOpen(false);
-  }, []);
+  const handleSnackbarClose = useCallback(
+    (_event?: React.SyntheticEvent | Event, reason?: string) => {
+      if (reason === 'clickaway') return;
+      setSnackbarOpen(false);
+    },
+    []
+  );
 
   const fetchProductDetails = useCallback(async () => {
     setLoading(true);
@@ -94,12 +111,12 @@ const ProductDetailPage: React.FC = () => {
       const response = await axios.post(`${API_BASE_URL}/cart`, {
         user_id,
         product_id: product.product_id,
-        quantity
+        quantity,
       });
       showSnackbar(response.data.message || '✅ Đã thêm sản phẩm vào giỏ hàng!', 'success');
     } catch (error) {
       const msg = (error as any).response?.data?.message || '❌ Thêm vào giỏ hàng thất bại.';
-      console.error("Lỗi thêm vào giỏ hàng:", error);
+      console.error('Lỗi thêm vào giỏ hàng:', error);
       showSnackbar(msg, 'error');
     }
   };
@@ -115,11 +132,15 @@ const ProductDetailPage: React.FC = () => {
     try {
       const response = await axios.post(`${API_BASE_URL}/favorites`, {
         user_id,
-        product_id: product.product_id
+        product_id: product.product_id,
       });
-      showSnackbar(response.data.message || `✅ Đã thêm '${product.name}' vào danh sách yêu thích!`, 'success');
+      showSnackbar(
+        response.data.message || `✅ Đã thêm '${product.name}' vào danh sách yêu thích!`,
+        'success'
+      );
     } catch (error) {
-      const msg = (error as any).response?.data?.message || '❌ Thêm vào danh sách yêu thích thất bại.';
+      const msg =
+        (error as any).response?.data?.message || '❌ Thêm vào danh sách yêu thích thất bại.';
       showSnackbar(msg, (error as any).response?.status === 409 ? 'info' : 'error');
     }
   };
@@ -132,7 +153,9 @@ const ProductDetailPage: React.FC = () => {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
         <CircularProgress />
-        <Typography variant="h6" sx={{ ml: 2 }}>Đang tải chi tiết sản phẩm...</Typography>
+        <Typography variant="h6" sx={{ ml: 2 }}>
+          Đang tải chi tiết sản phẩm...
+        </Typography>
       </Box>
     );
   }
@@ -141,7 +164,9 @@ const ProductDetailPage: React.FC = () => {
     return (
       <Box sx={{ p: 4, textAlign: 'center', color: 'error.main' }}>
         <Typography variant="h6">{error || 'Không tìm thấy sản phẩm này.'}</Typography>
-        <Button variant="outlined" sx={{ mt: 2 }} onClick={fetchProductDetails}>Thử lại</Button>
+        <Button variant="outlined" sx={{ mt: 2 }} onClick={fetchProductDetails}>
+          Thử lại
+        </Button>
       </Box>
     );
   }
@@ -150,9 +175,13 @@ const ProductDetailPage: React.FC = () => {
     <Box sx={{ maxWidth: '1200px', mx: 'auto', p: 3 }}>
       <Box sx={{ mb: 2 }}>
         <Typography variant="body2" color="text.secondary">
-          <Link to="/" style={{ color: '#888', textDecoration: 'none' }}>Trang chủ</Link>
+          <Link to="/" style={{ color: '#888', textDecoration: 'none' }}>
+            Trang chủ
+          </Link>
           {' / '}
-          <Link to="/products" style={{ color: '#888', textDecoration: 'none' }}>Sản phẩm</Link>
+          <Link to="/products" style={{ color: '#888', textDecoration: 'none' }}>
+            Sản phẩm
+          </Link>
           {' / '}
           <span style={{ color: '#d81b60', fontWeight: 600 }}>{product.name}</span>
         </Typography>
@@ -193,9 +222,15 @@ const ProductDetailPage: React.FC = () => {
           </Typography>
 
           <Box display="flex" alignItems="center" mt={2} mb={3}>
-            <Button variant="outlined" size="small" onClick={() => handleQuantityChange(-1)}>-</Button>
-            <Typography variant="h6" mx={2}>{quantity}</Typography>
-            <Button variant="outlined" size="small" onClick={() => handleQuantityChange(1)}>+</Button>
+            <Button variant="outlined" size="small" onClick={() => handleQuantityChange(-1)}>
+              -
+            </Button>
+            <Typography variant="h6" mx={2}>
+              {quantity}
+            </Typography>
+            <Button variant="outlined" size="small" onClick={() => handleQuantityChange(1)}>
+              +
+            </Button>
           </Box>
 
           <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} gap={2} mb={3}>
@@ -208,7 +243,11 @@ const ProductDetailPage: React.FC = () => {
             >
               Thêm vào giỏ
             </Button>
-            <Button variant="outlined" startIcon={<FavoriteBorderIcon />} onClick={handleAddToFavorites}>
+            <Button
+              variant="outlined"
+              startIcon={<FavoriteBorderIcon />}
+              onClick={handleAddToFavorites}
+            >
               Yêu thích
             </Button>
           </Box>
