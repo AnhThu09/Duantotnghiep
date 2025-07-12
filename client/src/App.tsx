@@ -3,7 +3,6 @@ import React, { useState } from 'react'
 import ContactForm from './pages/ContactForm'
 import Footer from './components/Footer'
 import NavBar from './components/Navbar'
-import About from './pages/ProductListWithFilters'
 import Account from './pages/Account'
 // import HeroSection from './pages/HeroSection'
 import ProductByCategory from './pages/ProductByCategory'
@@ -24,6 +23,7 @@ import ProductDetailPage from './pages/ProductDetailPage'
 import FavoriteProductsPage from './pages/FavoriteProductsPage'
 import BlogPostDetail from './pages/BlogPostDetail'
 import ProductListWithFilters from './pages/ProductListWithFilters'
+import VoucherListPage from './pages/VoucherListPage'
 
 
 function App() {
@@ -37,7 +37,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<ProductListWithFilters />} />
           {/* <Route path="/brand" element={<ThuongHieu />} /> */}
-          {/* <Route path="/km" element={<KhuyenMai />} /> */}
+          <Route path="/km" element={<VoucherListPage/>} />
           {/* <Route path="/contact" element={<Blog />} /> */}
           {/* <Route path="/categories" element={<Contact />} /> */}
           {/* <Route path="/favorites" element={<Favorites />} /> */}

@@ -1,48 +1,90 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import axios from 'axios';
 import {
   Box, Typography, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper,
-  IconButton, Button, TextField, InputAdornment, useTheme, Switch, FormControlLabel,
-  TableSortLabel, TablePagination, CircularProgress, Alert, Dialog, DialogTitle,
-  DialogContent, DialogActions, Stack, Chip,
+  IconButton, Button, TextField, InputAdornment, useTheme, CircularProgress, Alert, Dialog, DialogTitle,
+  DialogContent, DialogActions, Stack, Chip, FormControl, InputLabel, Select, MenuItem,
+  TableSortLabel, TablePagination,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
+import { format } from 'date-fns';
 
-// --- MOCK DATA & INTERFACES ---
-interface Voucher {
-  id: string;
+// --- Cấu hình API Backend URL ---
+const API_URL = 'http://localhost:3000/api/discount_codes';
+
+// --- INTERFACE DỮ LIỆU TỪ DB ---
+// Interface cho dữ liệu nhận được từ DB
+interface DiscountCodeDb {
+  code_id: number;
   code: string;
-  name: string;
-  value: number;
+  description: string;
+  discount_percent: number | null;
+  discount_amount: number | null;
+  start_date: string;
+  end_date: string;
+}
+
+// Interface cho dữ liệu hiển thị trên Frontend (đã xử lý trạng thái và giá trị)
+interface VoucherDisplay {
+  code_id: number;
+  code: string;
+  name: string; // Tên hiển thị (description từ DB)
+  value: number; // Giá trị (discount_percent hoặc discount_amount)
   type: 'percentage' | 'fixed_amount';
-  expiryDate: string;
+  expiryDate: string; // Ngày hết hạn (end_date từ DB)
   status: 'Active' | 'Inactive' | 'Expired';
 }
 
-const initialVouchers: Voucher[] = [
-  { id: 'V001', code: 'SALE20', name: 'Giảm giá 20% tháng 6', value: 20, type: 'percentage', expiryDate: '2025-06-30', status: 'Active' },
-  { id: 'V002', code: 'FREESHIP', name: 'Miễn phí vận chuyển', value: 0, type: 'fixed_amount', expiryDate: '2025-07-15', status: 'Active' },
-  { id: 'V003', code: 'SUMMER100', name: 'Giảm 100k cho đơn hàng', value: 100000, type: 'fixed_amount', expiryDate: '2025-08-01', status: 'Active' },
-  { id: 'V004', code: 'EXPIRED_VOUCHER', name: 'Voucher đã hết hạn', value: 10, type: 'percentage', expiryDate: '2024-12-31', status: 'Expired' },
-  { id: 'V005', code: 'NEWUSER50', name: 'Giảm 50k cho khách mới', value: 50000, type: 'fixed_amount', expiryDate: '2025-09-30', status: 'Active' },
-  { id: 'V006', code: 'INACTIVE_VOUCHER', name: 'Voucher không hoạt động', value: 15, type: 'percentage', expiryDate: '2025-10-20', status: 'Inactive' },
-  { id: 'V007', code: 'VIP200', name: 'Voucher cho khách VIP', value: 200000, type: 'fixed_amount', expiryDate: '2025-11-01', status: 'Active' },
-];
+// --- LOGIC XỬ LÝ DỮ LIỆU TỪ DB ---
+const processDbData = (data: DiscountCodeDb[]): VoucherDisplay[] => {
+  const now = new Date();
+  return data.map(item => {
+    let type: 'percentage' | 'fixed_amount';
+    let value: number;
 
+    if (item.discount_percent !== null && item.discount_percent > 0) {
+      type = 'percentage';
+      value = item.discount_percent;
+    } else {
+      type = 'fixed_amount';
+      value = item.discount_amount || 0;
+    }
+
+    // Suy luận trạng thái
+    const startDate = new Date(item.start_date);
+    const endDate = new Date(item.end_date);
+    let status: 'Active' | 'Inactive' | 'Expired';
+
+    if (now > endDate) {
+      status = 'Expired';
+    } else if (now >= startDate && now <= endDate) {
+      status = 'Active';
+    } else {
+      status = 'Inactive';
+    }
+
+    return {
+      code_id: item.code_id,
+      code: item.code,
+      name: item.description, // Sử dụng description làm tên hiển thị
+      value,
+      type,
+      expiryDate: item.end_date, // Sử dụng end_date làm ngày hết hạn hiển thị
+      status,
+    };
+  });
+};
+
+// --- UTILITY FUNCTIONS FOR SORTING ---
 type Order = 'asc' | 'desc';
-type HeadCellId = keyof Voucher;
+type HeadCellId = keyof VoucherDisplay;
 
-interface HeadCell {
-  id: HeadCellId;
-  label: string;
-  numeric: boolean;
-  disableSorting?: boolean;
-}
-
-const headCells: HeadCell[] = [
+// Cấu hình cột hiển thị, sử dụng key từ VoucherDisplay
+const headCells: { id: HeadCellId; label: string; numeric: boolean; disableSorting?: boolean; }[] = [
   { id: 'code', numeric: false, label: 'Mã Voucher' },
   { id: 'name', numeric: false, label: 'Tên Voucher' },
   { id: 'value', numeric: true, label: 'Giá trị' },
@@ -50,21 +92,16 @@ const headCells: HeadCell[] = [
   { id: 'status', numeric: false, label: 'Trạng thái' },
 ];
 
-// --- UTILITY FUNCTIONS FOR SORTING ---
 function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
-  if (b[orderBy] < a[orderBy]) {
-    return -1;
-  }
-  if (b[orderBy] > a[orderBy]) {
-    return 1;
-  }
+  if (b[orderBy] < a[orderBy]) { return -1; }
+  if (b[orderBy] > a[orderBy]) { return 1; }
   return 0;
 }
 
-function getComparator<Key extends keyof Voucher>(
+function getComparator<Key extends keyof VoucherDisplay>(
   order: Order,
   orderBy: Key,
-): (a: { [key in Key]: number | string }, b: { [key in Key]: number | string }) => number {
+): (a: { [key in Key]: number | string | Date }, b: { [key in Key]: number | string | Date }) => number {
   return order === 'desc'
     ? (a, b) => descendingComparator(a, b, orderBy)
     : (a, b) => -descendingComparator(a, b, orderBy);
@@ -86,44 +123,43 @@ function stableSort<T>(array: readonly T[], comparator: (a: T, b: T) => number) 
 export default function VoucherManager() {
   const theme = useTheme();
 
-  const [vouchers, setVouchers] = useState<Voucher[]>([]);
+  const [vouchers, setVouchers] = useState<VoucherDisplay[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // State cho phân trang
+  // State cho phân trang và sắp xếp
   const [page, setPage] = useState<number>(0);
   const [rowsPerPage, setRowsPerPage] = useState<number>(5);
-
-  // State cho sắp xếp
   const [order, setOrder] = useState<Order>('asc');
   const [orderBy, setOrderBy] = useState<HeadCellId>('code');
-
-  // State cho tìm kiếm
   const [searchTerm, setSearchTerm] = useState<string>('');
 
   // State cho Modal Add/Edit
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
-  const [editingVoucher, setEditingVoucher] = useState<Voucher | null>(null); // Null khi thêm mới, Voucher object khi chỉnh sửa
-  const [modalFormData, setModalFormData] = useState<Partial<Voucher>>({}); // Dữ liệu form trong modal
+  const [editingVoucher, setEditingVoucher] = useState<VoucherDisplay | null>(null);
 
-  // --- MOCK API CALL ---
-  useEffect(() => {
-    const fetchVouchers = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        // Simulate API call delay
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        setVouchers(initialVouchers); // Load mock data
-      } catch (err) {
-        setError('Không thể tải dữ liệu voucher. Vui lòng thử lại.');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchVouchers();
+  // Dữ liệu form trong modal, bao gồm type để xử lý input value
+  const [modalFormData, setModalFormData] = useState<Partial<DiscountCodeDb & { type: 'percentage' | 'fixed_amount' }>>({});
+
+  // --- HÀM LẤY DỮ LIỆU TỪ API (GET) ---
+  const fetchVouchers = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await axios.get<DiscountCodeDb[]>(API_URL);
+      const processedVouchers = processDbData(response.data);
+      setVouchers(processedVouchers);
+    } catch (err) {
+      console.error("Lỗi khi tải dữ liệu voucher:", err);
+      setError('Không thể tải dữ liệu mã giảm giá. Vui lòng kiểm tra kết nối backend.');
+    } finally {
+      setLoading(false);
+    }
   }, []);
+
+  useEffect(() => {
+    fetchVouchers();
+  }, [fetchVouchers]);
 
   // --- HANDLERS ---
 
@@ -147,74 +183,116 @@ export default function VoucherManager() {
     setPage(0);
   }, []);
 
-  const handleStatusChange = useCallback((voucherId: string) => {
-    setVouchers((prevVouchers) =>
-      prevVouchers.map((voucher) =>
-        voucher.id === voucherId
-          ? {
-            ...voucher,
-            status: voucher.status === 'Active' ? 'Inactive' : 'Active', // Toggle Active/Inactive
-          }
-          : voucher
-      )
-    );
-  }, []);
+  // LƯU Ý: Chức năng toggle status đã bị xóa vì trạng thái được tính toán từ DB (start_date/end_date)
+  // Nếu muốn thay đổi trạng thái, bạn phải thay đổi start_date hoặc end_date.
 
   const handleAddNewVoucher = useCallback(() => {
-    setEditingVoucher(null); // Báo hiệu là thêm mới
-    setModalFormData({ type: 'fixed_amount', status: 'Active' }); // Giá trị mặc định
+    setEditingVoucher(null);
+    setModalFormData({ 
+      type: 'fixed_amount', 
+      start_date: format(new Date(), 'yyyy-MM-dd'),
+      end_date: format(new Date(), 'yyyy-MM-dd'),
+    });
     setIsModalOpen(true);
   }, []);
 
-  const handleEdit = useCallback((voucher: Voucher) => {
-    setEditingVoucher(voucher); // Đặt đối tượng voucher để chỉnh sửa
-    setModalFormData(voucher); // Load dữ liệu voucher vào form
+  const handleEdit = useCallback((voucher: VoucherDisplay) => {
+    setEditingVoucher(voucher);
+    setModalFormData({
+      code_id: voucher.code_id,
+      code: voucher.code,
+      description: voucher.name,
+      discount_percent: voucher.type === 'percentage' ? voucher.value : null,
+      discount_amount: voucher.type === 'fixed_amount' ? voucher.value : null,
+      // Chuyển đổi DATETIME string sang định dạng yyyy-MM-dd cho input type="date"
+      start_date: format(new Date(voucher.expiryDate), 'yyyy-MM-dd'), // Lấy ngày hết hạn để hiển thị trong form
+      end_date: format(new Date(voucher.expiryDate), 'yyyy-MM-dd'),
+      type: voucher.type,
+    });
     setIsModalOpen(true);
   }, []);
 
-  const handleDelete = useCallback((voucherId: string) => {
-    if (window.confirm(`Bạn có chắc chắn muốn xóa voucher ${voucherId}?`)) {
-      setVouchers((prevVouchers) => prevVouchers.filter((voucher) => voucher.id !== voucherId));
-      console.log(`Đã xóa voucher với ID: ${voucherId}`);
+  const handleDelete = useCallback(async (codeId: number) => {
+    if (window.confirm(`Bạn có chắc chắn muốn xóa mã giảm giá #${codeId}?`)) {
+      try {
+        await axios.delete(`${API_URL}/${codeId}`);
+        fetchVouchers(); // Tải lại dữ liệu sau khi xóa
+      } catch (err) {
+        setError('Không thể xóa mã giảm giá. Vui lòng thử lại.');
+      }
     }
+  }, [fetchVouchers]);
+
+  const handleModalFormChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setModalFormData((prev) => ({ ...prev, [name]: value }));
   }, []);
+
+  // Xử lý thay đổi loại và giá trị giảm giá
+  const handleValueAndTypeChange = useCallback((e: any, type: 'type' | 'value') => {
+    const { value } = e.target;
+    setModalFormData((prev) => {
+      const newFormData = { ...prev };
+      
+      if (type === 'type') {
+        newFormData.type = value;
+        // Đặt giá trị còn lại về null khi đổi loại
+        if (newFormData.type === 'percentage') {
+          newFormData.discount_amount = null;
+        } else {
+          newFormData.discount_percent = null;
+        }
+      } else if (type === 'value') {
+        const numericValue = parseFloat(value) || 0;
+        if (newFormData.type === 'percentage') {
+          newFormData.discount_percent = numericValue;
+        } else {
+          newFormData.discount_amount = numericValue;
+        }
+      }
+      return newFormData;
+    });
+  }, []);
+
+  const handleSaveVoucher = useCallback(async () => {
+    const { code, description, discount_percent, discount_amount, start_date, end_date } = modalFormData;
+
+    // Kiểm tra dữ liệu bắt buộc
+    if (!code || !description || !start_date || !end_date) {
+      alert('Vui lòng điền đầy đủ thông tin bắt buộc (Mã, Tên, Ngày bắt đầu và Ngày hết hạn).');
+      return;
+    }
+
+    const dataToSave = { code, description, discount_percent, discount_amount, start_date, end_date };
+
+    try {
+      if (editingVoucher) {
+        // Cập nhật (PUT)
+        await axios.put(`${API_URL}/${editingVoucher.code_id}`, dataToSave);
+      } else {
+        // Thêm mới (POST)
+        await axios.post(API_URL, dataToSave);
+      }
+      
+      handleCloseModal();
+      fetchVouchers(); // Tải lại dữ liệu sau khi lưu
+      
+    } catch (err) {
+      console.error("Lỗi khi lưu voucher:", err);
+      if (axios.isAxiosError(err) && err.response && err.response.data && err.response.data.error) {
+        setError(`Lỗi: ${err.response.data.error}`);
+      } else {
+        setError('Lỗi khi lưu mã giảm giá. Vui lòng thử lại.');
+      }
+    }
+  }, [editingVoucher, modalFormData, fetchVouchers]);
 
   const handleCloseModal = useCallback(() => {
     setIsModalOpen(false);
     setEditingVoucher(null);
-    setModalFormData({}); // Reset form data
+    setModalFormData({});
+    setError(null);
   }, []);
-
-  const handleModalFormChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    setModalFormData((prev) => ({
-      ...prev,
-      [name]: name === 'value' ? parseFloat(value) || 0 : value, // Chuyển đổi giá trị thành số
-    }));
-  }, []);
-
-  const handleSaveVoucher = useCallback(() => {
-    // Validate form data here if needed
-    if (!modalFormData.code || !modalFormData.name || !modalFormData.expiryDate) {
-      alert('Vui lòng điền đầy đủ thông tin bắt buộc.');
-      return;
-    }
-
-    if (editingVoucher) {
-      // Logic cập nhật voucher hiện có
-      setVouchers((prevVouchers) =>
-        prevVouchers.map((voucher) => (voucher.id === editingVoucher.id ? { ...editingVoucher, ...modalFormData } as Voucher : voucher))
-      );
-      console.log('Cập nhật voucher:', { ...editingVoucher, ...modalFormData });
-    } else {
-      // Logic thêm voucher mới
-      const newId = `V${String(vouchers.length + 1).padStart(3, '0')}`;
-      const newVoucher = { ...modalFormData, id: newId } as Voucher;
-      setVouchers((prevVouchers) => [...prevVouchers, newVoucher]);
-      console.log('Thêm voucher mới:', newVoucher);
-    }
-    handleCloseModal();
-  }, [editingVoucher, modalFormData, vouchers, handleCloseModal]);
 
   // --- MEMOIZED DATA FOR TABLE ---
   const filteredAndSortedVouchers = useMemo(() => {
@@ -223,11 +301,11 @@ export default function VoucherManager() {
     if (searchTerm) {
       currentVouchers = currentVouchers.filter((voucher) =>
         voucher.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        voucher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        voucher.id.toLowerCase().includes(searchTerm.toLowerCase())
+        voucher.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
+    // Sắp xếp dữ liệu
     currentVouchers = stableSort(currentVouchers, getComparator(order, orderBy));
 
     const startIndex = page * rowsPerPage;
@@ -239,8 +317,7 @@ export default function VoucherManager() {
     if (searchTerm) {
       currentVouchers = currentVouchers.filter((voucher) =>
         voucher.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        voucher.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        voucher.id.toLowerCase().includes(searchTerm.toLowerCase())
+        voucher.name.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
     return currentVouchers.length;
@@ -255,7 +332,7 @@ export default function VoucherManager() {
     }
   };
 
-  const formatVoucherValue = (voucher: Voucher) => {
+  const formatVoucherValue = (voucher: VoucherDisplay) => {
     if (voucher.type === 'percentage') {
       return `${voucher.value}%`;
     } else {
@@ -272,19 +349,13 @@ export default function VoucherManager() {
     );
   }
 
-  if (error) {
-    return (
-      <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, backgroundColor: theme.palette.background.default }}>
-        <Alert severity="error">{error}</Alert>
-      </Box>
-    );
-  }
-
   return (
     <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, backgroundColor: theme.palette.background.default }}>
       <Typography variant="h4" component="h1" gutterBottom sx={{ mb: 4, fontWeight: 'bold', color: theme.palette.primary.dark }}>
         Quản Lý Voucher
       </Typography>
+      
+      {error && <Alert severity="error" sx={{ mb: 3 }}>{error}</Alert>}
 
       <Paper sx={{ p: 3, borderRadius: theme.shape.borderRadius, boxShadow: theme.shadows[3], mb: 3 }}>
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, justifyContent: 'space-between', alignItems: { xs: 'flex-start', sm: 'center' }, mb: 2, gap: 2 }}>
@@ -356,18 +427,18 @@ export default function VoucherManager() {
                 </TableRow>
               ) : (
                 filteredAndSortedVouchers.map((voucher) => (
-                  <TableRow key={voucher.id} hover>
+                  <TableRow key={voucher.code_id} hover>
                     <TableCell>{voucher.code}</TableCell>
                     <TableCell>{voucher.name}</TableCell>
                     <TableCell align="right">{formatVoucherValue(voucher)}</TableCell>
-                    <TableCell>{voucher.expiryDate}</TableCell>
+                    {/* Định dạng lại ngày tháng từ string sang dd/MM/yyyy */}
+                    <TableCell>{format(new Date(voucher.expiryDate), 'dd/MM/yyyy')}</TableCell>
                     <TableCell>
                       <Chip
-                        label={voucher.status === 'Active' ? 'Hoạt động' : (voucher.status === 'Inactive' ? 'Không hoạt động' : 'Hết hạn')}
+                        label={voucher.status === 'Active' ? 'Hoạt động' : (voucher.status === 'Inactive' ? 'Chưa hoạt động' : 'Hết hạn')}
                         color={getStatusChipColor(voucher.status)}
-                        onClick={() => handleStatusChange(voucher.id)}
                         size="small"
-                        sx={{ cursor: 'pointer', fontWeight: 'bold' }}
+                        sx={{ fontWeight: 'bold' }}
                       />
                     </TableCell>
                     <TableCell align="right">
@@ -382,7 +453,7 @@ export default function VoucherManager() {
                       <IconButton
                         aria-label="delete"
                         color="error"
-                        onClick={() => handleDelete(voucher.id)}
+                        onClick={() => handleDelete(voucher.code_id)}
                       >
                         <DeleteIcon />
                       </IconButton>
@@ -437,59 +508,79 @@ export default function VoucherManager() {
               onChange={handleModalFormChange}
               required
             />
+            {/* Cập nhật Tên Voucher thành Mô tả (description) */}
             <TextField
-              label="Tên Voucher"
-              name="name"
+              label="Tên Voucher (Mô tả)"
+              name="description"
               variant="outlined"
               fullWidth
-              value={modalFormData.name || ''}
+              value={modalFormData.description || ''}
               onChange={handleModalFormChange}
               required
             />
+
+            {/* Điều chỉnh input giá trị và loại */}
+            <FormControl fullWidth>
+              <InputLabel id="voucher-type-label">Loại giảm giá</InputLabel>
+              <Select
+                labelId="voucher-type-label"
+                name="type"
+                value={modalFormData.type || 'fixed_amount'}
+                label="Loại giảm giá"
+                onChange={(e) => handleValueAndTypeChange(e, 'type')}
+              >
+                <MenuItem value="fixed_amount">Theo số tiền (VND)</MenuItem>
+                <MenuItem value="percentage">Theo %</MenuItem>
+              </Select>
+            </FormControl>
+
             <TextField
               label="Giá trị"
               name="value"
               variant="outlined"
               fullWidth
               type="number"
-              value={modalFormData.value || 0}
-              onChange={handleModalFormChange}
-              inputProps={{ min: 0 }}
-            />
-            <TextField
-              label="Loại (percentage/fixed_amount)"
-              name="type"
-              variant="outlined"
-              fullWidth
-              value={modalFormData.type || 'fixed_amount'}
-              onChange={handleModalFormChange}
-            // Trong thực tế, bạn sẽ dùng Select/Radio cho loại này
-            />
-            <TextField
-              label="Ngày hết hạn"
-              name="expiryDate"
-              variant="outlined"
-              fullWidth
-              type="date"
-              value={modalFormData.expiryDate || ''}
-              onChange={handleModalFormChange}
-              InputLabelProps={{
-                shrink: true, // Để label không chồng lên giá trị khi có giá trị
+              // Hiển thị giá trị tương ứng với loại đang chọn
+              value={modalFormData.type === 'percentage' 
+                ? modalFormData.discount_percent || '' 
+                : modalFormData.discount_amount || ''}
+              onChange={(e) => handleValueAndTypeChange(e, 'value')}
+              inputProps={{ min: 0, step: modalFormData.type === 'percentage' ? 0.01 : 1 }}
+              InputProps={{
+                endAdornment: <InputAdornment position="end">{modalFormData.type === 'percentage' ? '%' : 'VND'}</InputAdornment>,
               }}
               required
             />
-            {/* Trạng thái có thể là Switch hoặc Select */}
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={modalFormData.status === 'Active'}
-                  onChange={(e) => setModalFormData(prev => ({ ...prev, status: e.target.checked ? 'Active' : 'Inactive' }))}
-                  name="status"
-                  color="primary"
-                />
-              }
-              label={modalFormData.status === 'Active' ? 'Hoạt động' : 'Không hoạt động'}
+
+            {/* Thêm Ngày bắt đầu (start_date) */}
+            <TextField
+              label="Ngày bắt đầu hiệu lực"
+              name="start_date"
+              variant="outlined"
+              fullWidth
+              type="date"
+              value={modalFormData.start_date ? format(new Date(modalFormData.start_date), 'yyyy-MM-dd') : ''}
+              onChange={handleModalFormChange}
+              InputLabelProps={{ shrink: true }}
+              required
             />
+
+            {/* Cập nhật Ngày hết hạn (end_date) */}
+            <TextField
+              label="Ngày hết hạn"
+              name="end_date"
+              variant="outlined"
+              fullWidth
+              type="date"
+              value={modalFormData.end_date ? format(new Date(modalFormData.end_date), 'yyyy-MM-dd') : ''}
+              onChange={handleModalFormChange}
+              InputLabelProps={{ shrink: true }}
+              required
+            />
+            
+            {/* LƯU Ý: Trạng thái không thể chỉnh sửa trực tiếp qua Switch
+               vì nó được suy luận từ start_date và end_date trong DB */}
+            
           </Stack>
         </DialogContent>
         <DialogActions>

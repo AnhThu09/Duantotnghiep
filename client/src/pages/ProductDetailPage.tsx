@@ -147,7 +147,7 @@ const ProductDetailPage: React.FC = () => {
   }
 
   return (
-    <Box sx={{ maxWidth: '1200px', mx: 'auto', p: 3 }}>
+    <Box sx={{ maxWidth: '1200px', mx: 'auto', p: 3, mt:14 }}>
       <Box sx={{ mb: 2 }}>
         <Typography variant="body2" color="text.secondary">
           <Link to="/" style={{ color: '#888', textDecoration: 'none' }}>Trang chủ</Link>

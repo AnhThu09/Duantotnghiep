@@ -73,7 +73,7 @@ const ContactForm = () => {
   };
 
   return (
-    <div className="contact-container">
+    <div className="contact-container" style={{ marginTop: '80px' }}>
       <div className="contact-left">
         <h2>Liên hệ chúng tôi để được tư vấn</h2>
         <p>Đừng ngần ngại, chúng tôi luôn sẵn sàng đồng hành cùng bạn!</p>

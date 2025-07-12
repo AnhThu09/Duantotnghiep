@@ -194,8 +194,7 @@ export default function ProductDisplayPage() {
   const handleAddToCart = async (e: React.MouseEvent, product: Product) => {
     e.stopPropagation();
     if (!user_id) {
-      showSnackbar('❌ Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!', 'error');
-      setTimeout(() => navigate('/login'), 1500);
+      setTimeout(() => navigate('/login'), 1000);
       return;
     }
     try {
@@ -215,8 +214,7 @@ export default function ProductDisplayPage() {
   const handleToggleFavorite = async (e: React.MouseEvent, product: Product, isCurrentlyFavorite: boolean) => {
     e.stopPropagation();
     if (!user_id) {
-      showSnackbar('❌ Vui lòng đăng nhập để thêm sản phẩm vào danh sách yêu thích!', 'error');
-      setTimeout(() => navigate('/login'), 1500);
+      setTimeout(() => navigate('/login'), 1000);
       return;
     }
 

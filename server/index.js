@@ -13,6 +13,7 @@ import paymentRoutes from "./routes/paymentRoutes.js";
 import dotenv from "dotenv";
 import postRoutes from './routes/postRoutes.js';
 import favoriteProductsRoutes from "./routes/favoriteProductsRoutes.js";
+import discountCodeRoutes from "./routes/discountCodeRoutes.js";
 
 dotenv.config(); // ⬅️ THÊM DÒNG NÀY Ở TRÊN CÙNG
 console.log('EMAIL_USER from .env:', process.env.EMAIL_USER);
@@ -46,6 +47,8 @@ app.use("/api/users", userRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use('/api/posts', postRoutes); 
 app.use('/api/favorites', favoriteProductsRoutes);
+app.use('/api/discount_codes', discountCodeRoutes);
+
 
 // Xử lý lỗi
 app.use((req, res) => {

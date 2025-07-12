@@ -18,6 +18,7 @@
     "bootstrap": "^5.3.6",
     "canvas-confetti": "^1.9.3",
     "cors": "^2.8.5",
+    "date-fns": "^4.1.0",
     "framer-motion": "^12.19.1",
     "lucide-react": "^0.515.0",
     "react": "^19.1.0",

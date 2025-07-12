@@ -81,8 +81,7 @@ export default function ProductByCategoryScroll() {
     e.stopPropagation();
     e.preventDefault();
     if (!user_id) {
-      setAlert({ open: true, message: '❌ Vui lòng đăng nhập để thêm vào giỏ hàng!', severity: 'warning' });
-      setTimeout(() => navigate('/login'), 1500);
+      setTimeout(() => navigate('/login'), 1000);
       return;
     }
     try {
@@ -102,8 +101,7 @@ export default function ProductByCategoryScroll() {
     e.preventDefault();
 
     if (!user_id) {
-      setAlert({ open: true, message: '❌ Vui lòng đăng nhập để thực hiện!', severity: 'warning' });
-      setTimeout(() => navigate('/login'), 1500);
+      setTimeout(() => navigate('/login'), 1000);
       return;
     }
 
