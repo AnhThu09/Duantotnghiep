@@ -201,7 +201,7 @@ export default function ProductByCategoryScroll() {
                 }}
               >
                 <Box sx={{
-                  width: '100%', height: '300px', overflow: 'hidden',
+                  width: '100%', height: '250px', overflow: 'hidden',
                   mb: 1.2, display: 'flex', alignItems: 'center', justifyContent: 'center'
                 }}>
                   <img

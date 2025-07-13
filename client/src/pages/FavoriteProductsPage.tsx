@@ -171,7 +171,7 @@ const handleRemoveFavorite = async (product_id: number, favorite_id: number) => 
   }
 
   return (
-    <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, maxWidth: '1200px', margin: '0 auto' }}>
+    <Box sx={{ p: { xs: 2, sm: 3, md: 4}, mt: 11, maxWidth: '1200px'}}>
       <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', mb: 4, textAlign: 'center' }}>
         Sản phẩm yêu thích của bạn
       </Typography>
@@ -203,6 +203,9 @@ const handleRemoveFavorite = async (product_id: number, favorite_id: number) => 
                   transition: 'box-shadow 0.2s ease-in-out',
                   backgroundColor: '#fff',
                   position: 'relative', // Để position các nút
+                  height: '100%',
+                  minHeight: '400px',
+                  justifyContent: 'space-between',
                 }}
               >
                 {/* Nút xóa */}

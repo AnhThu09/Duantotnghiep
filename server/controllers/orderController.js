@@ -1,145 +1,115 @@
 // controllers/orderController.js
 import { db } from '../config/connectBD.js'
 
-// Tao don moi
-export const createOrder = async (req, res) => {
-  const { user_id, items, shipping_address, phone, notes } = req.body
+const ORDERS_TABLE = 'orders';
+const USERS_TABLE = 'users';
 
-  if (!user_id || !items || items.length === 0) {
-    return res.status(400).json({ message: 'Thiếu thông tin đơn hàng.' })
-  }
+// Helper function to handle database queries
+const queryDatabase = (sql, params = []) => {
+    return new Promise((resolve, reject) => {
+        db.query(sql, params, (err, results) => {
+            if (err) {
+                reject(err);
+            } else {
+                resolve(results);
+            }
+        });
+    });
+};
 
-  try {
-    // Tính tổng tiền
-    let totalAmount = 0
-    const itemDetails = []
-
-    for (const item of items) {
-      const [productRows] = await db
-        .promise()
-        .query('SELECT price, stock_quantity FROM products WHERE id = ?', [item.product_id])
-
-      if (productRows.length === 0) {
-        return res.status(404).json({ message: `Sản phẩm ID ${item.product_id} không tồn tại.` })
-      }
-
-      const product = productRows[0]
-
-      if (product.stock_quantity < item.quantity) {
-        return res.status(400).json({ message: `Sản phẩm ${item.product_id} không đủ hàng.` })
-      }
-
-      const total_price = product.price * item.quantity
-      totalAmount += total_price
-
-      itemDetails.push({
-        ...item,
-        unit_price: product.price,
-        total_price,
-      })
-    }
-
-    // Thêm đơn hàng
-    const [orderResult] = await db
-      .promise()
-      .query(
-        'INSERT INTO orders (user_id, total_amount, shipping_address, phone, notes) VALUES (?, ?, ?, ?, ?)',
-        [user_id, totalAmount, shipping_address, phone, notes]
-      )
-
-    const orderId = orderResult.insertId
-
-    // Thêm từng chi tiết đơn hàng và cập nhật tồn kho
-    for (const item of itemDetails) {
-      await db
-        .promise()
-        .query(
-          'INSERT INTO order_items (order_id, product_id, quantity, unit_price, total_price) VALUES (?, ?, ?, ?, ?)',
-          [orderId, item.product_id, item.quantity, item.unit_price, item.total_price]
-        )
-
-      await db
-        .promise()
-        .query('UPDATE products SET stock_quantity = stock_quantity - ? WHERE id = ?', [
-          item.quantity,
-          item.product_id,
-        ])
-    }
-
-    res.status(201).json({ message: 'Đặt hàng thành công.', order_id: orderId })
-  } catch (error) {
-    console.error('Lỗi tạo đơn hàng:', error)
-    res.status(500).json({ message: 'Lỗi máy chủ.', error: error.message })
-  }
-}
-
-// Lấy đơn hàng user_id
-export const getOrdersByUser = async (req, res) => {
-  const { user_id } = req.params
-
-  try {
-    const [orders] = await db
-      .promise()
-      .query('SELECT * FROM orders WHERE user_id = ? ORDER BY created_at DESC', [user_id])
-
-    for (const order of orders) {
-      const [items] = await db.promise().query(
-        `SELECT oi.*, p.name as product_name FROM order_items oi
-         JOIN products p ON oi.product_id = p.id
-         WHERE order_id = ?`,
-        [order.id]
-      )
-      order.items = items
-    }
-
-    res.json(orders)
-  } catch (error) {
-    res.status(500).json({ message: 'Lỗi lấy đơn hàng', error: error.message })
-  }
-}
-
-// Lấy all đơn hàng
+// 1. Lấy tất cả đơn hàng (GET /api/orders)
 export const getAllOrders = async (req, res) => {
-  try {
-    const [orders] = await db.promise().query(`
-SELECT o.*, u.full_name as user_name FROM orders o
-JOIN users u ON o.user_id = u.id
-ORDER BY o.created_at DESC
-
-    `)
-
-    for (const order of orders) {
-      const [items] = await db.promise().query(
-        `SELECT oi.*, p.name as product_name FROM order_items oi
-         JOIN products p ON oi.product_id = p.id
-         WHERE order_id = ?`,
-        [order.id]
-      )
-      order.items = items
+    try {
+        // Lấy đơn hàng và tên người dùng (giả sử cột tên người dùng là 'full_name' trong bảng users)
+        const sql = `
+            SELECT 
+                o.order_id,
+                o.user_id,
+                u.full_name AS username,
+                o.shipping_address,
+                o.payment_method,
+                o.payment_status,
+                o.order_status,
+                o.note,
+                o.created_at,
+                o.updated_at
+            FROM 
+                ${ORDERS_TABLE} o
+            JOIN 
+                ${USERS_TABLE} u ON o.user_id = u.user_id
+            ORDER BY o.created_at DESC
+        `;
+        const orders = await queryDatabase(sql);
+        res.json(orders);
+    } catch (err) {
+        console.error('Lỗi khi lấy đơn hàng:', err);
+        res.status(500).json({ error: 'Không thể tải dữ liệu đơn hàng.', details: err.message });
     }
+};
 
-    res.json(orders)
-  } catch (error) {
-    res.status(500).json({ message: 'Lỗi lấy tất cả đơn hàng', error: error.message })
-  }
-}
+// 2. Lấy chi tiết đơn hàng (bao gồm Order Items)
+export const getOrderDetails = async (req, res) => {
+    const { id } = req.params;
+    // Để lấy Order Items, bạn cần có bảng order_items (giả định)
+    const sql = `
+        SELECT 
+            * FROM 
+            ${ORDERS_TABLE} o 
+        LEFT JOIN 
+            order_items oi ON o.order_id = oi.order_id
+        WHERE 
+            o.order_id = ?
+    `;
+    
+    // Lưu ý: Hàm này cần được điều chỉnh nếu bạn muốn trả về cấu trúc chi tiết đơn hàng
+    // Hiện tại, chúng ta sẽ tập trung vào quản lý đơn hàng ở cấp độ tổng quan.
+    try {
+        const orderDetails = await queryDatabase(sql, [id]);
+        if (orderDetails.length === 0) {
+            return res.status(404).json({ message: 'Không tìm thấy đơn hàng.' });
+        }
+        res.json(orderDetails);
+    } catch (err) {
+        res.status(500).json({ error: 'Lỗi khi lấy chi tiết đơn hàng.', details: err.message });
+    }
+};
 
-// Cập nhật stt đơn hàng
+// 3. Cập nhật trạng thái đơn hàng (PUT /api/orders/:id)
 export const updateOrderStatus = async (req, res) => {
-  const { id } = req.params
-  const { status } = req.body
+    const { id } = req.params;
+    const { order_status, payment_status, note } = req.body;
 
-  try {
-    const [result] = await db
-      .promise()
-      .query('UPDATE orders SET status = ? WHERE id = ?', [status, id])
+    // Chỉ cho phép cập nhật các trường này từ Admin
+    try {
+        const sql = `
+            UPDATE ${ORDERS_TABLE}
+            SET order_status = ?, payment_status = ?, note = ?
+            WHERE order_id = ?
+        `;
+        const result = await queryDatabase(sql, [order_status, payment_status, note, id]);
 
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ message: 'Không tìm thấy đơn hàng.' })
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Không tìm thấy đơn hàng để cập nhật.' });
+        }
+        res.json({ message: 'Đơn hàng đã được cập nhật thành công.' });
+    } catch (err) {
+        console.error('Lỗi khi cập nhật trạng thái đơn hàng:', err);
+        res.status(500).json({ error: 'Không thể cập nhật trạng thái đơn hàng.', details: err.message });
     }
+};
 
-    res.json({ message: 'Cập nhật trạng thái thành công.' })
-  } catch (error) {
-    res.status(500).json({ message: 'Lỗi cập nhật trạng thái', error: error.message })
-  }
-}
+// 4. Xóa đơn hàng (Admin chỉ nên xóa đơn hàng 'Đã hủy' hoặc test)
+export const deleteOrder = async (req, res) => {
+    const { id } = req.params;
+    try {
+        const sql = `DELETE FROM ${ORDERS_TABLE} WHERE order_id = ?`;
+        const result = await queryDatabase(sql, [id]);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({ message: 'Không tìm thấy đơn hàng để xóa.' });
+        }
+        res.json({ message: 'Đơn hàng đã được xóa thành công.' });
+    } catch (err) {
+        res.status(500).json({ error: 'Lỗi khi xóa đơn hàng.', details: err.message });
+    }
+};

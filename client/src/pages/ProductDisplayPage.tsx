@@ -59,7 +59,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onToggl
         cursor: 'pointer',
       }}
     >
-      <Box sx={{ width: '100%', height: '300px', overflow: 'hidden', mb: 1.2}}>
+      <Box sx={{ width: '100%', height: '250px', overflow: 'hidden', mb: 1.2}}>
         <img
           src={`${UPLOADS_BASE_URL}${product.thumbnail}`}
           alt={product.name}
@@ -279,7 +279,7 @@ export default function ProductDisplayPage() {
   return (
     <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, backgroundColor: theme.palette.background.default }}>
       <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', mb: 3, textAlign: 'center' }}>
-        Sản phẩm bán chạy
+        SẢN PHẨM BÁN CHẠY
       </Typography>
 
       <Box

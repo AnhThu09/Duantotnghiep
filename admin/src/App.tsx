@@ -22,6 +22,8 @@ import LoginPage from './pages/Login';
 
 // Import các component từ Material-UI mà bạn sử dụng trực tiếp trong App.tsx
 import { Box, Typography, Button } from '@mui/material';
+import ReviewManager from './pages/ReviewManager';
+import OrderManager from './pages/OrderManager';
 
 function App() {
   return (
@@ -42,7 +44,9 @@ function App() {
                   <Route path="categories" element={<CategoryManager />} />
                   <Route path="brands" element={<BrandManager />} />
                   <Route path="vouchers" element={<VoucherManager />} />
+                  <Route path="orders" element={<OrderManager />} />
                   <Route path="users" element={<UserManager />} /> 
+                  <Route path="reviews" element={<ReviewManager />} /> 
                   <Route path="products" element={<ProductManager />} />
                   <Route path="favorites" element={<FavoriteProductsManager />} />
                   <Route path="settings" element={<SettingsPage />} />

@@ -3,28 +3,60 @@
 import { db } from "../config/connectBD.js"; // Đảm bảo đường dẫn này đúng
 
 // ✅ Lấy danh sách sản phẩm hoặc tìm kiếm sản phẩm
+// Hàm dùng chung để xử lý Tìm kiếm và Lọc
 export const getAllProducts = (req, res) => {
-  const { search } = req.query; // Lấy tham số 'search' từ query string
+    const { search, category } = req.query; 
 
-  let sql = "SELECT * FROM products";
-  const params = [];
+    // Khai báo conditions và params ngay từ đầu
+    const conditions = [];
+    const params = [];
+    let sql = "";
+    
+    // Xây dựng phần SELECT và JOINs
+    // Chúng ta sẽ luôn SELECT các trường cơ bản và JOIN với brands
+    sql = `
+        SELECT 
+            p.*, 
+            b.brand_name 
+        FROM 
+            products p
+        LEFT JOIN 
+            brands b ON p.brand_id = b.brand_id
+    `;
 
-  // Nếu có tham số tìm kiếm, thêm điều kiện WHERE vào câu truy vấn SQL
-  if (search) {
-    sql += " WHERE name LIKE ?"; // Giả sử bạn muốn tìm kiếm theo trường 'name'
-    params.push(`%${search}%`); // Thêm wildcard % để tìm kiếm linh hoạt
-  }
-
-  // Thêm ORDER BY nếu cần thiết (tùy chọn)
-  sql += " ORDER BY product_id DESC"; // Sắp xếp theo ID mới nhất hoặc theo tên, v.v.
-
-  db.query(sql, params, (err, result) => {
-    if (err) {
-      console.error('Lỗi khi lấy sản phẩm:', err); // Log lỗi để dễ debug
-      return res.status(500).json({ error: "Lỗi máy chủ khi lấy sản phẩm." });
+    // --- Xử lý Lọc theo Category Slug ---
+    if (category) {
+        // Nếu có lọc theo category, thêm JOIN categories
+        sql += ` JOIN categories c ON p.category_id = c.category_id `;
+        conditions.push(`c.slug = ?`);
+        params.push(category);
     }
-    res.json(result);
-  });
+
+    // --- Xử lý Tìm kiếm (SEARCH) ---
+    // Sử dụng cột 'name' và 'description' để tìm kiếm
+    if (search) {
+        // Tìm kiếm theo tên hoặc mô tả
+        conditions.push(`(p.name LIKE ? OR p.description LIKE ?)`);
+        const searchTerm = `%${search}%`;
+        params.push(searchTerm, searchTerm);
+    }
+
+    // --- Xây dựng WHERE clause ---
+    if (conditions.length > 0) {
+        sql += ` WHERE ` + conditions.join(' AND ');
+    }
+
+    // --- Sắp xếp ---
+    sql += ` ORDER BY p.product_id DESC`;
+
+    db.query(sql, params, (err, result) => {
+        if (err) {
+            console.error('Lỗi khi lấy sản phẩm:', err); 
+            // Nếu có lỗi, kiểm tra lại tên cột và bảng (brands, categories)
+            return res.status(500).json({ error: "Lỗi máy chủ khi lấy sản phẩm.", details: err.message });
+        }
+        res.json(result);
+    });
 };
 // ✅ Lấy chi tiết sản phẩm theo ID
 export const getProductById = (req, res) => {

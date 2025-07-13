@@ -43,7 +43,7 @@ a:hover {
   max-width: 1280px;
   margin: 0 auto;
   padding: 2rem;
-  text-align: center; /* Giữ lại nếu muốn nội dung chính căn giữa */
+  text-align: center; /*Giữ lại nếu muốn nội dung chính căn giữa */
 }
 
 .logo {
