@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   Box, Typography, Button, Paper, Grid, Rating,
-  TextField, InputAdornment, MenuItem, Snackbar, Alert, CircularProgress, IconButton,
+  TextField, InputAdornment, MenuItem, Snackbar, Alert as MuiAlert, CircularProgress, IconButton,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TablePagination,
-  Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText, Stack
+  Dialog, DialogTitle, DialogContent, DialogActions, DialogContentText, Stack, useTheme
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -12,15 +12,23 @@ import SearchIcon from '@mui/icons-material/Search';
 import CloseIcon from '@mui/icons-material/Close';
 
 import axios from 'axios';
+import { type AlertProps } from '@mui/material/Alert';
+import { type AlertColor } from '@mui/material/Alert';
+
+// Custom Alert component for Snackbar
+const Alert = React.forwardRef<HTMLDivElement, AlertProps>(function Alert(props, ref) {
+  return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
+});
 
 // --- INTERFACES ---
 interface Product {
   product_id: number;
   name: string;
-  description: string;
+  description: string | null; // Cho phép description là null
+  short_description: string | null; // ✅ Bổ sung: Cho phép short_description là null
   price: number;
   quantity: number;
-  thumbnail?: string;
+  thumbnail?: string | null;
   category_id: number;
   brand_id: number;
 }
@@ -39,6 +47,8 @@ const BASE_URL = 'http://localhost:3000/api';
 const UPLOADS_BASE_URL = 'http://localhost:3000/uploads/';
 
 export default function ProductManager() {
+  const theme = useTheme();
+
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
@@ -57,38 +67,43 @@ export default function ProductManager() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const [formData, setFormData] = useState({
-    name: '', description: '', price: '', quantity: '', thumbnail: null as File | null,
+    name: '', description: '', short_description: '', // ✅ Bổ sung short_description vào formData
+    price: '', quantity: '', thumbnail: null as File | null,
     previewUrl: '', category_id: '', brand_id: ''
   });
-  const [alert, setAlert] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' | 'warning' }>({ open: false, message: '', severity: 'success' });
+  const [alert, setAlert] = useState<{ open: boolean; message: string; severity: AlertColor }>({ open: false, message: '', severity: 'success' });
 
   // --- API CALLS ---
-  // Hàm fetchProducts: Tải sản phẩm từ API (hiện tại là toàn bộ sản phẩm)
   const fetchProducts = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const res = await axios.get(`${BASE_URL}/products`);
       
-      // Sắp xếp ID giảm dần (ví dụ: 16, 15, 14, ...)
-      const sortedProducts = [...res.data].sort((b, a) => b.product_id - a.product_id);
+      const sortedProducts: Product[] = res.data.map((p: any) => ({
+        ...p,
+        description: p.description ?? null,
+        short_description: p.short_description ?? null, // ✅ Xử lý short_description từ API
+        thumbnail: p.thumbnail ?? null,
+        product_id: Number(p.product_id),
+        category_id: Number(p.category_id),
+        brand_id: Number(p.brand_id),
+      })).sort((b, a) => b.product_id - a.product_id);
       
-      setProducts(sortedProducts); // Cập nhật state với danh sách đã sắp xếp
+      setProducts(sortedProducts);
     } catch (err) {
       console.error('Lỗi khi lấy sản phẩm:', err);
       setError('Không thể tải sản phẩm. Vui lòng thử lại.');
-      setProducts([]); // Xóa dữ liệu cũ nếu có lỗi
+      setProducts([]); 
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // useEffect để tải sản phẩm ban đầu
   useEffect(() => {
     fetchProducts();
   }, [fetchProducts]);
 
-  // useEffect để tải danh mục và thương hiệu (chỉ chạy một lần khi component mount)
   useEffect(() => {
     const fetchCategoriesAndBrands = async () => {
       try {
@@ -110,7 +125,8 @@ export default function ProductManager() {
   const handleOpenAdd = useCallback(() => {
     setEditingProduct(null);
     setFormData({
-      name: '', description: '', price: '', quantity: '', thumbnail: null,
+      name: '', description: '', short_description: '', // ✅ Khởi tạo short_description
+      price: '', quantity: '', thumbnail: null,
       previewUrl: '', category_id: '', brand_id: ''
     });
     setOpenDialog(true);
@@ -120,7 +136,8 @@ export default function ProductManager() {
     setEditingProduct(product);
     setFormData({
       name: product.name,
-      description: product.description,
+      description: product.description ?? '',
+      short_description: product.short_description ?? '', // ✅ Gán giá trị short_description khi chỉnh sửa
       price: product.price.toString(),
       quantity: product.quantity.toString(),
       thumbnail: null,
@@ -143,7 +160,7 @@ export default function ProductManager() {
       setAlert({ open: true, message: '🗑️ Xoá sản phẩm thành công', severity: 'info' });
       setOpenConfirmDialog(false);
       setDeletingId(null);
-      fetchProducts(); // Tải lại danh sách sau khi xóa
+      fetchProducts();
     } catch (err) {
       console.error('Lỗi khi xóa sản phẩm:', err);
       setAlert({ open: true, message: '❌ Lỗi khi xoá sản phẩm', severity: 'error' });
@@ -164,13 +181,13 @@ export default function ProductManager() {
 
   const handleChangeRowsPerPage = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0); // Reset về trang đầu tiên khi thay đổi số hàng mỗi trang
+    setPage(0);
   }, []);
 
   // Search Handler
   const handleSearchChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(e.target.value);
-    setPage(0); // Reset page to 0 on new search
+    setPage(0);
   }, []);
   
   // Xử lý thay đổi ảnh
@@ -187,8 +204,9 @@ export default function ProductManager() {
     const priceNum = Number(formData.price);
     const quantityNum = Number(formData.quantity);
 
-    if (!formData.name || !formData.description || isNaN(priceNum) || isNaN(quantityNum) || isNaN(categoryId) || isNaN(brandId) || priceNum < 0 || quantityNum < 0) {
-      setAlert({ open: true, message: '❌ Vui lòng điền đầy đủ thông tin hợp lệ (giá, số lượng phải là số không âm).', severity: 'warning' });
+    // ✅ Sửa lỗi kiểm tra validate
+    if (!formData.name || !formData.description || !formData.short_description || isNaN(priceNum) || isNaN(quantityNum) || isNaN(categoryId) || isNaN(brandId) || priceNum < 0 || quantityNum < 0) {
+      setAlert({ open: true, message: '❌ Vui lòng điền đầy đủ thông tin hợp lệ (tên, mô tả, giá, số lượng, danh mục, thương hiệu phải là số không âm).', severity: 'warning' });
       return;
     }
 
@@ -201,6 +219,7 @@ export default function ProductManager() {
     const data = new FormData();
     data.append('name', formData.name);
     data.append('description', formData.description);
+    data.append('short_description', formData.short_description); // ✅ Gửi short_description
     data.append('price', String(priceNum));
     data.append('quantity', String(quantityNum));
     data.append('category_id', String(categoryId));
@@ -216,9 +235,9 @@ export default function ProductManager() {
       } else {
         await axios.post(`${BASE_URL}/products`, data);
         setAlert({ open: true, message: '✅ Thêm sản phẩm thành công', severity: 'success' });
-        setPage(0); // Quay về trang đầu tiên khi thêm sản phẩm mới
+        setPage(0); 
       }
-      fetchProducts(); // Tải lại danh sách sau khi lưu
+      fetchProducts(); 
       handleCloseDialog();
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
@@ -232,7 +251,7 @@ export default function ProductManager() {
         setAlert({ open: true, message: '❌ Lỗi không xác định khi lưu sản phẩm.', severity: 'error' });
       }
     }
-  }, [editingProduct, formData, fetchProducts, handleCloseDialog]);
+  }, [editingProduct, formData, fetchProducts, handleCloseDialog, categories, brands]); 
 
   // Memoized data for table display (Client-side filtering and pagination)
   const filteredAndPaginatedProducts = useMemo(() => {
@@ -241,21 +260,21 @@ export default function ProductManager() {
     if (searchTerm) {
       const lowerCaseSearchTerm = searchTerm.toLowerCase();
       currentProducts = currentProducts.filter((product) =>
-        String(product.product_id).includes(lowerCaseSearchTerm) || // Search by ID
+        String(product.product_id).includes(lowerCaseSearchTerm) || 
         product.name.toLowerCase().includes(lowerCaseSearchTerm) ||
-        product.description.toLowerCase().includes(lowerCaseSearchTerm) ||
-        String(product.price).includes(lowerCaseSearchTerm) || // Search by price (as string)
-        String(product.quantity).includes(lowerCaseSearchTerm) || // Search by quantity (as string)
-        // If you want to search by category/brand name, you'd need to find the name first
-        categories.find(c => c.category_id === product.category_id)?.category_name.toLowerCase().includes(lowerCaseSearchTerm) ||
-        brands.find(b => b.brand_id === product.brand_id)?.brand_name.toLowerCase().includes(lowerCaseSearchTerm)
+        // ✅ Xử lý mô tả có thể null
+        (product.description && product.description.toLowerCase().includes(lowerCaseSearchTerm)) ||
+        (product.short_description && product.short_description.toLowerCase().includes(lowerCaseSearchTerm)) || // ✅ Tìm kiếm theo short_description
+        String(product.price).includes(lowerCaseSearchTerm) || 
+        String(product.quantity).includes(lowerCaseSearchTerm) ||
+        (categories.find(c => c.category_id === product.category_id)?.category_name?.toLowerCase().includes(lowerCaseSearchTerm)) ||
+        (brands.find(b => b.brand_id === product.brand_id)?.brand_name?.toLowerCase().includes(lowerCaseSearchTerm))
       );
     }
     
-    // Client-side pagination
     const startIndex = page * rowsPerPage;
     return currentProducts.slice(startIndex, startIndex + rowsPerPage);
-  }, [products, searchTerm, page, rowsPerPage, categories, brands]); // Dependencies for re-calculation
+  }, [products, searchTerm, page, rowsPerPage, categories, brands]); 
 
   // Total count for TablePagination (after client-side filtering)
   const totalFilteredProductCount = useMemo(() => {
@@ -265,11 +284,12 @@ export default function ProductManager() {
       currentProducts = currentProducts.filter((product) =>
         String(product.product_id).includes(lowerCaseSearchTerm) ||
         product.name.toLowerCase().includes(lowerCaseSearchTerm) ||
-        product.description.toLowerCase().includes(lowerCaseSearchTerm) ||
+        (product.description && product.description.toLowerCase().includes(lowerCaseSearchTerm)) ||
+        (product.short_description && product.short_description.toLowerCase().includes(lowerCaseSearchTerm)) || // ✅ Tìm kiếm theo short_description
         String(product.price).includes(lowerCaseSearchTerm) ||
         String(product.quantity).includes(lowerCaseSearchTerm) ||
-        categories.find(c => c.category_id === product.category_id)?.category_name.toLowerCase().includes(lowerCaseSearchTerm) ||
-        brands.find(b => b.brand_id === product.brand_id)?.brand_name.toLowerCase().includes(lowerCaseSearchTerm)
+        (categories.find(c => c.category_id === product.category_id)?.category_name?.toLowerCase().includes(lowerCaseSearchTerm)) ||
+        (brands.find(b => b.brand_id === product.brand_id)?.brand_name?.toLowerCase().includes(lowerCaseSearchTerm))
       );
     }
     return currentProducts.length;
@@ -302,17 +322,17 @@ export default function ProductManager() {
   return (
     <Box sx={{ p: 3 }}>
      <Typography
-  variant="h4"
-  component="h1"
-  gutterBottom
-  sx={{
-    mb: 4,
-    fontWeight: 'bold',
-    color: 'rgb(17, 82, 147)' // ✅ màu chị chọn
-  }}
->
-  Quản lý sản phẩm
-</Typography>
+        variant="h4"
+        component="h1"
+        gutterBottom
+        sx={{
+            mb: 4,
+            fontWeight: 'bold',
+            color: 'rgb(17, 82, 147)' 
+        }}
+    >
+        Quản lý sản phẩm
+    </Typography>
       <Paper sx={{ p: 3, boxShadow: 3, mb: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2, alignItems: 'center' }}>
           <TextField
@@ -329,7 +349,7 @@ export default function ProductManager() {
               ),
               endAdornment: (
                 <InputAdornment position="end">
-                  {searchTerm && ( // Clear button only when there's text
+                  {searchTerm && ( 
                     <IconButton onClick={() => setSearchTerm('')} size="small">
                       <CloseIcon fontSize="small" />
                     </IconButton>
@@ -348,7 +368,8 @@ export default function ProductManager() {
               <TableRow>
                 <TableCell>ID</TableCell>
                 <TableCell>Tên</TableCell>
-                <TableCell>Mô tả</TableCell>
+                <TableCell>Mô tả ngắn</TableCell> {/* ✅ Bổ sung cột Mô tả ngắn */}
+                <TableCell>Mô tả dài</TableCell> {/* Đổi tên thành Mô tả dài */}
                 <TableCell>Giá</TableCell>
                 <TableCell>Số lượng</TableCell>
                 <TableCell>Ảnh</TableCell>
@@ -360,7 +381,7 @@ export default function ProductManager() {
             <TableBody>
               {filteredAndPaginatedProducts.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={9} align="center">
+                  <TableCell colSpan={10} align="center"> {/* ✅ Sửa colSpan thành 10 */}
                     Không tìm thấy sản phẩm nào.
                   </TableCell>
                 </TableRow>
@@ -369,6 +390,9 @@ export default function ProductManager() {
                   <TableRow key={p.product_id}>
                     <TableCell>{p.product_id}</TableCell>
                     <TableCell>{p.name}</TableCell>
+                    {/* ✅ Hiển thị mô tả ngắn */}
+                    <TableCell>{p.short_description ? p.short_description.substring(0, 50) + (p.short_description.length > 50 ? '...' : '') : '—'}</TableCell>
+                    {/* ✅ Hiển thị mô tả dài */}
                     <TableCell>{p.description ? p.description.substring(0, 50) + (p.description.length > 50 ? '...' : '') : '—'}</TableCell>
                     <TableCell>{Number(p.price).toLocaleString('vi-VN')}₫</TableCell>
                     <TableCell>{p.quantity}</TableCell>
@@ -437,7 +461,7 @@ export default function ProductManager() {
           onRowsPerPageChange={handleChangeRowsPerPage}
           labelRowsPerPage="Số hàng mỗi trang:"
           labelDisplayedRows={({ from, to, count }) =>
-            `${from}-${to} trên ${count !== -1 ? count : `hơn ${to}`}`
+            `${from}-${to} trên ${count === -1 ? `hơn ${to}` : count}`
           }
         />
       </Paper>
@@ -454,7 +478,13 @@ export default function ProductManager() {
               onChange={e => setFormData({ ...formData, name: e.target.value })}
             />
             <TextField
-              fullWidth label="Mô tả" margin="dense" multiline rows={3}
+              fullWidth label="Mô tả ngắn" margin="dense" multiline rows={3}
+              name="short_description" // ✅ Bổ sung TextField cho short_description
+              value={formData.short_description}
+              onChange={e => setFormData({ ...formData, short_description: e.target.value })}
+            />
+            <TextField
+              fullWidth label="Mô tả dài" margin="dense" multiline rows={3}
               name="description" // Add name prop
               value={formData.description}
               onChange={e => setFormData({ ...formData, description: e.target.value })}

@@ -1,41 +1,44 @@
-// 📁 src/components/ProductDisplayPage.tsx (Đã sửa lỗi TypeScript 2345)
-
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import {
-  Box, Typography, Paper, useTheme, CircularProgress, Snackbar, Alert, IconButton
-} from '@mui/material';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Box, Typography, Paper, useTheme, CircularProgress, IconButton } from '@mui/material';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-import FavoriteIcon from '@mui/icons-material/Favorite'; // Icon trái tim tô đậm (đã yêu thích)
+import FavoriteIcon from '@mui/icons-material/Favorite';
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext'; // Dùng context giỏ hàng
+import { toast } from 'sonner'; // Dùng sonner để thông báo
 
 // --- INTERFACES ---
+// ✅ CẬP NHẬT: Interface Product trong ProductDisplayPage để khớp với Product trong CartContext
+// CartContext có Product { id, name, price, discount_price, image, brand }
 interface Product {
-  product_id: number;
+  product_id: number; // Đây là ID từ DB
   name: string;
-  description: string;
   price: number;
-  quantity: number;
-  thumbnail: string;
-  category_id: number;
-  brand_id: number;
-  rating?: number;
-  reviews?: number;
-  label?: 'BESTSELLER' | 'WORTH';
-  labelValue?: string;
+  thumbnail: string; // Tên file ảnh từ DB
+  description: string; // Thêm nếu bạn fetch nó
+  brand_id?: number; // Thêm nếu bạn fetch nó
+  brand?: string; // Tên thương hiệu (sẽ dùng trong CartContext)
+  discount_price?: number; // Nếu có giảm giá
+  rating?: number; // Để tương thích với hiển thị
+  reviews?: number; // Để tương thích với hiển thị
+
+  // ✅ Bổ sung 'id' và 'image' để Product này khớp với CartContext.Product interface
+  // Hoặc bạn có thể ánh xạ nó trong handleAddToCart
+  id: number; // Sẽ gán bằng product_id
+  image: string; // Sẽ gán bằng URL đầy đủ của thumbnail
 }
 
 // --- CONFIG ---
 const API_BASE_URL = 'http://localhost:3000/api';
 const UPLOADS_BASE_URL = 'http://localhost:3000/uploads/';
 
-// --- COMPONENT ProductCard ---
+// --- COMPONENT ProductCard --- (Không thay đổi nhiều, chỉ nhận props)
 interface ProductCardProps {
   product: Product;
-  onAddToCart: (e: React.MouseEvent, product: Product) => void;
-  onToggleFavorite: (e: React.MouseEvent, product: Product, isCurrentlyFavorite: boolean) => void;
+  onAddToCart: (e: React.MouseEvent) => void;
+  onToggleFavorite: (e: React.MouseEvent) => void;
   isFavorite: boolean;
 }
 
@@ -43,82 +46,31 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onToggl
   return (
     <Paper
       sx={{
-        p: 2,
-        minHeight: '400px',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'flex-start',
-        borderRadius: '8px',
-        boxShadow: 'rgba(0, 0, 0, 0.05) 0px 1px 2px 0px',
-        '&:hover': {
-          boxShadow: 'rgba(0, 0, 0, 0.1) 0px 4px 12px',
-        },
-        transition: 'box-shadow 0.2s ease-in-out',
-        backgroundColor: '#fff',
-        textAlign: 'center',
-        cursor: 'pointer',
+        p: 2, minHeight: '400px', display: 'flex', flexDirection: 'column',
+        borderRadius: '8px', boxShadow: 'rgba(0, 0, 0, 0.05) 0px 1px 2px 0px',
+        '&:hover': { boxShadow: 'rgba(0, 0, 0, 0.1) 0px 4px 12px' },
       }}
     >
       <Box sx={{ width: '100%', height: '250px', overflow: 'hidden', mb: 1.2}}>
         <img
-          src={`${UPLOADS_BASE_URL}${product.thumbnail}`}
+          src={`${UPLOADS_BASE_URL}${product.thumbnail}`} // Dùng thumbnail trực tiếp
           alt={product.name}
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            display: 'block'
-          }}
-          onError={(e) => { e.currentTarget.src = 'https://via.placeholder.com/240x240?text=No+Image'; }}
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
         />
       </Box>
-
-      <Typography
-        variant="subtitle1"
-        sx={{
-          fontWeight: 'bold',
-          textAlign: 'start',
-          mb: 2,
-          fontSize: '1.1rem',
-          lineHeight: '1.3',
-          minHeight: '2.6em',
-          display: '-webkit-box',
-          WebkitLineClamp: 2,
-          WebkitBoxOrient: 'vertical',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-        }}
-      >
+      <Typography variant="subtitle1" sx={{ fontWeight: 'bold', textAlign: 'start', mb: 2, minHeight: '2.6em' }}>
         {product.name}
       </Typography>
-
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 'auto', width: '100%' }}>
-        <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#000', fontSize: '1.1rem' }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 'auto' }}>
+        <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
           {Number(product.price).toLocaleString('vi-VN')}₫
         </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <IconButton
-            size="small"
-            sx={{ color: isFavorite ? 'black' : '#333' }}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onToggleFavorite(e, product, isFavorite);
-            }}
-          >
-            {isFavorite ? <FavoriteIcon fontSize="small" /> : <FavoriteBorderIcon fontSize="small" />}
+        <Box>
+          <IconButton onClick={onToggleFavorite}>
+            {isFavorite ? <FavoriteIcon sx={{color: 'black'}}/> : <FavoriteBorderIcon />}
           </IconButton>
-
-          <IconButton
-            size="small"
-            sx={{ color: '#333', width: 30, height: 30 }}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onAddToCart(e, product);
-            }}
-          >
-            <ShoppingCartOutlinedIcon fontSize="small" />
+          <IconButton onClick={onAddToCart}>
+            <ShoppingCartOutlinedIcon />
           </IconButton>
         </Box>
       </Box>
@@ -126,173 +78,117 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onAddToCart, onToggl
   );
 };
 
+
 // --- MAIN COMPONENT ---
 export default function ProductDisplayPage() {
   const theme = useTheme();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error' | 'info'>('success');
+  
   const { currentUser } = useAuth();
+  const { addItem } = useCart(); // Lấy hàm addItem từ context
   const user_id = currentUser?.user_id;
   const navigate = useNavigate();
 
   const [userFavorites, setUserFavorites] = useState<Set<number>>(new Set());
 
-  const showSnackbar = useCallback((message: string, severity: 'success' | 'error' | 'info') => {
-    setSnackbarMessage(message);
-    setSnackbarSeverity(severity);
-    setSnackbarOpen(true);
-  }, []);
-
-  const handleSnackbarClose = useCallback((_event?: React.SyntheticEvent | Event, reason?: string) => {
-    if (reason === 'clickaway') return;
-    setSnackbarOpen(false);
-  }, []);
-
-  const fetchUserFavorites = useCallback(async () => {
-    if (!user_id) {
-      setUserFavorites(new Set());
-      return;
-    }
-    try {
-      const response = await axios.get(`${API_BASE_URL}/favorites/${user_id}`);
-      const favoriteProductIds = new Set<number>(response.data.map((fav: Product) => fav.product_id)); // ✅ Sửa lỗi ở đây
-      setUserFavorites(favoriteProductIds);
-    } catch (err) {
-      console.error("Lỗi khi tải danh sách yêu thích của người dùng:", err);
-    }
-  }, [user_id]);
-
-  const fetchProducts = useCallback(async () => {
+  const fetchInitialData = useCallback(async () => {
     setLoading(true);
-    setError(null);
     try {
-      const response = await axios.get(`${API_BASE_URL}/products`);
-      const apiProducts = response.data.map((p: Product) => ({
-        ...p,
-        rating: p.rating ?? (Math.random() * (5 - 3) + 3),
-        reviews: p.reviews ?? Math.floor(Math.random() * 200) + 50,
+      const productPromise = axios.get(`${API_BASE_URL}/products`);
+      const favoritePromise = user_id ? axios.get(`${API_BASE_URL}/favorites/${user_id}`) : Promise.resolve({ data: [] });
+      
+      const [productResponse, favoriteResponse] = await Promise.all([productPromise, favoritePromise]);
+      
+      // ✅ Ánh xạ dữ liệu sản phẩm từ API để khớp với Product interface mới
+      const loadedProducts: Product[] = productResponse.data.map((p: any) => ({
+        product_id: p.product_id,
+        name: p.name,
+        price: Number(p.price), // Đảm bảo price là number
+        thumbnail: p.thumbnail || '', // Đảm bảo thumbnail có giá trị
+        description: p.description || '',
+        brand_id: p.brand_id,
+        brand: p.brand_name || '', // Lấy brand_name từ DB nếu bạn JOIN
+        rating: p.rating ?? 0,
+        reviews: p.reviews ?? 0,
+        discount_price: p.discount_price ? Number(p.discount_price) : undefined,
+        // ✅ THÊM id và image để khớp với CartContext.Product
+        id: p.product_id, // Gán id bằng product_id
+        image: `${UPLOADS_BASE_URL}${p.thumbnail}` // Tạo đường dẫn đầy đủ
       }));
-      setProducts(apiProducts);
-      await fetchUserFavorites();
+      setProducts(loadedProducts);
+      setUserFavorites(new Set(favoriteResponse.data.map((fav: { product_id: number }) => fav.product_id)));
     } catch (err) {
-      setError('Không thể tải dữ liệu sản phẩm. Vui lòng thử lại.');
-      console.error("Lỗi khi tải sản phẩm bán chạy:", err);
-      showSnackbar('Lỗi khi tải sản phẩm. Vui lòng kiểm tra console.', 'error');
+      setError('Không thể tải dữ liệu.');
     } finally {
       setLoading(false);
     }
-  }, [fetchUserFavorites, showSnackbar]);
+  }, [user_id]);
 
   useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+    fetchInitialData();
+  }, [fetchInitialData]);
 
-  const handleAddToCart = async (e: React.MouseEvent, product: Product) => {
-    e.stopPropagation();
+  // ✅ CẬP NHẬT: handleAddToCart
+  const handleAddToCart = async (product: Product) => { // Product ở đây là Product interface của ProductDisplayPage
     if (!user_id) {
+      toast.error('Vui lòng đăng nhập để thêm vào giỏ hàng!');
       setTimeout(() => navigate('/login'), 1000);
       return;
     }
-    try {
-      const response = await axios.post(`${API_BASE_URL}/cart`, {
-        user_id,
-        product_id: product.product_id,
-        quantity: 1
-      });
-      showSnackbar(response.data.message || '✅ Đã thêm sản phẩm vào giỏ hàng!', 'success');
-    } catch (error) {
-      const msg = (error as any).response?.data?.message || '❌ Thêm vào giỏ hàng thất bại.';
-      console.error("Lỗi thêm vào giỏ hàng:", error);
-      showSnackbar(msg, 'error');
-    }
+    
+    // ✅ TRUYỀN TOÀN BỘ ĐỐI TƯỢNG product VÀO addItem
+    // Product ở đây đã được ánh xạ để có id, image, thumbnail, brand, etc.
+    await addItem(product); // Product này giờ đã khớp với Product của CartContext
+    toast.success(`Đã thêm '${product.name}' vào giỏ hàng!`);
   };
 
-  const handleToggleFavorite = async (e: React.MouseEvent, product: Product, isCurrentlyFavorite: boolean) => {
-    e.stopPropagation();
+  const handleToggleFavorite = async (product: Product) => {
     if (!user_id) {
-      setTimeout(() => navigate('/login'), 1000);
+      toast.error('Vui lòng đăng nhập!');
       return;
     }
+    const isCurrentlyFavorite = userFavorites.has(product.product_id);
+    // Optimistic UI update
+    setUserFavorites(prev => {
+        const newSet = new Set(prev);
+        if(isCurrentlyFavorite) newSet.delete(product.product_id);
+        else newSet.add(product.product_id);
+        return newSet;
+    });
 
     try {
-      if (isCurrentlyFavorite) {
-        const response = await axios.delete(`${API_BASE_URL}/favorites/${user_id}/${product.product_id}`);
-        showSnackbar(response.data.message || `🗑️ Đã xóa '${product.name}' khỏi danh sách yêu thích!`, 'info');
+        if(isCurrentlyFavorite) {
+            await axios.delete(`${API_BASE_URL}/favorites/${user_id}/${product.product_id}`);
+            toast.info(`Đã xóa '${product.name}' khỏi yêu thích.`);
+        } else {
+            await axios.post(`${API_BASE_URL}/favorites`, { user_id, product_id: product.product_id });
+            toast.success(`Đã thêm '${product.name}' vào yêu thích.`);
+        }
+    } catch(err) {
+        toast.error("Có lỗi xảy ra, vui lòng thử lại.");
+        // Rollback UI
         setUserFavorites(prev => {
-          const newSet = new Set<number>(prev); // ✅ Sửa lỗi ở đây
-          newSet.delete(product.product_id);
-          return newSet;
+            const newSet = new Set(prev);
+            if(isCurrentlyFavorite) newSet.add(product.product_id);
+            else newSet.delete(product.product_id);
+            return newSet;
         });
-      } else {
-        const response = await axios.post(`${API_BASE_URL}/favorites`, {
-          user_id: user_id,
-          product_id: product.product_id
-        });
-        showSnackbar(response.data.message || `✅ Đã thêm '${product.name}' vào danh sách yêu thích!`, 'success');
-        setUserFavorites(prev => {
-          const newSet = new Set<number>(prev); // ✅ Sửa lỗi ở đây
-          newSet.add(product.product_id);
-          return newSet;
-        });
-      }
-    } catch (error) {
-      const msg = (error as any).response?.data?.message || 'Lỗi khi cập nhật danh sách yêu thích.';
-      console.error("Lỗi cập nhật yêu thích:", error);
-      if ((error as any).response?.status === 409) {
-        showSnackbar(msg, 'info');
-        setUserFavorites(prev => {
-          const newSet = new Set<number>(prev); // ✅ Sửa lỗi ở đây
-          newSet.add(product.product_id);
-          return newSet;
-        });
-      } else {
-        showSnackbar(msg, 'error');
-      }
     }
   };
 
-  const displayedProducts = useMemo(() => {
-    return products.slice(0, 8);
-  }, [products]);
+  const displayedProducts = useMemo(() => products.slice(0, 8), [products]);
 
-  if (loading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
-        <CircularProgress />
-        <Typography variant="h6" sx={{ ml: 2 }}>Đang tải sản phẩm...</Typography>
-      </Box>
-    );
-  }
-
-  if (error) {
-    return (
-      <Box sx={{ p: 4, textAlign: 'center', color: 'error.main' }}>
-        <Typography variant="h6">{error}</Typography>
-      </Box>
-    );
-  }
+  if (loading) return <Box sx={{ display: 'flex', justifyContent: 'center', py: 5 }}><CircularProgress /></Box>;
+  if (error) return <Box sx={{ p: 4, textAlign: 'center', color: 'error.main' }}><Typography>{error}</Typography></Box>;
 
   return (
-    <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, backgroundColor: theme.palette.background.default }}>
-      <Typography variant="h5" gutterBottom sx={{ fontWeight: 'bold', mb: 3, textAlign: 'center' }}>
+    <Box sx={{ p: { xs: 2, md: 4 }, backgroundColor: theme.palette.background.default }}>
+      <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 3, textAlign: 'center' }}>
         SẢN PHẨM BÁN CHẠY
       </Typography>
-
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: {
-            xs: 'repeat(2, 1fr)',
-            sm: 'repeat(2, 1fr)',
-            md: 'repeat(4, 1fr)'
-          },
-          gap: 3,
-        }}
-      >
+      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 3 }}>
         {displayedProducts.map((product) => (
           <Link
             key={product.product_id}
@@ -301,19 +197,13 @@ export default function ProductDisplayPage() {
           >
             <ProductCard
               product={product}
-              onAddToCart={handleAddToCart}
-              onToggleFavorite={handleToggleFavorite}
+              onAddToCart={(e) => { e.preventDefault(); e.stopPropagation(); handleAddToCart(product); }}
+              onToggleFavorite={(e) => { e.preventDefault(); e.stopPropagation(); handleToggleFavorite(product); }}
               isFavorite={userFavorites.has(product.product_id)}
             />
           </Link>
         ))}
       </Box>
-
-      <Snackbar open={snackbarOpen} autoHideDuration={3000} onClose={handleSnackbarClose}>
-        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 }

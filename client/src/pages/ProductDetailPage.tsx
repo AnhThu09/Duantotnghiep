@@ -2,7 +2,7 @@
 
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
-
+import { useCart } from '../context/CartContext';
 
 import {
   Alert,
@@ -27,6 +27,7 @@ interface Product {
   product_id: number;
   name: string;
   description: string;
+  short_description: string;
   price: number;
   quantity: number;
   thumbnail: string;
@@ -54,6 +55,7 @@ const ProductDetailPage: React.FC = () => {
 
   const { currentUser } = useAuth();
   const user_id = currentUser?.user_id; // Giả định user_id
+  const { addItem } = useCart();
   const navigate = useNavigate();
 
   const [tab, setTab] = useState(0);
@@ -101,28 +103,34 @@ const ProductDetailPage: React.FC = () => {
     }
   }, [productId, fetchProductDetails]);
 
-  const handleAddToCart = async () => {
-    if (!user_id) {
-      showSnackbar('❌ Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!', 'error');
-      setTimeout(() => navigate('/login'), 1500);
-      return;
-    }
+const handleAddToCart = async () => {
+  if (!user_id) {
+    showSnackbar('❌ Vui lòng đăng nhập để thêm sản phẩm vào giỏ hàng!', 'error');
+    setTimeout(() => navigate('/login'), 1500);
+    return;
+  }
 
-    if (!product) return;
+  if (!product) return;
 
-    try {
-      const response = await axios.post(`${API_BASE_URL}/cart`, {
-        user_id,
+  try {
+    await addItem(
+      {
         product_id: product.product_id,
-        quantity,
-      });
-      showSnackbar(response.data.message || '✅ Đã thêm sản phẩm vào giỏ hàng!', 'success');
-    } catch (error) {
-      const msg = (error as any).response?.data?.message || '❌ Thêm vào giỏ hàng thất bại.';
-      console.error('Lỗi thêm vào giỏ hàng:', error);
-      showSnackbar(msg, 'error');
-    }
-  };
+        name: product.name,
+        price: product.price,
+        discount_price: undefined, // Nếu có thì truyền vào
+        thumbnail: product.thumbnail,
+        brand: product.brand_name || '',
+      },
+      quantity
+    );
+    showSnackbar(`✅ Đã thêm '${product.name}' vào giỏ hàng!`,'success' );
+  } catch (error) {
+    console.error('Lỗi thêm vào giỏ hàng:', error);
+    showSnackbar('❌ Thêm vào giỏ hàng thất bại.', 'error');
+  }
+};
+
 
   const handleAddToFavorites = async () => {
     if (!user_id) {
@@ -222,7 +230,7 @@ const ProductDetailPage: React.FC = () => {
           </Typography>
 
           <Typography variant="body1" sx={{ mb: 3 }}>
-            {product.description}
+            {product.short_description}
           </Typography>
 
           <Box display="flex" alignItems="center" mt={2} mb={3}>

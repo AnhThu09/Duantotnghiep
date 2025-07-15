@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext'; 
 
-// Thêm các component MUI cần thiết nếu muốn dùng
 import { Box, Button, Menu, MenuItem, Typography, CircularProgress } from '@mui/material';
 
 interface Category {
@@ -32,12 +31,11 @@ const NavBar = ({ onCartIconClick }: NavBarProps) => {
   const [isProductHovered, setIsProductHovered] = useState(false);
   const [isBrandHovered, setIsBrandHovered] = useState(false);
 
-  // State cho tìm kiếm
   const [searchTerm, setSearchTerm] = useState(''); 
 
-  // State cho Menu tài khoản
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null); 
-  const openAccountMenu = Boolean(anchorEl);
+  // ✅ XÓA: Không cần state cho Menu tài khoản nữa vì không dùng dropdown
+  // const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null); 
+
 
   // --- XỬ LÝ TÌM KIẾM ---
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -45,33 +43,26 @@ const NavBar = ({ onCartIconClick }: NavBarProps) => {
   };
 
   const handleSearchSubmit = useCallback((event: React.KeyboardEvent<HTMLInputElement>) => {
-    // Kiểm tra nếu người dùng nhấn phím 'Enter'
     if (event.key === 'Enter' && searchTerm.trim() !== '') {
-      // Chuyển hướng đến trang sản phẩm và truyền tham số tìm kiếm qua URL
       navigate(`/products?search=${encodeURIComponent(searchTerm.trim())}`);
-      // Xóa từ khóa tìm kiếm trong ô input sau khi tìm kiếm
       setSearchTerm('');
     }
   }, [searchTerm, navigate]);
 
-  // --- XỬ LÝ MENU TÀI KHOẢN ---
-  const handleOpenAccountMenu = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
+  // ✅ XÓA: Không cần các hàm xử lý Menu tài khoản nữa vì không dùng dropdown
+  // const handleOpenAccountMenu = (event: React.MouseEvent<HTMLElement>) => { ... };
+  // const handleCloseAccountMenu = () => { ... };
 
-  const handleCloseAccountMenu = () => {
-    setAnchorEl(null);
-  };
 
+  // ✅ CẬP NHẬT: Hàm xử lý Đăng xuất
   const handleLogout = () => {
     logout();
-    handleCloseAccountMenu();
     navigate('/login');
   };
 
+  // ✅ CẬP NHẬT: Hàm xử lý đi đến trang tài khoản
   const handleGoToAccount = () => {
-    handleCloseAccountMenu();
-    navigate('/account');
+    navigate('/account'); // Điều hướng đến trang quản lý tài khoản
   };
 
  
@@ -139,7 +130,7 @@ const NavBar = ({ onCartIconClick }: NavBarProps) => {
                     {categories.map((cat) => (
                       <li key={cat.category_id} className="mb-2">
                         <Link
-                          to={`/danh-muc/${cat.slug}`}
+                          to={`/products?category=${cat.slug}`} 
                           className="d-block text-dark"
                           style={{ fontSize: '15px', fontWeight: 500, textDecoration: 'none' }}
                           onMouseEnter={(e) => ((e.target as HTMLElement).style.color = '#5EAB5A')}
@@ -153,45 +144,6 @@ const NavBar = ({ onCartIconClick }: NavBarProps) => {
                 </div>
               )}
             </li>
-
-            {/* Dropdown Thương hiệu */}
-            <li
-              className="nav-item mx-2"
-              onMouseEnter={() => setIsBrandHovered(true)}
-              onMouseLeave={() => setIsBrandHovered(false)}
-              style={{ position: 'relative' }}
-            >
-              <Link className="nav-link" to="#">Thương hiệu</Link>
-              {isBrandHovered && (
-                <div className="shadow-sm rounded" style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: 0,
-                  backgroundColor: '#fffefb',
-                  border: '1px solid #eee',
-                  zIndex: 999,
-                  width: '240px',
-                  padding: '12px 16px',
-                }}>
-                  <ul className="list-unstyled mb-0">
-                    {brands.map((brand) => (
-                      <li key={brand.brand_id} className="mb-2">
-                        <Link
-                          to={`/thuong-hieu/${brand.slug}`}
-                          className="d-block text-dark"
-                          style={{ fontSize: '15px', fontWeight: 500, textDecoration: 'none' }}
-                          onMouseEnter={(e) => ((e.target as HTMLElement).style.color = '#5EAB5A')}
-                          onMouseLeave={(e) => ((e.target as HTMLElement).style.color = '#000')}
-                        >
-                          {brand.brand_name}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </li>
-
             <li className="nav-item mx-2">
               <Link className="nav-link" to="/km">Khuyến mãi</Link>
             </li>
@@ -213,9 +165,9 @@ const NavBar = ({ onCartIconClick }: NavBarProps) => {
               className="form-control border-0 bg-light shadow-none"
               placeholder="Tìm kiếm sản phẩm..."
               style={{ width: '200px' }}
-              value={searchTerm} // ✅ Gán giá trị từ state
-              onChange={handleSearchChange} // ✅ Xử lý thay đổi input
-              onKeyDown={handleSearchSubmit} // ✅ Xử lý Enter
+              value={searchTerm} 
+              onChange={handleSearchChange}
+              onKeyDown={handleSearchSubmit} 
             />
           </div>
 
@@ -224,39 +176,30 @@ const NavBar = ({ onCartIconClick }: NavBarProps) => {
             <FaShoppingCart size={20} />
           </span>
           
-          {/* ✅ PHẦN TÀI KHOẢN NGƯỜI DÙNG */}
+          {/* ✅ PHẦN TÀI KHOẢN NGƯỜI DÙNG (CHUYỂN HƯỚNG TRỰC TIẾP) */}
           {loadingAuth ? ( 
             <CircularProgress size={20} color="inherit" sx={{ color: '#333' }} /> 
           ) : isAuthenticated ? (
-            // Nếu đã đăng nhập: Hiển thị tên người dùng và menu dropdown
-            <Box
-              sx={{ cursor: 'pointer', display: 'flex', alignItems: 'center', position: 'relative' }}
-              // Sử dụng onMouseEnter/onMouseLeave trên Box để quản lý menu
-              onMouseEnter={handleOpenAccountMenu}
-              onMouseLeave={handleCloseAccountMenu}
+            // Nếu đã đăng nhập: Là một Link trực tiếp đến trang tài khoản
+            <Link 
+                to="/account" 
+                className="text-dark" 
+                style={{ textDecoration: 'none', display: 'flex', alignItems: 'center' }}
             >
               <FaUser size={20} className="me-1" />
-              {/* Menu Dropdown Tài khoản */}
-              <Menu
-                anchorEl={anchorEl}
-                open={Boolean(anchorEl)}
-                onClose={handleCloseAccountMenu}
-                // Giữ menu mở khi di chuột qua menu (dùng onMouseEnter/onMouseLeave trên MenuListProps)
-                MenuListProps={{
-                  onMouseEnter: (e) => setAnchorEl(e.currentTarget),
-                  onMouseLeave: handleCloseAccountMenu,
+              <Typography
+                variant="body2"
+                sx={{
+                  fontSize: '16px',
+                  textTransform: 'uppercase',
+                  color: '#333',
+                  '&:hover': { color: '#5EAB5A' },
+                  ml: 0.5 // Khoảng cách giữa icon và text
                 }}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
               >
-                <MenuItem onClick={handleGoToAccount}>
-                  Quản lý tài khoản
-                </MenuItem>
-                <MenuItem onClick={handleLogout}>
-                  Đăng xuất
-                </MenuItem>
-              </Menu>
-            </Box>
+                {currentUser?.full_name || currentUser?.email?.split('@')[0] || "Tài khoản"}
+              </Typography>
+            </Link>
 
           ) : (
             // Nếu chưa đăng nhập: Link đến trang đăng nhập

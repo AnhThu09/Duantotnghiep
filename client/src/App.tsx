@@ -25,6 +25,7 @@ import ResetPasswordPage from './pages/ResetPasswordPage';
 import ThankYouPage from './pages/ThankYouPage';
 import VoucherListPage from './pages/VoucherListPage';
 import ScrollToTop from './components/ScrollToTop';
+import { CartProvider } from './context/CartContext';
 
 function App() {
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -32,6 +33,7 @@ function App() {
   return (
     <>
       <AuthProvider>
+       <CartProvider>
         <BrowserRouter>
           <ScrollToTop /> {/* 👉 thêm dòng này ở đây */}
           <NavBar onCartIconClick={() => setIsCartOpen(true)} />
@@ -65,6 +67,7 @@ function App() {
                 </PrivateRoute>
               }
             />
+            
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
@@ -85,6 +88,7 @@ function App() {
           <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
           <Footer />
         </BrowserRouter>
+        </CartProvider>
       </AuthProvider>
     </>
   );

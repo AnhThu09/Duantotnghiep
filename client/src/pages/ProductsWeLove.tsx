@@ -2,12 +2,14 @@ import { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useCart } from '../context/CartContext'; // ✅ Thêm dòng này
 import {
   Box, Typography, Paper, IconButton, Snackbar, Alert
 } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
+
 interface Category {
   category_id: number;
   category_name: string;
@@ -36,6 +38,7 @@ export default function ProductByCategoryScroll() {
   const [favorites, setFavorites] = useState<Set<number>>(new Set()); // ✅ Set để tra cứu nhanh
 
   const { currentUser } = useAuth();
+  const { addItem } = useCart(); // ✅ Thêm dòng này
   const user_id = currentUser?.user_id;
 
   // ✅ Lấy danh mục
@@ -77,24 +80,30 @@ export default function ProductByCategoryScroll() {
     fetchData(tabSlug);
   };
 
-  const handleAddToCart = async (e: React.MouseEvent, product: Product) => {
-    e.stopPropagation();
-    e.preventDefault();
-    if (!user_id) {
-      setTimeout(() => navigate('/login'), 1000);
-      return;
-    }
-    try {
-      const res = await axios.post(`${BASE_URL}/cart`, {
-        user_id,
-        product_id: product.product_id,
-        quantity: 1
-      });
-      setAlert({ open: true, message: res.data.message, severity: 'success' });
-    } catch {
-      setAlert({ open: true, message: '❌ Thêm vào giỏ hàng thất bại.', severity: 'error' });
-    }
-  };
+ const handleAddToCart = async (e: React.MouseEvent, product: Product) => {
+  e.stopPropagation();
+  e.preventDefault();
+
+  if (!user_id) {
+    setAlert({ open: true, message: 'Vui lòng đăng nhập để thêm vào giỏ hàng!', severity: 'warning' });
+    setTimeout(() => navigate('/login'), 1000);
+    return;
+  }
+
+  try {
+    // Chuyển đổi product từ kiểu Product của component sang ProductForCart của context
+    await addItem({
+      product_id: product.product_id,
+      name: product.name,
+      price: product.price,
+      thumbnail: product.thumbnail,
+    });
+    setAlert({ open: true, message: `✅ Đã thêm '${product.name}' vào giỏ hàng!`, severity: 'success' });
+  } catch (err) {
+    console.error('Lỗi khi thêm giỏ hàng:', err);
+    setAlert({ open: true, message: '❌ Thêm vào giỏ hàng thất bại.', severity: 'error' });
+  }
+};
 
   const handleToggleFavorite = async (e: React.MouseEvent, product: Product, isCurrentlyFavorite: boolean) => {
     e.stopPropagation();

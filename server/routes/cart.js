@@ -5,7 +5,7 @@ import { addToCart, getCartItems, updateCartItemQuantity, removeCartItem } from 
 const cartRouter = express.Router();
 
 // ✅ Route POST để thêm sản phẩm (đã có)
-cartRouter.post('/', addToCart);
+cartRouter.post('/add', addToCart);
 
 // ✅ Route GET để lấy giỏ hàng của người dùng
 cartRouter.get('/:user_id', getCartItems);

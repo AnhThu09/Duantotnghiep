@@ -104,7 +104,7 @@ const CartPage: React.FC = () => {
               Giỏ hàng trống
             </Typography>
             <Typography variant="body1" color="text.secondary">
-              Hãy khám phá và thêm sản phẩm vào giỏ hàng của bạn
+              Hãy khám phá và thêm sản phẩm vào giỏ hàng của bạn 
             </Typography>
             <motion.div
               whileHover={{ scale: 1.03 }}

@@ -1,5 +1,5 @@
-// src/context/AuthContext.tsx
-import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
+import type { ReactNode } from 'react';
 import axios from 'axios';
 
 interface User {
@@ -38,7 +38,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loadingAuth, setLoadingAuth] = useState(true); 
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setCurrentUser(null);
@@ -46,7 +46,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setIsAuthenticated(false);
     delete axios.defaults.headers.common['Authorization'];
     console.log("Người dùng đã được đăng xuất."); 
-  };
+  }, []);
 
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
@@ -65,27 +65,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     }
     setLoadingAuth(false);
-  }, []);
+  }, [logout]);
 
-  const login = (newToken: string, user: User) => {
+  const login = useCallback((newToken: string, user: User) => {
     localStorage.setItem('token', newToken); 
     localStorage.setItem('user', JSON.stringify(user)); 
     setCurrentUser(user); 
     setToken(newToken); 
     setIsAuthenticated(true); 
     axios.defaults.headers.common['Authorization'] = `Bearer ${newToken}`; 
-  };
+  }, []);
 
-  const updateUser = (updatedUserData: Partial<User>) => {
-    if (currentUser) {
-      const newUser = { ...currentUser, ...updatedUserData }; 
-      setCurrentUser(newUser); 
+  const updateUser = useCallback((updatedUserData: Partial<User>) => {
+    setCurrentUser(prevUser => {
+      if (!prevUser) return null;
+      const newUser = { ...prevUser, ...updatedUserData };
       localStorage.setItem('user', JSON.stringify(newUser)); 
-    }
-  };
+      return newUser;
+    }); 
+  }, []);
 
   useEffect(() => {
-    const interceptor = axios.interceptors.response.use(
+    const responseInterceptor = axios.interceptors.response.use(
       (response) => response, 
       (error) => {
         if (error.response && (error.response.status === 401 || error.response.status === 403)) {
@@ -97,13 +98,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     );
 
     return () => {
-      axios.interceptors.response.eject(interceptor);
+      axios.interceptors.response.eject(responseInterceptor);
     };
   }, [logout]); 
 
   return (
     <AuthContext.Provider value={{ currentUser, isAuthenticated, token, login, logout, updateUser, loadingAuth }}>
-      {children}
+      {!loadingAuth && children}
     </AuthContext.Provider>
   );
 };

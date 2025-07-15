@@ -5,7 +5,7 @@ import {
   FormControlLabel,
   Checkbox,
   Slider,
-  Grid,
+  Grid, // Đảm bảo Grid được import
   Card,
   CardMedia,
   IconButton,
@@ -14,7 +14,7 @@ import {
   Pagination,
   Snackbar,
   Alert,
-  CircularProgress,
+  CircularProgress, // Đảm bảo CircularProgress được import
 } from '@mui/material';
 import AddShoppingCartIcon from '@mui/icons-material/AddShoppingCart';
 import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
@@ -24,12 +24,16 @@ import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { Rating } from '@mui/material';
+// Import các component cần thiết nếu chúng nằm trong các file riêng biệt
 import ProductDisplayPage from "./ProductDisplayPage"
 import FeaturedSection from "./FeaturedSection"
 
+import { useAuth } from '../context/AuthContext'; // Import useAuth
+import { type AlertColor } from '@mui/material/Alert'; // Import AlertColor
+import { useCart } from '../context/CartContext';
+
 const BASE_URL = 'http://localhost:3000/api';
 const UPLOADS = 'http://localhost:3000/uploads/';
-const USER_ID = 1; 
 const PRODUCTS_PER_PAGE = 12;
 
 interface Product {
@@ -60,7 +64,6 @@ interface Brand {
 
 export default function ProductListWithFilters() {
   const navigate = useNavigate();
-  // Sử dụng useSearchParams để đọc từ khóa tìm kiếm và danh mục từ URL
   const [searchParams, setSearchParams] = useSearchParams();
   const urlSearchTerm = searchParams.get('search') || '';
   const urlCategorySlug = searchParams.get('category') || '';
@@ -68,8 +71,8 @@ export default function ProductListWithFilters() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
-  const [favorites, setFavorites] = useState<number[]>([]);
-  const [alert, setAlert] = useState({ open: false, message: '', severity: 'success' });
+  const [favorites, setFavorites] = useState<Set<number>>(new Set()); 
+  const [alert, setAlert] = useState({ open: false, message: '', severity: 'success' as AlertColor }); 
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -81,17 +84,16 @@ export default function ProductListWithFilters() {
   });
   const [sortOption, setSortOption] = useState('mới nhất');
   const [currentPage, setCurrentPage] = useState(1);
-  
-  // Chúng ta vẫn cần searchTerm và displayedSearchTerm để theo dõi từ khóa từ URL
-  const [searchTerm, setSearchTerm] = useState(urlSearchTerm); 
-  const [displayedSearchTerm, setDisplayedSearchTerm] = useState(urlSearchTerm); 
+
+  const { currentUser } = useAuth();
+  const user_id = currentUser?.user_id;
+  const { addItem } = useCart();
 
   // --- HÀM LẤY DỮ LIỆU ---
   const fetchData = useCallback(async () => {
     setLoading(true);
     setError(null);
     
-    // Gửi tham số tìm kiếm và categorySlug đến Backend
     const params = {
       search: urlSearchTerm, 
       category: urlCategorySlug, 
@@ -100,7 +102,7 @@ export default function ProductListWithFilters() {
     try {
       const [prodRes, catRes, brandRes] = await Promise.all([
         axios.get(`${BASE_URL}/products`, { params }),
-        axios.get(`${BASE_URL}/categories`),
+        axios.get(`${BASE_URL}/categories`), 
         axios.get(`${BASE_URL}/brands`),
       ]);
 
@@ -113,10 +115,7 @@ export default function ProductListWithFilters() {
       setProducts(loadedProducts);
       setCategories(catRes.data);
       setBrands(brandRes.data);
-      // Cập nhật displayedSearchTerm dựa trên urlSearchTerm (được gửi từ NavBar)
-      setDisplayedSearchTerm(urlSearchTerm); 
-
-      // Đồng bộ hóa filters.categories với urlCategorySlug
+      
       if (urlCategorySlug && catRes.data.length > 0) {
         const matchingCategory = catRes.data.find((cat: Category) => cat.slug === urlCategorySlug);
         if (matchingCategory) {
@@ -132,45 +131,94 @@ export default function ProductListWithFilters() {
           setFilters(prev => ({ ...prev, categories: [] }));
       }
       
+      if (user_id) {
+          const favRes = await axios.get(`${BASE_URL}/favorites/${user_id}`);
+          const favProductIds = new Set<number>(favRes.data.map((fav: any) => fav.product_id));
+          setFavorites(favProductIds);
+      } else {
+          setFavorites(new Set()); 
+      }
+
     } catch (err) {
       console.error('Lỗi khi tải dữ liệu:', err);
       setError('Lỗi khi tải dữ liệu sản phẩm.');
     } finally {
       setLoading(false);
     }
-  }, [urlSearchTerm, urlCategorySlug]); 
+  }, [urlSearchTerm, urlCategorySlug, user_id]); 
 
-  // EFFECT: Gọi fetchData khi urlSearchTerm hoặc urlCategorySlug thay đổi
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
 
   const handleFavoriteToggle = async (productId: number) => {
+    if (!user_id) { 
+        setAlert({ open: true, message: '❌ Vui lòng đăng nhập để thêm sản phẩm vào danh sách yêu thích!', severity: 'error' });
+        navigate('/login'); 
+        return;
+    }
+
+    const isCurrentlyFavorite = favorites.has(productId); 
+    
+    const newFavorites = new Set(favorites);
+    if (isCurrentlyFavorite) {
+        newFavorites.delete(productId);
+    } else {
+        newFavorites.add(productId);
+    }
+    setFavorites(newFavorites);
+
     try {
-      if (favorites.includes(productId)) {
-        await axios.delete(`${BASE_URL}/favorites/user/${USER_ID}/product/${productId}`);
-        setFavorites(prev => prev.filter(id => id !== productId));
-        setAlert({ open: true, message: '🗑️ Đã xoá khỏi yêu thích', severity: 'info' });
-      } else {
-        await axios.post(`${BASE_URL}/favorites`, { user_id: USER_ID, product_id: productId });
-        setFavorites(prev => [...prev, productId]);
-        setAlert({ open: true, message: '💖 Đã thêm vào yêu thích', severity: 'success' });
-      }
-    } catch (err) {
-      console.error('Lỗi khi cập nhật yêu thích:', err);
-      setAlert({ open: true, message: 'Lỗi khi cập nhật yêu thích', severity: 'error' });
+        if (isCurrentlyFavorite) {
+            await axios.delete(`${BASE_URL}/favorites/${user_id}/${productId}`);
+            setAlert({ open: true, message: `🗑️ Đã xóa sản phẩm khỏi yêu thích!`, severity: 'info' });
+        } else {
+            await axios.post(`${BASE_URL}/favorites`, {
+                user_id: user_id,
+                product_id: productId
+            });
+            setAlert({ open: true, message: `💖 Đã thêm sản phẩm vào yêu thích!`, severity: 'success' });
+        }
+    } catch (error) {
+        setFavorites(favorites); 
+        const msg = (error as any).response?.data?.message || 'Lỗi khi cập nhật danh sách yêu thích.';
+        setAlert({ open: true, message: msg, severity: 'error' });
+        console.error("Lỗi cập nhật yêu thích:", error);
     }
   };
 
-  // Xử lý bộ lọc (brands, categories, ratings, price)
+ const handleAddToCart = async (e: React.MouseEvent, product: Product) => {
+  e.stopPropagation();
+  e.preventDefault();
+
+  if (!user_id) {
+    setAlert({ open: true, message: 'Vui lòng đăng nhập để thêm vào giỏ hàng!', severity: 'warning' });
+    setTimeout(() => navigate('/login'), 1000);
+    return;
+  }
+
+  try {
+    // Chuyển đổi product từ kiểu Product của component sang ProductForCart của context
+    await addItem({
+      product_id: product.product_id,
+      name: product.name,
+      price: product.price,
+      thumbnail: product.thumbnail,
+    });
+    setAlert({ open: true, message: `✅ Đã thêm '${product.name}' vào giỏ hàng!`, severity: 'success' });
+  } catch (err) {
+    console.error('Lỗi khi thêm giỏ hàng:', err);
+    setAlert({ open: true, message: '❌ Thêm vào giỏ hàng thất bại.', severity: 'error' });
+  }
+};
+
   const handleFilterChange = (type: string, value: string | number) => {
     setFilters(prev => {
       const newArr = prev[type as keyof typeof prev] as any[];
       const index = newArr.indexOf(value);
       const updated = index === -1 ? [...newArr, value] : newArr.filter(i => i !== value);
       
-      // Nếu lọc theo danh mục, xóa categorySlug khỏi URL nếu người dùng tự tay chọn
       if (type === 'categories' && urlCategorySlug) {
           setSearchParams(currentParams => {
               const newParams = new URLSearchParams(currentParams);
@@ -179,7 +227,6 @@ export default function ProductListWithFilters() {
           });
       }
 
-      // Xóa tham số tìm kiếm khỏi URL khi người dùng sử dụng bộ lọc
       if (urlSearchTerm) {
           setSearchParams(currentParams => {
               const newParams = new URLSearchParams(currentParams);
@@ -203,19 +250,16 @@ export default function ProductListWithFilters() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Bộ lọc sản phẩm ở Frontend 
   const sortedFilteredProducts = useMemo(() => {
     let filtered = products.filter(p => {
-      // Lọc theo Brand, Category, Rating, Price
-      const matchBrand = filters.brands.length === 0 || filters.brands.includes(p.brand_id.toString());
-      const matchCat = filters.categories.length === 0 || filters.categories.includes(p.category_id.toString());
+      const matchBrand = filters.brands.length === 0 || filters.brands.includes(String(p.brand_id));
+      const matchCat = filters.categories.length === 0 || filters.categories.includes(String(p.category_id));
       const matchRating = filters.ratings.length === 0 || filters.ratings.some(r => (p.rating || 0) >= r);
       const matchPrice = p.price >= filters.price[0] && p.price <= filters.price[1];
       
       return matchBrand && matchCat && matchRating && matchPrice;
     });
 
-    // Sắp xếp
     filtered.sort((a, b) => {
       if (sortOption === 'giá tăng') return a.price - b.price;
       if (sortOption === 'giá giảm') return b.price - a.price;
@@ -257,13 +301,11 @@ export default function ProductListWithFilters() {
         Khám phá bộ sưu tập mỹ phẩm chính hãng
       </Typography>
 
-      {/* ✅ Đã xóa thanh tìm kiếm */}
-      
       {/* Hiển thị kết quả tìm kiếm/lọc */}
-      {(displayedSearchTerm || urlCategorySlug) && (
+      {(urlSearchTerm || urlCategorySlug) && (
         <Box sx={{ mb: 4 }}>
           <Typography variant="h6" color="primary">
-            {urlSearchTerm ? `Kết quả tìm kiếm cho: "${displayedSearchTerm}"` : `Hiển thị sản phẩm thuộc danh mục: "${urlCategorySlug}"`}
+            {urlSearchTerm ? `Kết quả tìm kiếm cho: "${urlSearchTerm}"` : `Hiển thị sản phẩm thuộc danh mục: "${urlCategorySlug}"`}
           </Typography>
           <Typography variant="body1" color="text.secondary">
             Tổng {sortedFilteredProducts.length} sản phẩm phù hợp.
@@ -279,7 +321,6 @@ export default function ProductListWithFilters() {
             {brands.map(b => (
               <FormControlLabel
                 key={b.brand_id}
-                // ✅ Sửa lỗi TS2741: Bổ sung thuộc tính 'control'
                 control={<Checkbox checked={filters.brands.includes(String(b.brand_id))} onChange={() => handleFilterChange('brands', String(b.brand_id))} />}
                 label={b.brand_name}
                 sx={{ color: '#e91e63', '&.Mui-checked': { color: '#e91e63' } }}
@@ -293,7 +334,6 @@ export default function ProductListWithFilters() {
               {categories.map(c => (
                 <FormControlLabel
                   key={c.category_id}
-                  // ✅ Sửa lỗi TS2741: Bổ sung thuộc tính 'control'
                   control={<Checkbox checked={filters.categories.includes(String(c.category_id))} onChange={() => handleFilterChange('categories', String(c.category_id))} />}
                   label={c.category_name}
                   sx={{ color: '#e91e63', '&.Mui-checked': { color: '#e91e63' } }} 
@@ -316,7 +356,6 @@ export default function ProductListWithFilters() {
               {[5, 4, 3, 2, 1].map(rating => (
                 <FormControlLabel
                   key={rating}
-                  // ✅ Sửa lỗi TS2741: Bổ sung thuộc tính 'control'
                   control={<Checkbox checked={filters.ratings.includes(rating)} onChange={() => handleFilterChange('ratings', rating)} />}
                   label={`${rating} sao trở lên`}
                   sx={{ color: '#e91e63', '&.Mui-checked': { color: '#e91e63' } }}
@@ -389,7 +428,7 @@ export default function ProductListWithFilters() {
                                   '&:hover': { bgcolor: 'grey.100' },
                                 }}
                               >
-                                {favorites.includes(product.product_id)
+                                {favorites.has(product.product_id)
                                   ? <FavoriteIcon sx={{ color: '#e91e63' }} />
                                   : <FavoriteBorderIcon sx={{ color: '#aaa' }} />}
                               </IconButton>
@@ -425,7 +464,7 @@ export default function ProductListWithFilters() {
                                 <Typography fontWeight="bold" color="primary" fontSize="1rem">
                                   {Number(product.price).toLocaleString()}₫
                                 </Typography>
-                                <IconButton color="primary" size="small">
+                                <IconButton color="primary" size="small" onClick={(e) => handleAddToCart(e, product)}>
                                   <AddShoppingCartIcon />
                                 </IconButton>
                               </Box>
@@ -438,7 +477,7 @@ export default function ProductListWithFilters() {
           </Grid>
 
           {/* Phân trang */}
-          <Box display="flex" justifyContent="center" sx={{ mt: 4 }}>
+          <Box display="flex" justifyContent="flex-start" sx={{ mt: 4, ml: 45 }}>
             <Pagination
               count={Math.ceil(sortedFilteredProducts.length / PRODUCTS_PER_PAGE)}
               page={currentPage}

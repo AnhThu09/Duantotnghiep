@@ -1,35 +1,38 @@
-// src/components/CartSidebar.tsx
+// 📁 client/src/components/CartSidebar.tsx
 
-import { IconButton, Button } from '@mui/material'; // ✅ ĐÃ DỌN DẸP IMPORT
+import { IconButton, Button, Box, Typography, Card, CardContent } from '@mui/material'; // Thêm Box, Typography, Card, CardContent
 import CloseIcon from '@mui/icons-material/Close';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useNavigate } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
+import { useCart } from '../context/CartContext'; // ✨ DÙNG CONTEXT
 
 import '../css/CartSidebar.css';
-
-// Interface này không cần thiết nữa vì ta dùng từ Context
-// interface CartItem { ... }
 
 interface CartSidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-// ✅ ĐÃ XÓA HẰNG SỐ KHÔNG DÙNG
-// const BASE_URL = 'http://localhost:3000/api';
-// const UPLOADS_BASE_URL = 'http://localhost:3000/uploads/';
-
 export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
-  const { state, updateQuantity, removeItem } = useCart();
+  const { state, updateQuantity, removeItem } = useCart(); // Lấy state và hàm từ Context
   const navigate = useNavigate();
+
+  const handleUpdateQuantity = (productId: string, newQuantity: number) => {
+    // Không cần kiểm tra newQuantity < 0 ở đây nữa vì nút sẽ disabled
+    updateQuantity(productId, newQuantity);
+  };
+
+  const handleRemoveItem = (productId: string) => {
+    if (window.confirm('Bạn có chắc muốn xoá sản phẩm này khỏi giỏ hàng?')) {
+        removeItem(productId);
+    }
+  };
 
   return (
     <>
       <div className={`cart-overlay ${isOpen ? 'open' : ''}`} onClick={onClose}></div>
-
       <div className={`cart-sidebar ${isOpen ? 'open' : ''}`}>
         <div className="cart-header">
           <h3>Giỏ hàng ({state.itemCount})</h3>
@@ -42,24 +45,32 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
           ) : (
             state.items.map(item => (
               <div key={item.id} className="cart-item">
-                <img src={item.image} alt={item.name} className="item-image" />
+                {item.image ? (
+                    <img src={item.image} alt={item.name} className="item-image" />
+                ) : (
+                    <Box sx={{ width: '60px', height: '60px', bgcolor: 'grey.200', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '8px' }}>
+                        <Typography variant="caption" sx={{ fontSize: '0.6rem' }}>No Img</Typography>
+                    </Box>
+                )}
                 <div className="item-details">
                   <div className="item-name">{item.name}</div>
-                  <div className="item-price">
-                    {((item.discount_price || item.price) * item.quantity).toLocaleString('vi-VN')} đ
-                  </div>
+                  <div className="item-price">{(item.price * item.quantity).toLocaleString('vi-VN')} đ</div>
                   <div className="quantity-controls">
-                    <IconButton onClick={() => updateQuantity(item.id, item.quantity - 1)}>
+                    {/* ✅ Vô hiệu hóa nút nếu số lượng là 1 */}
+                    <IconButton 
+                      onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
+                      disabled={item.quantity === 1} 
+                    >
                       <RemoveIcon fontSize="small" />
                     </IconButton>
                     <span className="quantity-value">{item.quantity}</span>
-                    <IconButton onClick={() => updateQuantity(item.id, item.quantity + 1)}>
+                    <IconButton onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}>
                       <AddIcon fontSize="small" />
                     </IconButton>
                   </div>
                 </div>
                 <div className="item-actions">
-                  <IconButton onClick={() => removeItem(item.id)}>
+                  <IconButton onClick={() => handleRemoveItem(item.id)}>
                     <DeleteIcon fontSize="small" />
                   </IconButton>
                 </div>
@@ -80,6 +91,7 @@ export default function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
               onClose();
               navigate('/checkout');
             }}
+            disabled={state.items.length === 0}
           >
             Thanh toán
           </Button>

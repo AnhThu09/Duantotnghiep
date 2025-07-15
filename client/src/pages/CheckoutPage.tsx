@@ -1,90 +1,63 @@
-import { Home } from '@mui/icons-material';
-import { Alert, Box, Breadcrumbs, Button, Container, Link, Typography } from '@mui/material';
-import React, { useState } from 'react';
+import React from 'react';
+import { Container, Grid, Box } from '@mui/material';
+import { useCart } from '../context/CartContext'; // ✨ DÙNG CONTEXT
 import CartSummary from '../components/CartSummary';
 import CustomerForm from '../components/CustomerForm';
-import PaymentMethods from '../components/PaymentMethods';
+import CartPage from './CartPage';
+
+// Chỉnh lại interface cho CartSummary để khớp với CartContext
+interface DisplayItem {
+  id: string; // CartSummary dùng 'id' là string, ta cần chuyển đổi
+  name: string;
+  price: number;
+  quantity: number;
+  image: string;
+}
+
+const UPLOADS_BASE_URL = 'http://localhost:3000/uploads/';
 
 const CheckoutPage: React.FC = () => {
-  const [customerData, setCustomerData] = useState({});
-  const [paymentMethod, setPaymentMethod] = useState('cod');
+  const { state, updateQuantity, removeItem } = useCart();
 
-  const handleCustomerDataChange = (data: any) => {
-    setCustomerData(data);
+  // Chuyển đổi dữ liệu từ CartContext sang định dạng mà CartSummary yêu cầu
+  const displayItems: DisplayItem[] = state.items.map(item => ({
+    id: String(item.product_id), // Chuyển product_id (number) thành id (string)
+    name: item.name,
+    price: item.price,
+    quantity: item.quantity,
+    image: `${UPLOADS_BASE_URL}${item.thumbnail}` // Tạo URL đầy đủ
+  }));
+
+  const handleUpdate = (itemId: string, newQuantity: number) => {
+    updateQuantity(Number(itemId), newQuantity); // Chuyển id (string) về lại number
   };
-
-  const handlePaymentMethodChange = (method: string) => {
-    setPaymentMethod(method);
-  };
-
-  const handleOrderSubmit = () => {
-    console.log('Order submitted:', {
-      customerData,
-      paymentMethod,
-    });
-    // Handle order submission here
+  const handleRemove = (itemId: string) => {
+    removeItem(Number(itemId)); // Chuyển id (string) về lại number
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', backgroundColor: '#F5F5F5' }}>
-      <Container maxWidth="xl" sx={{ py: 4 }}>
-        {/* Breadcrumb */}
-        <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
-          <Link
-            underline="hover"
-            color="inherit"
-            href="/"
-            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-          >
-            <Home sx={{ fontSize: 16 }} />
-            Trang Chủ
-          </Link>
-          <Typography color="text.primary">Sản Phẩm</Typography>
-        </Breadcrumbs>
-
-        {/* Login notification */}
-        <Alert severity="warning" sx={{ mb: 3, textAlign: 'center' }}>
-          Đăng ký / Đăng nhập để nhận ưu đãi cho thành viên
-        </Alert>
-
-        <div className="row g-4">
-          {/* Left section - Customer information and Payment */}
-          <div className="col-lg-8">
-            <Box sx={{ mb: 4 }}>
-              <CustomerForm onFormChange={handleCustomerDataChange} />
-            </Box>
-
-            <Box sx={{ mb: 4 }}>
-              <PaymentMethods
-                selectedMethod={paymentMethod}
-                onMethodChange={handlePaymentMethodChange}
-              />
-            </Box>
-
-            <Button
-              variant="contained"
-              fullWidth
-              size="large"
-              onClick={handleOrderSubmit}
-              sx={{
-                py: 2,
-                backgroundColor: '#FF6B35',
-                '&:hover': { backgroundColor: '#E55A2B' },
-                fontWeight: 'bold',
-                fontSize: '1.1rem',
-              }}
-            >
-              Xác nhận đặt hàng
-            </Button>
-          </div>
-
-          {/* Right section - Cart summary */}
-          <div className="col-lg-4">
-            <CartSummary />
-          </div>
-        </div>
-      </Container>
-    </Box>
+    <Container maxWidth="lg" sx={{ my: 4 }}>
+      <Grid container spacing={{ xs: 4, md: 6 }}>
+        <Grid item xs={12} md={7}>
+          <CustomerForm />
+        </Grid>
+        <Grid item xs={12} md={5}>
+          <Box sx={{ position: 'sticky', top: '88px' }}>
+            <CartSummary
+              items={displayItems}
+              subtotal={state.total}
+              shippingFee={0}
+              discount={0}
+              total={state.total}
+              onUpdateQuantity={handleUpdate}
+              onRemoveItem={handleRemove}
+              onApplyCoupon={() => {}}
+            />
+            
+          </Box>
+        </Grid>
+      </Grid>
+    </Container>
   );
 };
 
