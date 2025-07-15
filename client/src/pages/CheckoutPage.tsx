@@ -1,13 +1,21 @@
-import { Home } from '@mui/icons-material';
-import { Alert, Box, Breadcrumbs, Button, Container, Link, Typography } from '@mui/material';
-import React, { useState } from 'react';
-import CartSummary from '../components/CartSummary';
-import CustomerForm from '../components/CustomerForm';
-import PaymentMethods from '../components/PaymentMethods';
+import { Home } from "@mui/icons-material";
+import {
+  Alert,
+  Box,
+  Breadcrumbs,
+  Button,
+  Container,
+  Link,
+  Typography,
+} from "@mui/material";
+import React, { useState } from "react";
+import CartSummary from "../components/CartSummary";
+import CustomerForm from "../components/CustomerForm";
+import PaymentMethods from "../components/PaymentMethods";
 
 const CheckoutPage: React.FC = () => {
   const [customerData, setCustomerData] = useState({});
-  const [paymentMethod, setPaymentMethod] = useState('cod');
+  const [paymentMethod, setPaymentMethod] = useState("cod");
 
   const handleCustomerDataChange = (data: any) => {
     setCustomerData(data);
@@ -18,7 +26,7 @@ const CheckoutPage: React.FC = () => {
   };
 
   const handleOrderSubmit = () => {
-    console.log('Order submitted:', {
+    console.log("Order submitted:", {
       customerData,
       paymentMethod,
     });
@@ -26,7 +34,7 @@ const CheckoutPage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ minHeight: '100vh', backgroundColor: '#F5F5F5' }}>
+    <Box sx={{ minHeight: "100vh", backgroundColor: "#F5F5F5" }}>
       <Container maxWidth="xl" sx={{ py: 4 }}>
         {/* Breadcrumb */}
         <Breadcrumbs aria-label="breadcrumb" sx={{ mb: 2 }}>
@@ -34,7 +42,7 @@ const CheckoutPage: React.FC = () => {
             underline="hover"
             color="inherit"
             href="/"
-            sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+            sx={{ display: "flex", alignItems: "center", gap: 0.5 }}
           >
             <Home sx={{ fontSize: 16 }} />
             Trang Chủ
@@ -43,7 +51,7 @@ const CheckoutPage: React.FC = () => {
         </Breadcrumbs>
 
         {/* Login notification */}
-        <Alert severity="warning" sx={{ mb: 3, textAlign: 'center' }}>
+        <Alert severity="warning" sx={{ mb: 3, textAlign: "center" }}>
           Đăng ký / Đăng nhập để nhận ưu đãi cho thành viên
         </Alert>
 
@@ -68,10 +76,10 @@ const CheckoutPage: React.FC = () => {
               onClick={handleOrderSubmit}
               sx={{
                 py: 2,
-                backgroundColor: '#FF6B35',
-                '&:hover': { backgroundColor: '#E55A2B' },
-                fontWeight: 'bold',
-                fontSize: '1.1rem',
+                backgroundColor: "#FF6B35",
+                "&:hover": { backgroundColor: "#E55A2B" },
+                fontWeight: "bold",
+                fontSize: "1.1rem",
               }}
             >
               Xác nhận đặt hàng
