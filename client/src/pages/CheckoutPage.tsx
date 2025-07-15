@@ -38,22 +38,9 @@ const CheckoutPage: React.FC = () => {
   return (
     <Container maxWidth="lg" sx={{ my: 4 }}>
       <Grid container spacing={{ xs: 4, md: 6 }}>
-        <Grid item xs={12} md={7}>
-          <CustomerForm />
-        </Grid>
         <Grid item xs={12} md={5}>
           <Box sx={{ position: 'sticky', top: '88px' }}>
-            <CartSummary
-              items={displayItems}
-              subtotal={state.total}
-              shippingFee={0}
-              discount={0}
-              total={state.total}
-              onUpdateQuantity={handleUpdate}
-              onRemoveItem={handleRemove}
-              onApplyCoupon={() => {}}
-            />
-            
+            <CartPage/>
           </Box>
         </Grid>
       </Grid>

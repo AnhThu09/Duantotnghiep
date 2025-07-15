@@ -80,7 +80,7 @@ const CartSummary: React.FC<CartSummaryProps> = ({
   }
 
   return (
-    <Card sx={{ borderRadius: 2, boxShadow: 3 }}>
+    <Card sx={{ mt: 10, borderRadius: 2, boxShadow: 3 }}>
       <CardContent sx={{ p: { xs: 2, md: 3 } }}>
         <Typography variant="h5" gutterBottom fontWeight="bold">
           Giỏ hàng của bạn ({items.reduce((acc, item) => acc + item.quantity, 0)})

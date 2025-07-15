@@ -69,7 +69,7 @@ const processDbData = (data: DiscountCodeDb[]): VoucherDisplay[] => {
     });
 };
 
-const API_URL = 'http://localhost:3000/api/discount_codes';
+const API_URL = 'http://localhost:3000/api/discounts';
 
 // --- VOUCHER LIST PAGE COMPONENT ---
 const VoucherListPage: React.FC = () => {

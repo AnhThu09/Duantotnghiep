@@ -14,7 +14,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import { format } from 'date-fns';
 
 // --- Cấu hình API Backend URL ---
-const API_URL = 'http://localhost:3000/api/discount_codes';
+const API_URL = 'http://localhost:3000/api/discounts';
 
 // --- INTERFACE DỮ LIỆU TỪ DB ---
 // Interface cho dữ liệu nhận được từ DB

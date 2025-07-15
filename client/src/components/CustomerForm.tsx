@@ -148,7 +148,7 @@ const CustomerForm: React.FC<CustomerFormProps> = ({
   };
 
   return (
-    <Card sx={{ mt: 10, borderRadius: 2, boxShadow: 0, bgcolor: '#fffefb' }}>
+    <Card sx={{ mt: 9, borderRadius: 2, boxShadow: 0, bgcolor: '#fffefb' }}>
       <CardContent sx={{ p: { xs: 2, md: 4 } }}>
         <Box sx={{ mb: 4 }}>
           <Typography variant="h5" gutterBottom fontWeight="bold">Thông tin liên hệ của bạn</Typography>
