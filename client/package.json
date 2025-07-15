@@ -30,6 +30,7 @@
     "react-slick": "^0.30.3",
     "slick-carousel": "^1.8.1",
     "sonner": "^2.0.5",
+    "styled-components": "^6.1.19",
     "swiper": "^11.2.10"
   },
   "devDependencies": {
