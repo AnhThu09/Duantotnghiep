@@ -1,5 +1,7 @@
+"use client";
+
 // CartSummary.tsx
-import { Add, Close, LocalOffer, Remove } from '@mui/icons-material';
+import { Add, Close, LocalOffer, Remove } from "@mui/icons-material";
 import {
   Box,
   Button,
@@ -9,8 +11,9 @@ import {
   IconButton,
   TextField,
   Typography,
-} from '@mui/material';
-import React, { useState } from 'react';
+} from "@mui/material";
+import type React from "react";
+import { useState } from "react";
 
 // Giữ nguyên các interface
 interface CartItem {
@@ -50,19 +53,20 @@ const CartSummary: React.FC<CartSummaryProps> = ({
   onRemoveItem,
   onApplyCoupon,
 }) => {
-  const [selectedPromo, setSelectedPromo] = useState<string>('');
-  const [couponCode, setCouponCode] = useState<string>('');
+  const [selectedPromo, setSelectedPromo] = useState<string>("");
+  const [couponCode, setCouponCode] = useState<string>("");
 
   const handleQuantityChange = (itemId: string, newQuantity: number) => {
-    if (newQuantity >= 0) { // Cho phép giảm về 0 để xóa
+    if (newQuantity >= 0) {
+      // Cho phép giảm về 0 để xóa
       onUpdateQuantity(itemId, newQuantity);
     }
   };
 
   const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('vi-VN').format(price) + 'đ';
+    return new Intl.NumberFormat("vi-VN").format(price) + "đ";
   };
-  
+
   // ✨ Xử lý khi giỏ hàng trống
   if (!items || items.length === 0) {
     return (
@@ -71,7 +75,9 @@ const CartSummary: React.FC<CartSummaryProps> = ({
           <Typography variant="h5" gutterBottom fontWeight="bold">
             Giỏ hàng của bạn
           </Typography>
-          <Typography sx={{ mt: 4, textAlign: 'center', color: 'text.secondary' }}>
+          <Typography
+            sx={{ mt: 4, textAlign: "center", color: "text.secondary" }}
+          >
             Giỏ hàng của bạn đang trống.
           </Typography>
         </CardContent>
@@ -83,36 +89,68 @@ const CartSummary: React.FC<CartSummaryProps> = ({
     <Card sx={{ mt: 10, borderRadius: 2, boxShadow: 3 }}>
       <CardContent sx={{ p: { xs: 2, md: 3 } }}>
         <Typography variant="h5" gutterBottom fontWeight="bold">
-          Giỏ hàng của bạn ({items.reduce((acc, item) => acc + item.quantity, 0)})
+          Giỏ hàng của bạn (
+          {items.reduce((acc, item) => acc + item.quantity, 0)})
         </Typography>
         <Divider sx={{ my: 2 }} />
 
         {/* Danh sách sản phẩm trong giỏ hàng */}
-        <Box sx={{ mb: 3, maxHeight: '400px', overflowY: 'auto', pr: 1 }}>
-          {items.map(item => (
-            <Card key={item.id} variant="outlined" sx={{ mb: 2, borderRadius: 2 }}>
-              <CardContent sx={{ p: 2, display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ mb: 3, maxHeight: "400px", overflowY: "auto", pr: 1 }}>
+          {items.map((item) => (
+            <Card
+              key={item.id}
+              variant="outlined"
+              sx={{ mb: 2, borderRadius: 2 }}
+            >
+              <CardContent
+                sx={{ p: 2, display: "flex", alignItems: "center", gap: 2 }}
+              >
                 <img
-                  src={item.image}
+                  src={item.image || "/placeholder.svg"}
                   alt={item.name}
-                  style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '8px' }}
+                  style={{
+                    width: "60px",
+                    height: "60px",
+                    objectFit: "cover",
+                    borderRadius: "8px",
+                  }}
                 />
                 <Box sx={{ flexGrow: 1 }}>
-                  <Typography variant="body2" fontWeight="medium" sx={{ mb: 1 }}>
+                  <Typography
+                    variant="body2"
+                    fontWeight="medium"
+                    sx={{ mb: 1 }}
+                  >
                     {item.name}
                   </Typography>
-                  <Box display="flex" justifyContent="space-between" alignItems="center">
-                    <Box display="flex" alignItems="center" border={1} borderColor="grey.300" borderRadius={1}>
+                  <Box
+                    display="flex"
+                    justifyContent="space-between"
+                    alignItems="center"
+                  >
+                    <Box
+                      display="flex"
+                      alignItems="center"
+                      border={1}
+                      borderColor="grey.300"
+                      borderRadius={1}
+                    >
                       <IconButton
                         size="small"
-                        onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                        onClick={() =>
+                          handleQuantityChange(item.id, item.quantity - 1)
+                        }
                       >
                         <Remove fontSize="small" />
                       </IconButton>
-                      <Typography sx={{ mx: 1.5, fontSize: '14px' }}>{item.quantity}</Typography>
+                      <Typography sx={{ mx: 1.5, fontSize: "14px" }}>
+                        {item.quantity}
+                      </Typography>
                       <IconButton
                         size="small"
-                        onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                        onClick={() =>
+                          handleQuantityChange(item.id, item.quantity + 1)
+                        }
                       >
                         <Add fontSize="small" />
                       </IconButton>
@@ -122,8 +160,12 @@ const CartSummary: React.FC<CartSummaryProps> = ({
                     </Typography>
                   </Box>
                 </Box>
-                 <IconButton size="small" onClick={() => onRemoveItem(item.id)} sx={{ alignSelf: 'flex-start' }}>
-                    <Close />
+                <IconButton
+                  size="small"
+                  onClick={() => onRemoveItem(item.id)}
+                  sx={{ alignSelf: "flex-start" }}
+                >
+                  <Close />
                 </IconButton>
               </CardContent>
             </Card>
@@ -144,12 +186,12 @@ const CartSummary: React.FC<CartSummaryProps> = ({
               size="small"
               placeholder="Nhập mã giảm giá"
               value={couponCode}
-              onChange={e => setCouponCode(e.target.value)}
+              onChange={(e) => setCouponCode(e.target.value)}
             />
-            <Button 
-              variant="contained" 
+            <Button
+              variant="contained"
               onClick={() => onApplyCoupon(couponCode)}
-              sx={{ whiteSpace: 'nowrap' }}
+              sx={{ whiteSpace: "nowrap" }}
             >
               Áp dụng
             </Button>
@@ -178,7 +220,11 @@ const CartSummary: React.FC<CartSummaryProps> = ({
             </Typography>
           </Box>
           <Divider sx={{ mb: 2 }} />
-          <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Box
+            display="flex"
+            justifyContent="space-between"
+            alignItems="center"
+          >
             <Typography variant="h6" fontWeight="bold">
               Tổng cộng:
             </Typography>

@@ -19,14 +19,16 @@ export const getCartItems = (req, res) => {
 
   db.query(sql, [user_id], (err, result) => {
     if (err) {
-      console.error('Lỗi khi lấy giỏ hàng:', err);
-      return res.status(500).json({ error: 'Lỗi server', details: err.message });
+      console.error("Lỗi khi lấy giỏ hàng:", err);
+      return res
+        .status(500)
+        .json({ error: "Lỗi server", details: err.message });
     }
-    const cartItems = result.map((item) => ({ 
+    const cartItems = result.map((item) => ({
       ...item,
       quantity: parseInt(item.quantity, 10), // Chuyển đổi quantity thành số nguyên
       price: parseFloat(item.price), // Chuyển đổi price thành số thực
-      thumbnail: item.thumbnail || '' // ✅ Đảm bảo thumbnail là chuỗi rỗng nếu null/undefined
+      thumbnail: item.thumbnail || "", // ✅ Đảm bảo thumbnail là chuỗi rỗng nếu null/undefined
     }));
     res.json(cartItems);
   });
@@ -38,14 +40,17 @@ export const updateCartItemQuantity = (req, res) => {
   const { quantity } = req.body;
 
   if (isNaN(quantity) || quantity < 0) {
-    return res.status(400).json({ error: 'Số lượng không hợp lệ' });
+    return res.status(400).json({ error: "Số lượng không hợp lệ" });
   }
 
-  const sql = "UPDATE cart SET quantity = ? WHERE user_id = ? AND product_id = ?"; // Đảm bảo tên bảng là 'cart'
+  const sql =
+    "UPDATE cart SET quantity = ? WHERE user_id = ? AND product_id = ?"; // Đảm bảo tên bảng là 'cart'
   db.query(sql, [quantity, user_id, product_id], (err) => {
     if (err) {
-      console.error('Lỗi khi cập nhật số lượng:', err);
-      return res.status(500).json({ error: 'Lỗi server', details: err.message });
+      console.error("Lỗi khi cập nhật số lượng:", err);
+      return res
+        .status(500)
+        .json({ error: "Lỗi server", details: err.message });
     }
     res.json({ message: "✅ Cập nhật số lượng thành công" });
   });
@@ -58,8 +63,10 @@ export const removeCartItem = (req, res) => {
   const sql = "DELETE FROM cart WHERE user_id = ? AND product_id = ?"; // Đảm bảo tên bảng là 'cart'
   db.query(sql, [user_id, product_id], (err) => {
     if (err) {
-      console.error('Lỗi khi xoá sản phẩm:', err);
-      return res.status(500).json({ error: 'Lỗi server', details: err.message });
+      console.error("Lỗi khi xoá sản phẩm:", err);
+      return res
+        .status(500)
+        .json({ error: "Lỗi server", details: err.message });
     }
     res.json({ message: "✅ Xoá sản phẩm khỏi giỏ hàng thành công" });
   });
@@ -69,32 +76,49 @@ export const removeCartItem = (req, res) => {
 export const addToCart = (req, res) => {
   const { user_id, product_id, quantity } = req.body;
   if (!user_id || !product_id || isNaN(quantity) || quantity < 1) {
-    return res.status(400).json({ error: 'Vui lòng cung cấp đầy đủ thông tin hoặc số lượng hợp lệ' });
+    return res.status(400).json({
+      error: "Vui lòng cung cấp đầy đủ thông tin hoặc số lượng hợp lệ",
+    });
   }
-  
+
   const checkSql = "SELECT * FROM cart WHERE user_id = ? AND product_id = ?"; // Đảm bảo tên bảng là 'cart'
   db.query(checkSql, [user_id, product_id], (err, result) => {
     if (err) {
-      console.error('Lỗi khi kiểm tra giỏ hàng:', err);
-      return res.status(500).json({ error: 'Lỗi server', details: err.message });
+      console.error("Lỗi khi kiểm tra giỏ hàng:", err);
+      return res
+        .status(500)
+        .json({ error: "Lỗi server", details: err.message });
     }
     if (result.length > 0) {
-      const updateSql = "UPDATE cart SET quantity = quantity + ? WHERE user_id = ? AND product_id = ?"; // Đảm bảo tên bảng là 'cart'
+      const updateSql =
+        "UPDATE cart SET quantity = quantity + ? WHERE user_id = ? AND product_id = ?"; // Đảm bảo tên bảng là 'cart'
       db.query(updateSql, [quantity, user_id, product_id], (err) => {
         if (err) {
-          console.error('Lỗi khi cập nhật số lượng sản phẩm trong giỏ hàng:', err);
-          return res.status(500).json({ error: 'Lỗi server', details: err.message });
+          console.error(
+            "Lỗi khi cập nhật số lượng sản phẩm trong giỏ hàng:",
+            err
+          );
+          return res
+            .status(500)
+            .json({ error: "Lỗi server", details: err.message });
         }
-        return res.json({ message: "✅ Cập nhật số lượng sản phẩm trong giỏ hàng thành công" });
+        return res.json({
+          message: "✅ Cập nhật số lượng sản phẩm trong giỏ hàng thành công",
+        });
       });
     } else {
-      const insertSql = "INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, ?)"; // Đảm bảo tên bảng là 'cart'
+      const insertSql =
+        "INSERT INTO cart (user_id, product_id, quantity) VALUES (?, ?, ?)"; // Đảm bảo tên bảng là 'cart'
       db.query(insertSql, [user_id, product_id, quantity], (err) => {
         if (err) {
-          console.error('Lỗi khi thêm sản phẩm vào giỏ hàng:', err);
-          return res.status(500).json({ error: 'Lỗi server', details: err.message });
+          console.error("Lỗi khi thêm sản phẩm vào giỏ hàng:", err);
+          return res
+            .status(500)
+            .json({ error: "Lỗi server", details: err.message });
         }
-        return res.json({ message: "✅ Thêm sản phẩm vào giỏ hàng thành công" });
+        return res.json({
+          message: "✅ Thêm sản phẩm vào giỏ hàng thành công",
+        });
       });
     }
   });
