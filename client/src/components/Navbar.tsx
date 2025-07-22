@@ -178,7 +178,7 @@ const NavBar = ({ onCartIconClick }: NavBarProps) => {
             </li>
 
             <li className="nav-item mx-2">
-              <Link className="nav-link" to="/km">Khuyến mãi</Link>
+              <Link className="nav-link" to="/vouchers">Khuyến mãi</Link>
             </li>
             <li className="nav-item mx-2">
               <Link className="nav-link" to="/">Blog làm đẹp</Link>

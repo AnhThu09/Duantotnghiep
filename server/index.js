@@ -46,7 +46,27 @@ app.use("/api/users", userRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use('/api/posts', postRoutes); 
 app.use('/api/favorites', favoriteProductsRoutes);
+// === THÊM API ENDPOINT CHO MÃ GIẢM GIÁ VÀO ĐÂY ===
+app.get('/api/codes', (req, res) => {
+    const query = 'SELECT code_id, code, description, discount_percent, discount_amount, start_date, end_date FROM codes ORDER BY end_date ASC';
 
+    db.query(query, (err, results) => {
+        if (err) {
+            console.error('Lỗi khi lấy mã giảm giá từ DB:', err);
+            return res.status(500).json({
+                success: false,
+                message: 'Đã xảy ra lỗi khi lấy mã giảm giá. Vui lòng thử lại sau.',
+                error: err.message
+            });
+        }
+        res.json({
+            success: true,
+            message: 'Lấy danh sách mã giảm giá thành công!',
+            codes: results
+        });
+    });
+});
+// =================================================
 // Xử lý lỗi
 app.use((req, res) => {
   res.status(404).json({ message: "Không tìm thấy tài nguyên!" });

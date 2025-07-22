@@ -44,7 +44,8 @@ export default function ProductByCategory() {
                   src={`${UPLOADS_BASE_URL}${product.thumbnail}`}
                   className="card-img-top"
                   alt={product.name}
-                  style={{ height: '200px', objectFit: 'cover' }}
+                  //cân đối kích thước ảnh
+                  style={{ height: '150px', objectFit: 'cover' }}
                 />
                 <div className="card-body">
                   <h5 className="card-title">{product.name}</h5>

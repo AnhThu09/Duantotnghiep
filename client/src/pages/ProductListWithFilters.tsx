@@ -306,7 +306,7 @@ export default function ProductListWithFilters() {
   description="Từ những dòng serum dưỡng da chuyên sâu đến bảng màu son rực rỡ, chúng tôi mang đến các sản phẩm mỹ phẩm chính hãng giúp bạn tỏa sáng với phong cách riêng. Hãy bắt đầu hành trình làm đẹp cùng chúng tôi ngay hôm nay!"
   buttonText="XEM NGAY"
   buttonLink="/products"
-  mainImage="https://www.lemon8-app.com/seo/image?item_id=7299463717391991297&index=0&sign=d309ed598e6fa9b3778efccb76f8fa3b"
+  mainImage="/public/img/banner3.png"
 />
 
       <ProductDisplayPage/>

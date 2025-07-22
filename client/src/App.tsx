@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import React, { useState } from 'react'
+
 import ContactForm from './pages/ContactForm'
 import Footer from './components/Footer'
 import NavBar from './components/Navbar'
@@ -24,7 +25,7 @@ import ProductDetailPage from './pages/ProductDetailPage'
 import FavoriteProductsPage from './pages/FavoriteProductsPage'
 import BlogPostDetail from './pages/BlogPostDetail'
 import ProductListWithFilters from './pages/ProductListWithFilters'
-
+import VoucherListPage from './pages/VoucherListPage'
 
 function App() {
    const [isCartOpen, setIsCartOpen] = useState(false)
@@ -37,11 +38,13 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/products" element={<ProductListWithFilters />} />
           {/* <Route path="/brand" element={<ThuongHieu />} /> */}
-          {/* <Route path="/km" element={<KhuyenMai />} /> */}
+          <Route path="/vouchers" element={<VoucherListPage />} />
           {/* <Route path="/contact" element={<Blog />} /> */}
           {/* <Route path="/categories" element={<Contact />} /> */}
           {/* <Route path="/favorites" element={<Favorites />} /> */}
           {/* <Route path="/category" element={<CategoryGallery />} /> */}
+        
+
           <Route path="/danh-muc/:slug" element={<ProductByCategory />} />
           <Route path="/thuong-hieu/:slug" element={<ProductByBrand />} />
           <Route path="/products/:productId" element={<ProductDetailPage />} />

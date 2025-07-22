@@ -1,7 +1,7 @@
 // src/components/ProductSearch.tsx
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { getAllProducts } from '../api/productAPI';
+import { getAllProduct } from '../api/productAPI.js';
 import ProductCard from './ProductCard'; 
 import { Product } from '../types'; // Import interface Product
 
