@@ -13,6 +13,9 @@ import paymentRoutes from "./routes/paymentRoutes.js";
 import dotenv from "dotenv";
 import postRoutes from './routes/postRoutes.js';
 import favoriteProductsRoutes from "./routes/favoriteProductsRoutes.js";
+import discountCodeRoutes from "./routes/discountCodeRoutes.js";
+import reviewRoutes from "./routes/reviewRoutes.js";
+import shippingRoutes from "./routes/shipping.js";
 
 dotenv.config(); // ⬅️ THÊM DÒNG NÀY Ở TRÊN CÙNG
 console.log('EMAIL_USER from .env:', process.env.EMAIL_USER);
@@ -46,6 +49,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use('/api/posts', postRoutes); 
 app.use('/api/favorites', favoriteProductsRoutes);
+<<<<<<< HEAD
 // === THÊM API ENDPOINT CHO MÃ GIẢM GIÁ VÀO ĐÂY ===
 app.get('/api/codes', (req, res) => {
     const query = 'SELECT code_id, code, description, discount_percent, discount_amount, start_date, end_date FROM codes ORDER BY end_date ASC';
@@ -67,6 +71,11 @@ app.get('/api/codes', (req, res) => {
     });
 });
 // =================================================
+=======
+app.use('/api/discounts', discountCodeRoutes);
+app.use('/api/reviews', reviewRoutes); 
+app.use('/api/shipping', shippingRoutes);
+>>>>>>> 819baa1be52293ee901395dc501f5b91f799b09e
 // Xử lý lỗi
 app.use((req, res) => {
   res.status(404).json({ message: "Không tìm thấy tài nguyên!" });

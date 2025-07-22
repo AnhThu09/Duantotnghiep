@@ -126,7 +126,7 @@ const LoginPage = () => {
       sx={{
         maxWidth: 400, // Chiều rộng tối đa của form
         mx: 'auto',    // Căn giữa theo chiều ngang
-        mt: 8,         // Margin top
+        mt: 16,         // Margin top
         mb: 8,         // Margin bottom
         p: 4,          // Padding bên trong
         bgcolor: '#fdf9ef', // Màu nền

@@ -1,4 +1,3 @@
-//quan li yeu thích
 // 📁 src/pages/FavoriteProductsPage.tsx
 
 import React, { useState, useEffect, useCallback } from 'react';
@@ -14,6 +13,7 @@ import { useAuth } from '../context/AuthContext'; // Import useAuth
 // --- INTERFACES ---
 interface Product {
   product_id: number;
+  favorite_id: number;
   name: string;
   description: string;
   price: number;
@@ -79,24 +79,49 @@ const FavoriteProductsPage: React.FC = () => {
     fetchFavoriteProducts();
   }, [fetchFavoriteProducts]);
 
-  const handleRemoveFavorite = async (productId: number) => {
-    if (!user_id) {
-      showSnackbar('Bạn cần đăng nhập để thực hiện hành động này.', 'warning');
-      navigate('/login');
-      return;
+   // ✅ SỬA HÀM handleRemoveFavorite để nhận favoriteId
+const handleRemoveFavorite = async (product_id: number, favorite_id: number) => {
+  if (!user_id) {
+    showSnackbar('Bạn cần đăng nhập để thực hiện hành động này.', 'warning');
+    navigate('/login');
+    return;
+  }
+
+  const token = localStorage.getItem('token');
+  if (!token) {
+    showSnackbar('Không có token xác thực.', 'error');
+    return;
+  }
+
+  try {
+    const response = await axios.delete(`${API_BASE_URL}/favorites/${product_id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    showSnackbar(response.data.message || '🗑️ Đã xóa sản phẩm khỏi danh sách yêu thích!', 'success');
+
+    // ✅ Cập nhật UI ngay sau khi xóa
+    setFavoriteProducts(prev =>
+      prev.filter(product => product.product_id !== product_id)
+    );
+
+  } catch (error) {
+    const msg =
+      (error as any).response?.data?.message || '❌ Lỗi khi xóa sản phẩm khỏi danh sách yêu thích.';
+    console.error('Lỗi xóa sản phẩm yêu thích:', error);
+    showSnackbar(msg, 'error');
+
+    if (
+      (error as any).response &&
+      ((error as any).response.status === 401 || (error as any).response.status === 403)
+    ) {
+      localStorage.removeItem('token');
     }
-    try {
-      // Gửi yêu cầu DELETE đến API để xóa sản phẩm
-      const response = await axios.delete(`${API_BASE_URL}/favorites/${user_id}/${productId}`);
-      showSnackbar(response.data.message || '🗑️ Đã xóa sản phẩm khỏi danh sách yêu thích!', 'success');
-      // Cập nhật lại danh sách yêu thích sau khi xóa
-      fetchFavoriteProducts();
-    } catch (error) {
-      const msg = (error as { response?: { data?: { message?: string } } }).response?.data?.message || '❌ Lỗi khi xóa sản phẩm khỏi danh sách yêu thích.';
-      console.error("Lỗi xóa sản phẩm yêu thích:", error);
-      showSnackbar(msg, 'error');
-    }
-  };
+  }
+};
+
 
   const handleAddToCart = async (product: Product) => {
     if (!user_id) {
@@ -146,7 +171,7 @@ const FavoriteProductsPage: React.FC = () => {
   }
 
   return (
-    <Box sx={{ p: { xs: 2, sm: 3, md: 4 }, maxWidth: '1200px', margin: '0 auto' }}>
+    <Box sx={{ p: { xs: 2, sm: 3, md: 4}, mt: 11, maxWidth: '1200px'}}>
       <Typography variant="h4" gutterBottom sx={{ fontWeight: 'bold', mb: 4, textAlign: 'center' }}>
         Sản phẩm yêu thích của bạn
       </Typography>
@@ -178,13 +203,17 @@ const FavoriteProductsPage: React.FC = () => {
                   transition: 'box-shadow 0.2s ease-in-out',
                   backgroundColor: '#fff',
                   position: 'relative', // Để position các nút
+                  height: '100%',
+                  minHeight: '400px',
+                  justifyContent: 'space-between',
                 }}
               >
                 {/* Nút xóa */}
                 <IconButton
                   aria-label="xóa khỏi yêu thích"
                   sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }}
-                  onClick={() => handleRemoveFavorite(product.product_id)}
+              onClick={() => handleRemoveFavorite(product.product_id)} 
+
                 >
                   <FavoriteIcon sx={{ color: "#212121" }} fontSize="small" />
                 </IconButton>
@@ -215,11 +244,11 @@ const FavoriteProductsPage: React.FC = () => {
                       mb: 1,
                       fontSize: '1.1rem',
                       lineHeight: '1.3',
-                      minHeight: '2.6em',
                       display: '-webkit-box',
                       WebkitLineClamp: 2,
                       WebkitBoxOrient: 'vertical',
                       overflow: 'hidden',
+                      minHeight: '2.6em',
                       textOverflow: 'ellipsis',
                     }}
                   >

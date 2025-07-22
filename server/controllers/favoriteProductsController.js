@@ -55,6 +55,35 @@ export const getFavoriteProducts = async (req, res) => {
         res.status(500).json({ message: "Lỗi server khi tải danh sách sản phẩm yêu thích." });
     }
 };
+export const getFavoriteProductsByUser = async (req, res) => {
+  try {
+    const userId = req.params.user_id;
+
+    if (!userId) {
+      return res.status(400).json({ message: 'Thiếu user_id' });
+    }
+
+    const query = `
+      SELECT
+        fp.favorite_id,
+        p.product_id,
+        p.name,
+        p.price,
+        p.thumbnail
+      FROM favorites fp
+      JOIN products p ON fp.product_id = p.product_id
+      WHERE fp.user_id = ?
+      ORDER BY fp.favorite_id DESC;
+    `;
+
+    const [rows] = await db.promise().query(query, [userId]);
+
+    res.status(200).json(rows);
+  } catch (error) {
+    console.error('❌ Lỗi lấy sản phẩm yêu thích theo user_id:', error);
+    res.status(500).json({ message: 'Lỗi server khi lấy sản phẩm yêu thích' });
+  }
+};
 
 // ======================================
 // CONTROLLER: Thêm sản phẩm vào danh sách yêu thích
@@ -104,29 +133,40 @@ export const addFavoriteProduct = async (req, res) => {
 // ======================================
 export const removeFavoriteProduct = async (req, res) => {
     try {
+        // Đảm bảo req.user.id tồn tại (được xác thực bởi authMiddleware)
+        if (!req.user || !req.user.id) {
+            console.error("❌ removeFavoriteProduct: req.user hoặc req.user.id không tồn tại. Token invalid?");
+            return res.status(401).json({ message: "Không có thông tin người dùng xác thực để xóa." });
+        }
         const userId = req.user.id; // Lấy user_id từ JWT token
-        const { product_id } = req.params; // Lấy product_id từ URL params (ví dụ: /favorites/remove/:product_id)
-        // Hoặc bạn có thể xóa theo favorite_id: const { favorite_id } = req.params;
 
-        if (!product_id) {
+        const { product_id } = req.params; // ✅ Lấy product_id từ URL params
+
+        if (!product_id) { 
+            console.error("❌ removeFavoriteProduct: product_id bị thiếu trong request params.");
             return res.status(400).json({ message: "Vui lòng cung cấp ID sản phẩm để xóa." });
         }
 
+        // Tùy chọn: Chuyển đổi product_id sang số nếu bạn chắc chắn DB là số (BIGINT)
+        // const parsedProductId = parseInt(product_id, 10);
+        // if (isNaN(parsedProductId)) { /* ... */ }
+
+        // ✅ CÂU TRUY VẤN DELETE: Xóa theo user_id VÀ product_id
         const [result] = await db.promise().query(
             "DELETE FROM favorites WHERE user_id = ? AND product_id = ?",
-            [userId, product_id]
+            [userId, product_id] 
         );
-        // Hoặc: "DELETE FROM Favorite_products WHERE favorite_id = ? AND user_id = ?" (Nếu xóa theo favorite_id)
 
         if (result.affectedRows === 0) {
-            // Nếu không có dòng nào bị ảnh hưởng, có thể sản phẩm không tồn tại trong DS yêu thích của user này
-            return res.status(404).json({ message: "Sản phẩm không tìm thấy trong danh sách yêu thích của bạn." });
+            console.warn(`removeFavoriteProduct: Xóa 0 dòng cho user ${userId}, product ${product_id}. Có thể không tìm thấy.`);
+            return res.status(404).json({ message: "Sản phẩm yêu thích không tìm thấy hoặc không thuộc về bạn." });
         }
 
+        console.log(`✅ Đã xóa sản phẩm ${product_id} khỏi yêu thích của user ${userId}.`);
         res.status(200).json({ message: "Sản phẩm đã được xóa khỏi danh sách yêu thích." });
 
     } catch (error) {
-        console.error("❌ Lỗi khi xóa sản phẩm yêu thích:", error);
+        console.error("❌ Lỗi khi xóa sản phẩm yêu thích (Controller):", error);
         res.status(500).json({ message: "Lỗi server khi xóa sản phẩm khỏi danh sách yêu thích." });
     }
 };

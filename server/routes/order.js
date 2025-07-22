@@ -1,16 +1,24 @@
-import express from 'express'
+// routes/orderRoutes.js
+import express from "express";
 import {
-  createOrder,
   getAllOrders,
-  getOrdersByUser,
+  getOrderDetails,
   updateOrderStatus,
-} from '../controllers/orderController.js'
+  deleteOrder,
+  createOrder,
+} from "../controllers/orderController.js";
 
-const router = express.Router()
+const orderRoutes = express.Router();
 
-router.post('/create', createOrder) // Tạo đơn hàng
-router.get('/user/:user_id', getOrdersByUser) // Lấy đơn hàng của 1 user
-router.get('/', getAllOrders) // Lấy tất cả đơn hàng
-router.put('/:id/status', updateOrderStatus) // Cập nhật trạng thái đơn hàng
+// Lấy tất cả đơn hàng
+orderRoutes.get("/", getAllOrders);
+// Lấy chi tiết đơn hàng (nếu cần)
+orderRoutes.get("/:id", getOrderDetails);
+// Cập nhật trạng thái đơn hàng
+orderRoutes.put("/:id", updateOrderStatus);
+orderRoutes.post("/", createOrder); // <-- Thêm dòng này
 
-export default router
+// Xóa đơn hàng
+orderRoutes.delete("/:id", deleteOrder);
+
+export default orderRoutes;

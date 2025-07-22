@@ -20,7 +20,7 @@ useEffect(() => {
   if (!post) return <p>Đang tải...</p>;
 
   return (
-    <Box sx={{ px: { xs: 2, md: 6 }, py: 6 }}>
+    <Box sx={{ px: { xs: 2, md: 6 }, py: 6, mt: 10 }}>
       <Grid container spacing={6}>
         {/* Cột trái */}
         <Grid item xs={12} md={8}>

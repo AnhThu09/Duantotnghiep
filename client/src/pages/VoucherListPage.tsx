@@ -5,7 +5,7 @@ import {
     InputAdornment, TextField
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
-import VoucherCard from '../components/VoucherCard';
+import VoucherCard from '../components/';
 
 // --- INTERFACES & UTILITY FUNCTIONS ---
 // (Cần định nghĩa lại hoặc import các interfaces và hàm processDbData từ file khác)

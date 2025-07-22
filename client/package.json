@@ -18,6 +18,7 @@
     "bootstrap": "^5.3.6",
     "canvas-confetti": "^1.9.3",
     "cors": "^2.8.5",
+    "date-fns": "^4.1.0",
     "framer-motion": "^12.19.1",
     "lucide-react": "^0.515.0",
     "react": "^19.1.0",
@@ -29,6 +30,7 @@
     "react-slick": "^0.30.3",
     "slick-carousel": "^1.8.1",
     "sonner": "^2.0.5",
+    "styled-components": "^6.1.19",
     "swiper": "^11.2.10"
   },
   "devDependencies": {
