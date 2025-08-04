@@ -28,7 +28,13 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({
   const [agreedToTerms, setAgreedToTerms] = useState(true);
 
   const handlePaymentMethodChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('PaymentMethods: Radio changed to:', event.target.value);
     onMethodChange(event.target.value);
+  };
+
+  const handleCardClick = (methodId: string) => {
+    console.log('PaymentMethods: Card clicked for:', methodId);
+    onMethodChange(methodId);
   };
 
   const paymentMethods = [
@@ -71,12 +77,14 @@ const PaymentMethods: React.FC<PaymentMethodsProps> = ({
               <Card
                 key={method.id}
                 variant="outlined"
+                onClick={() => handleCardClick(method.id)}
                 sx={{
                   mb: 2,
                   cursor: 'pointer',
                   borderColor: selectedMethod === method.id ? 'primary.main' : 'grey.300',
                   '&:hover': { borderColor: 'primary.main' },
                   transition: 'border-color 0.2s',
+                  userSelect: 'none',
                 }}
               >
                 <CardContent sx={{ p: 2 }}>

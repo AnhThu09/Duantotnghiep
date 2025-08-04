@@ -1,8 +1,6 @@
+import { Box, Container, Grid } from '@mui/material';
 import React from 'react';
-import { Container, Grid, Box } from '@mui/material';
 import { useCart } from '../context/CartContext'; // ✨ DÙNG CONTEXT
-import CartSummary from '../components/CartSummary';
-import CustomerForm from '../components/CustomerForm';
 import CartPage from './CartPage';
 
 // Chỉnh lại interface cho CartSummary để khớp với CartContext
@@ -25,7 +23,7 @@ const CheckoutPage: React.FC = () => {
     name: item.name,
     price: item.price,
     quantity: item.quantity,
-    image: `${UPLOADS_BASE_URL}${item.thumbnail}` // Tạo URL đầy đủ
+    image: `${UPLOADS_BASE_URL}${item.thumbnail}`, // Tạo URL đầy đủ
   }));
 
   const handleUpdate = (itemId: string, newQuantity: number) => {
@@ -40,7 +38,7 @@ const CheckoutPage: React.FC = () => {
       <Grid container spacing={{ xs: 4, md: 6 }}>
         <Grid item xs={12} md={5}>
           <Box sx={{ position: 'sticky', top: '88px' }}>
-            <CartPage/>
+            <CartPage />
           </Box>
         </Grid>
       </Grid>

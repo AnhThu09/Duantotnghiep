@@ -17,6 +17,7 @@ import { useCallback, useEffect, useState } from "react";
 import { Link as RouterLink } from "react-router-dom"; // Nếu bạn dùng react-router-dom
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "@mui/material/styles";
+import PaymentMethods from "./PaymentMethods";
 
 // Sử dụng file dữ liệu nội bộ để đảm bảo 100% ổn định
 import addressData from "../data/vietnam_address.json";
@@ -28,6 +29,7 @@ import addressData from "../data/vietnam_address.json";
 interface CustomerFormProps {
   onFormChange?: (data: CustomerFormData) => void;
   onSaveInfoChange?: (shouldSave: boolean) => void;
+  onPaymentMethodChange?: (method: string) => void;
   initialShippingAddress?: {
     name: string;
     phone_number: string;
@@ -69,6 +71,7 @@ interface WardData extends LocationData {}
 const CustomerForm: React.FC<CustomerFormProps> = ({
   onFormChange = () => {},
   onSaveInfoChange = () => {},
+  onPaymentMethodChange = () => {},
 }) => {
   const { currentUser } = useAuth();
   const theme = useTheme();
@@ -84,6 +87,9 @@ const CustomerForm: React.FC<CustomerFormProps> = ({
     notes: "",
     save_info_for_next_time: true,
   });
+
+  // State cho payment method
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('cod');
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
 
@@ -184,6 +190,15 @@ const CustomerForm: React.FC<CustomerFormProps> = ({
   useEffect(() => {
     if (onFormChange) onFormChange(formData);
   }, [formData, onFormChange]);
+
+  // Handler cho payment method change
+  const handlePaymentMethodChange = useCallback((method: string) => {
+    console.log('Payment method changed in CustomerForm:', method);
+    setSelectedPaymentMethod(method);
+    if (onPaymentMethodChange) {
+      onPaymentMethodChange(method);
+    }
+  }, [onPaymentMethodChange]);
 
   const primaryColor = theme.palette.primary.main;
 
@@ -400,6 +415,14 @@ const CustomerForm: React.FC<CustomerFormProps> = ({
           sx={{ mt: 3 }}
         />
       </CardContent>
+      
+      {/* Phần Phương thức thanh toán */}
+      <Box sx={{ mt: 3 }}>
+        <PaymentMethods 
+          selectedMethod={selectedPaymentMethod}
+          onMethodChange={handlePaymentMethodChange} 
+        />
+      </Box>
     </Card>
   );
 };

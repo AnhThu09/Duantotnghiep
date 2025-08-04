@@ -1,15 +1,15 @@
 import express from "express";
 import {
-  createMoMoPayment,
-  verifyMoMoPayment,
+  createVNPayPayment,
+  handleVNPayReturn,
   createCODOrder,
 } from "../controllers/paymentController.js";
 
 const router = express.Router();
 
-// MoMo Payment
-router.post("/momo/create", createMoMoPayment);
-router.get("/momo/verify", verifyMoMoPayment);
+// VNPay Payment
+router.post("/vnpay/create", createVNPayPayment);
+router.get("/vnpay/return", handleVNPayReturn);
 
 // COD Payment
 router.post("/cod/create", createCODOrder);
